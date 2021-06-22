@@ -15,7 +15,7 @@ Dynamic optimization relies on multiple packages. First of all it uses [Pymunk](
 
 ## Usage
 
-The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/strider.py), which demonstrates all the techniques about the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
+The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/examples/strider.py), which demonstrates all the techniques about the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
 
 
 ## Requirements
