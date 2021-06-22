@@ -1,5 +1,5 @@
 # Data from optimizer are currently in .txt files
-*.txt
+leggedsnake/*.txt
 # Project generate several videos
 *.mp4
 

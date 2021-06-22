@@ -11,9 +11,13 @@ It contain useful functions, and a "Joint" class (with herited classes), that
 make study of planar mecanisms easy.
 
 """
-# Used to read GeoGebra file
-import zipfile as zf
-import xml.etree.ElementTree as ET
+try:
+    # Used to read GeoGebra file
+    import zipfile as zf
+    import xml.etree.ElementTree as ET
+except ModuleNotFoundError as err:
+    print(err)
+    print("You won't be able to use the GeoGebra interface.")
 
 
 def ggb_extractor(file_path):
