@@ -8,7 +8,7 @@ dependencies:
   - numpy>=1.20.2=py38h2d18471_0
   - numpy-base>=1.20.2=py38hfae3a4d_0
   - numpydoc>=1.1.0=pyhd3eb1b0_1
-  - pymunk>5.0.0
+  - pymunk>=6.0.0
   - pip
   - pip:
     - pygad>=2.10.0
