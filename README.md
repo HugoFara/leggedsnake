@@ -59,7 +59,7 @@ Kinematic optimization is fast, however it can return weird results, and it has 
 
 We handle everything almost evything world definition to linkage conversion. Appart from the GA parameters, you just have to define a fitness function. Here are the main steps for a **maximisation problem**:
 1. Create a function of two arguments, the first one should be the paramaters of the linkage, the second the initial positions for the joints.
-2. Try to do a revolution in **kinematic simulation**. If the Walker raise an ``UnbuildableError`` set its score to ``-float('inf')``.
+2. Try to do a revolution in **kinematic simulation**. If the Walker raises an ``UnbuildableError`` set its score to ``-float('inf')``.
 3. Otherwise use this procedure 
 ```python
 from leggedsnake import physicsengine as pe
@@ -92,4 +92,4 @@ def dynamic_linkage_fitness(walker):
   return tot / dur, pos
 ```
 
-And now, relax while your computer recreate a civilisation of walking machines!
+And now, relax while your computer recreates a civilisation of walking machines!
