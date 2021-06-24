@@ -3,7 +3,7 @@
 This package aims to provide reliable computation techniques in Python to build, simulate and optimize planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism). It is divided in three main parts:
 * Linkage conception in simple Python and kinematic optimization relying on [pylinkage](https://github.com/HugoFara/pylinkage).
 * Leg mechanism definition, with ``Walker`` heriting from the ``Linkage`` class.
-* Dynamic optimization thanks to genetic algorithms.
+* Dynamic simulation and its optimization thanks to genetic algorithms.
 
 ## Installation
 ### Using pip
@@ -52,8 +52,6 @@ This set of rules should work well for a stride **maximisation** problem:
 #. Verify if it can pass a certain obstacke using ``step`` function. If not, its score is 0.
 #. Eventually mesure the length of its stide with the ``stride`` function. Return this length as its score.
 
-This optimization is really quick, however it is only kinematically based, so you should be precise on what kind of movement you want.
-
 ### Dynamic Optimization using Genetic Algorithm (GA)
 Kinematic optimization is fast, however it can return weird results, and it has no sense of gravity while walking heavily relies on gravity. This is why you may need to use dynamic optimization thanks to [Pymunk](http://www.pymunk.org/en/latest/index.html). However the calculation is much more slower, and you can no longer tests millions of linkages as in PSO (or you will need time). This is why we use [genetic algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm), because it can provide good results with less parents.
 
@@ -93,3 +91,27 @@ def dynamic_linkage_fitness(walker):
 ```
 
 And now, relax while your computer recreates a civilisation of walking machines!
+
+### Visualization
+For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html), an exemple file is provided at [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/examples/strider.py). The linkage looks like this:
+![A Kinematic representation of Strider linkage](https://github.com/HugoFara/leggedsnake/blob/master/examples/images/Kinematic%20unoptimized%20Strider.gif)
+
+Looks cool? Let's simulate it dynamically!
+
+![Dynamic one-leg-pair Strider being tested](https://github.com/HugoFara/leggedsnake/blob/master/examples/images/Dynamic%20unoptimized%20one-legged%20Strider.gif)
+
+Oops! Here is what you get when you forget to add more legs! There is **real danger here**, because your walker crawls well, you will be able to optimize efficiently the "crawler", *which may be not your goal*. 
+
+Let's add three more leg pairs. Why three? Many legs means more mass and constraints, so less yield and more intensive computations. On the other hand, we always want the center of mass over the [support line](https://en.wikipedia.org/wiki/Support_polygon), which means that if the walker begins to lift a foot (let's say a front foot), and another doesn't come on the ground ahead of it, the linkage will to fall nose to the ground. With more foots we make the "snooping" time shorter, and a total of four leg pairs is a minimum for this *unoptimized* version. 
+
+Let's have a look at the artist:
+
+![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/blob/master/examples/images/Dynamic%20unoptimized%20strider.gif)
+
+## Advices
+Use the vizualisation tools provided! The optimization tools should always give you a score with a better fitness, but it might not be what you expected. Tailor your optimization and *then* go for a long run will make you save a lot of time.
+
+**Do not** use optimized linkages from the start! The risk is to fall to quickly into a suboptimal solution. They are several mechanisms to prevent that (starting from random position), however it can always have an impact on the rest of the optimization.
+
+Try to minimize the number of elements in the optimizations! You can often use some linkage's properties to reduce the number of simulation parameters. For instance, the Strider linkage has an axial symmetry. While it is irrelevant to use this property in dynamic simulation, you can use "half" your Strider in a kinematic optimization, which is much faster:
+![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/blob/master/examples/images/Kinematic%20half-Strider.gif)
