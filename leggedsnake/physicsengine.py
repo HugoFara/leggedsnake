@@ -74,17 +74,14 @@ params = {
 def set_space_constraints(space):
     """Set the solver if they are many constraints."""
     constraints = space.constraints
+    len_c = len(space.constraints)
     # Number of iteration can be adapted
-    # space.iterations = min(10, int(np.exp(len(c)/12)))
-    # space.collision_slop = .5
-    # space.collision_bias = (1 - .1 * np.exp(-len(c) / 50)) ** 60
-    # Ugly way to prevent linkages to bounce on the ground
-    # space.damping = .9
+    space.iterations = int(10 * np.exp(len_c / 60))
     for constraint in constraints:
         if not isinstance(constraint, pm.SimpleMotor) and False:
             constraint.max_force = params["physics"]["max_force"] * (np.exp(
-                - len(constraints) / 25) / 2 + .5)
-        # constraint.error_bias = (1 - .1 * np.exp(-len(c) / 50)) ** 60
+                - len_c / 25) / 2 + .5)
+        constraint.error_bias = (1 - .1 * np.exp(-len_c / 60)) ** 60
 
 
 class World:
