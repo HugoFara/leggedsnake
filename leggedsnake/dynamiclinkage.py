@@ -17,9 +17,6 @@ from pylinkage.geometry import dist, cyl_to_cart
 class DynamicJoint(abc.ABC):
     """Dynamic, pymunk compatible equivalent of kinematic Joint."""
 
-    #__slots__ = ['_a', '_anchor_a']
-
-    @abc.abstractmethod
     def __init__(self, body0=None, body1=None, space=None, radius=.3,
                  density=1, shape_filter=None):
         if isinstance(body0, pm.Body):
