@@ -15,7 +15,6 @@ Directions:
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 import numpy as np
-from cProfile import run
 import pylinkage.optimizer as wo
 from pylinkage.exceptions import UnbuildableError
 from pylinkage.linkage import Static, Pivot, Fixed, Crank
@@ -29,9 +28,9 @@ from leggedsnake import geneticoptimizer as go
 
 # Simulation parameters
 # Nunber of points for crank complet turn
-n = 12
+n = 10
 # Time (in seconds) for a crank revolution
-speed = 5
+speed = 100
 
 """
 Parameters that can change without changing joints between objects.
@@ -531,9 +530,10 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
                           duration=10)
 
 
+#from cProfile import run
 strider = complete_strider(param2dimensions(param), begin)
 strider = strider_builder(param2dimensions(param), begin,
-                          n_leg_pairs=1, minimal=False)
+                          n_leg_pairs=19, minimal=False)
 #o = swarm_optimizer(show=1, save_each=1, age=10, ite=10, blind_ite=10)
 #run('swarm_optimizer(show=False, save_each=0, age=30, ite=400)')
 #optimized_striders = wo.exhaustive_optimization(
@@ -542,9 +542,8 @@ strider = strider_builder(param2dimensions(param), begin,
 #                                     ite=200, blind_ite=1, bounds=bounds)
 #show_optimized(strider, optimized_striders)
 #strider.add_legs(3)
-#print(strider.joints)
 #visu.show_linkage(strider, save=False, duration=10, iteration_factor=n)
-#show_physics(strider, debug=False, duration=40, save=False)
-o = evolutive_optimizer(
-    strider, dims=param, prev=begin, pop=10, ite=100, init_pop=100,
-    save=False, startnstop=False)
+show_physics(strider, debug=False, duration=40, save=False)
+#o = evolutive_optimizer(
+#    strider, dims=param, prev=begin, pop=10, ite=100, init_pop=100,
+#    save=False, startnstop=False)

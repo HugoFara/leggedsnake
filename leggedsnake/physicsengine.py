@@ -32,23 +32,14 @@ params = {
         "noise": .9,
         # Road trunks length
         "section_len": 1,
-        # Elastique restitution coefficient during bar/ground collision
-        # Between 0 and 1
-        "Cr": .2,
-        # Maximal penetration of contacting objects
-        "penetration_limit": .3,
-        # Maximal ground resistance
-        #"hardness": 1e3,
         # Ground friction coefficient root
         "friction": .5 ** .5
     },
     # Studied system parameters
-    "linka": {
-        # Motor rotation speed (rad/s)
-        "rot_speed": -10 * np.pi / 30,
+    "linkage": {
         # Maximal torque (N.m)
         "torque": 1e3,
-        # Crank length (m)
+        # Crank length (m) (unused for now)
         "crank_len": .05,
         # Linear mass of bars (kg/m)
         "masses": 1,
@@ -84,23 +75,24 @@ def set_space_constraints(space):
     """Set the solver if they are many constraints."""
     constraints = space.constraints
     # Number of iteration can be adapted
-    #space.iterations = min(10, int(np.exp(len(c)/12)))
-    #space.collision_slop = .5
-    #space.collision_bias = (1 - .1 * np.exp(-len(c) / 50)) ** 60
+    # space.iterations = min(10, int(np.exp(len(c)/12)))
+    # space.collision_slop = .5
+    # space.collision_bias = (1 - .1 * np.exp(-len(c) / 50)) ** 60
     # Ugly way to prevent linkages to bounce on the ground
     # space.damping = .9
     for constraint in constraints:
         if not isinstance(constraint, pm.SimpleMotor) and False:
             constraint.max_force = params["physics"]["max_force"] * (np.exp(
                 - len(constraints) / 25) / 2 + .5)
-        #constraint.error_bias = (1 - .1 * np.exp(-len(c) / 50)) ** 60
+        # constraint.error_bias = (1 - .1 * np.exp(-len(c) / 50)) ** 60
 
 
 class World:
     """
     A world contain a space of simulation, at least one linkage, and a road.
 
-
+    It is not intended to be rendered visually per se, see VisualWorld for
+    this purpose.
     """
 
     def __init__(self, space=None):
@@ -128,11 +120,10 @@ class World:
 
     def add_linkage(self, linkage):
         """Add a DynamicLinkage to the simulation."""
-        #add_bodies_to_linkage(linkage, self.space)
         if isinstance(linkage, dlink.DynamicLinkage):
             dynamiclinkage = linkage
         else:
-            dynamiclinkage = dlink.DynamicLinkage.convert_to_dynamic_linkage(
+            dynamiclinkage = dlink.convert_to_dynamic_linkage(
                 linkage, self.space)
         for crank in dynamiclinkage._cranks:
             crank.actuator.max_force = 0
@@ -147,7 +138,7 @@ class World:
         if (
                 crank.actuator.max_force == 0
                 and norm(linkage.body.velocity) < .1):
-            crank.actuator.max_force = params["linka"]["torque"]
+            crank.actuator.max_force = params["linkage"]["torque"]
             linkage.height = linkage.body.position.y
             linkage.mechanical_energy = (.5 * linkage.mass
                                          * norm(linkage.body.velocity) ** 2)
@@ -186,7 +177,7 @@ class World:
                         continue
                     index += 1
                     # Get offset for crank rotation speed
-                    w = crank.b.angular_velocity
+                    w = crank._b.angular_velocity
                     w -= linkage.body.angular_velocity
                     powers[i][index] += abs(w) * crank.actuator.impulse / dt
 
@@ -200,7 +191,6 @@ class World:
                                                                    power[0])
             bounds = (min(bounds[0], *(i.x for i in linkage.joints)),
                       max(bounds[1], *(i.x for i in linkage.joints)))
-        #L += [i.position[0] for i in linkage.rigidbodies]
         while self.road[-1][0] < bounds[1] + 10:
             self.build_road(True)
         while self.road[0][0] > bounds[0] - 10:
@@ -264,11 +254,7 @@ class World:
 
 
 class VisualWorld(World):
-    """
-    Same as parent class World, but with matplotlib objects.
-
-
-    """
+    """Same as parent class World, but with matplotlib objects."""
 
     def __init__(self, space=None):
         """Instantiate the world and objects to be displayed."""
@@ -280,6 +266,19 @@ class VisualWorld(World):
         self.road_im = self.ax.plot([], [], 'k-', animated=False)
 
     def add_linkage(self, linkage):
+        """
+        Add a linkage to the world, and create the appropriate Artist objects.
+
+        Parameters
+        ----------
+        linkage : pylinkage.linkage.Linkage
+            The linkage you want to add, can be a Walker.
+
+        Returns
+        -------
+        None.
+
+        """
         super().add_linkage(linkage)
         # Objects that will allow display
         linkage_im = []
@@ -319,18 +318,17 @@ class VisualWorld(World):
     def update(self, t):
         """Update simulation and draw it."""
         super().update(t)
-        self.fig.suptitle(
-            "Position: {}".format(self.linkages[0].joints[0].coord()))
+        center = self.linkages[0].joints[0].coord()
+        self.fig.suptitle("Position: {}".format(tuple(map(int, center))))
 
         self.road_im[0].set_data([i[0] for i in self.road],
                                  [i[1] for i in self.road])
         ax = self.ax
         for linkage in self.linkages:
             if params["camera"]["dynamic_camera"]:
-                ax.set_xlim(linkage.joints[0].x - 10, linkage.joints[0].x + 10)
-                ax.set_ylim(linkage.joints[0].y - 10, linkage.joints[0].y + 10)
+                ax.set_xlim(center[0] - 10, center[0] + 10)
+                ax.set_ylim(center[1] - 10, center[1] + 10)
             else:
-                #ax.set_xlim(min([0] + L) - 5, max([0] + L) + 5)
                 ax.set_ylim(min([0] + [i.y for i in linkage.joints]) - 5,
                             max([0] + [i.y for i in linkage.joints]) + 5)
 
@@ -419,7 +417,7 @@ def video(linkage, duration=30, save=False):
             repeat=False, blit=False))
     if save:
         writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
-        ani[-1].save("walker tested.mp4", writer=writer)
+        ani[-1].save(f"Dynamic {linkage.name}.mp4", writer=writer)
     else:
         world.fig.show()
 

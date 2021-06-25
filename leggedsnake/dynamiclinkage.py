@@ -7,22 +7,21 @@ Created on Thu May 27 18:49:07 2021.
 
 Interface between pymunk and a kinematic linkage
 """
-from abc import ABC
+import abc
 from math import atan2
 import pymunk as pm
 from pylinkage import linkage
 from pylinkage.geometry import dist, cyl_to_cart
 
 
-class DynamicJoint(ABC):
+class DynamicJoint(abc.ABC):
     """Dynamic, pymunk compatible equivalent of kinematic Joint."""
 
-    #__slots__ = ['body0', 'bpdy1', '_distance0', '_distance1', '_angle0',
-    #             '_angle1', 'space']
+    #__slots__ = ['_a', '_anchor_a']
 
+    @abc.abstractmethod
     def __init__(self, body0=None, body1=None, space=None, radius=.3,
                  density=1, shape_filter=None):
-        #super(linkage.Joint, self).__init__(x, y, name=name)
         if isinstance(body0, pm.Body):
             self._a = body0
             self._anchor_a = body0.world_to_local(self.coord())
@@ -37,6 +36,25 @@ class DynamicJoint(ABC):
         self.superposed = set()
 
     def __generate_link__(self, body, parent_pos):
+        """
+        Create a pymunk.Segment between two joints on a body and return it.
+
+        First extremity of the segment is self Joint position, the other is
+        parent_pos (a position).
+
+        Parameters
+        ----------
+        body : pymunk.Body
+            The Body you want the link to be added to.
+        parent_pos : sequence
+            Any sequence of two float. It give th
+
+        Returns
+        -------
+        seg : pymunk.Segment
+            The segment joining the two joints of the body.
+
+        """
         seg = pm.Segment(
             body, body.world_to_local(self.coord()),
             body.world_to_local(parent_pos),
@@ -46,6 +64,23 @@ class DynamicJoint(ABC):
         return seg
 
     def __generate_body__(self, index=0):
+        """
+        Create a pymunk.Body and assign it to the specified interface.
+
+        Parameters
+        ----------
+        index : int, optional
+            The interface index to assign the body to.
+            0 : assign to self.a
+            1 : assign to selb.b
+            2 : assign to self.a and self.b
+            The default is 0.
+
+        Returns
+        -------
+        None.
+
+        """
         if index == 2:
             self.__generate_body__(0)
             self.__generate_body__(1)
@@ -67,60 +102,99 @@ class DynamicJoint(ABC):
                 self._b = body
                 self._anchor_b = body.world_to_local(self.coord())
             self.space.add(body, seg)
-            #self.__set_offset__(1)
+
+    def __find_common_body__(self):
+        """Find the body linking two joints."""
+        joints = self.joint0, self.joint1
+        bodies = [set((joints[0]._a,)), set((joints[1]._a,))]
+        for body, j in zip(bodies, joints):
+            body.add(j._b)
+            for sup in j.superposed:
+                body.add(sup._a)
+                body.add(sup._b)
+        inter = bodies[0].intersection(bodies[1])
+        if len(inter) == 0:
+            message = ('Unable to find a common body between parents joints'
+                       ' {} and {}.').format(*joints)
+            raise linkage.UnbuildableError(self, message=message)
+        if len(inter) == 1:
+            return inter.pop()
+        else:
+            message = ('Multiple common bodies between parents joints'
+                       ' {} and {}, parents of {}: {}.')
+            raise Exception(message.format(joints[0], joints[1], self, inter))
 
     def reload(self):
-        self.set_coord(*self.b.local_to_world(self._anchor_b))
+        """
+        Reload DynamicJoint coordinates.
+
+        Coordinates only depend of Body position and DO NOT use any linkage
+        constraint.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.set_coord(*self._b.local_to_world(self._anchor_b))
+
 
 class Nail(linkage.Static, DynamicJoint):
     """
     A simple point to follow a rigidbody.
 
-    It is special since it DOES NOT generate rigidbodies.
+    It is special since it DOES NOT generate bodies.
     """
+
     def __init__(self, x=0, y=0, name=None, body=None, space=None,
                  radius=.3, density=1, shape_filter=None):
-        super(linkage.Static, self).__init__(x, y, name=name)
+        linkage.Static.__init__(self, x, y, name=name)
         DynamicJoint.__init__(
             self, body0=body, body1=body, space=space, radius=radius,
             density=density, shape_filter=shape_filter)
-        self.a = self.b = body
+        self._a = self._b = body
         self.space = space
         self.radius = radius
         self.density = density
         self.filter = shape_filter
-        if self.a is not None:
+        if self._a is not None:
             self.__set_offset__()
             if hasattr(self, 'joint0') and isinstance(self.joint0,
                                                       linkage.Joint):
-                seg = pm.Segment(self.a, self.a.world_to_local(self.coord()),
-                                 self.a.world_to_local(self.joint0.coord()),
+                seg = pm.Segment(self._a, self._a.world_to_local(self.coord()),
+                                 self._a.world_to_local(self.joint0.coord()),
                                  self.radius)
                 seg.density = self.density
                 seg.filter = self.filter
                 self.space.add(seg)
             if hasattr(self, 'joint1') and isinstance(self.joint1,
                                                       linkage.Joint):
-                seg = pm.Segment(self.a, self.a.world_to_local(self.coord()),
-                                 self.a.world_to_local(self.joint1.coord()),
+                seg = pm.Segment(self._a, self._a.world_to_local(self.coord()),
+                                 self._a.world_to_local(self.joint1.coord()),
                                  self.radius)
                 seg.density = self.density
                 seg.filter = self.filter
                 self.space.add(seg)
 
     def __set_offset__(self):
-        self._distance0 = dist(self.coord(), self.a.position)
-        x, y = self.coord() - self.a.position
-        self._angle0 = atan2(y, x) - self.a.angle
+        """Memorize the offset distance between self and linked Body."""
+        self._distance0 = dist(self.coord(), self._a.position)
+        x_pos, y_pos = self.coord() - self._a.position
+        self._angle0 = atan2(y_pos, x_pos) - self._a.angle
 
     def reload(self):
+        """Reload position based on linked body rotation and position."""
         self.set_coord(cyl_to_cart(self._distance0,
-                                   self.a.angle + self._angle0,
-                                   self.a.position))
+                                   self._a.angle + self._angle0,
+                                   self._a.position))
+
 
 class PinUp(linkage.Fixed, DynamicJoint):
-    """Dynamic counterpart of Fixed joint. Will add segments to the linked
-    body"""
+    """
+    Dynamic counterpart of Fixed joint.
+
+    Add two pm.Segment to the linked body.
+    """
 
     def __init__(self, x=0, y=0, joint0=None, space=None,
                  joint1=None, distance=None, angle=None, name=None,
@@ -137,107 +211,167 @@ class PinUp(linkage.Fixed, DynamicJoint):
                 ):
             linkage.Fixed.reload(self)
         if self.joint0 is not None:
-            self.set_anchor0(self.joint0, self.r, self.angle)
+            self.set_anchor_a(self.joint0, self.r, self.angle)
         if self.joint1 is not None:
-            self.set_anchor1(self.joint1)
+            self.set_anchor_b(self.joint1)
 
-    def set_anchor0(self, joint, distance=None, angle=None):
+    def set_anchor_a(self, joint, distance=None, angle=None):
+        """
+        Set first anchor charactertics.
+
+        Parameters
+        ----------
+        joint : DynamicJoint
+            DynamicJoint to use as achor_a.
+        distance : float, optional
+            Distance to keep constant. The default is None.
+        angle : float, optional
+            Angle (in radians)  (joint1, joint0, self). The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         linkage.Fixed.set_anchor0(self, joint, distance, angle)
 
-    def set_anchor1(self, joint):
+    def set_anchor_b(self, joint):
+        """
+        Set second anchor caracteristics.
+
+        It will create errors if called before anchor_a is properly defined.
+        SIDE EFFECT : it create two Segment and add them to self.space.
+
+        Parameters
+        ----------
+        joint : DynamicJoint
+            Joint to use as anchor_b.
+
+        Returns
+        -------
+        None.
+
+        """
         linkage.Fixed.set_anchor1(self, joint)
         linkage.Fixed.reload(self)
-        self.b = self.a = self.__find_common_body__()
-        self.anchor_a = self.a.world_to_local(self.coord())
-        self._anchor_a = self.anchor_a
-        self.space.add(self.__generate_link__(self.a, joint.coord()))
+        self._b = self._a = super().__find_common_body__()
+        self._anchor_a = self._a.world_to_local(self.coord())
+        self.space.add(self.__generate_link__(self._a, joint.coord()))
 
-        self.anchor_b = self.b.world_to_local(self.coord())
-        self._anchor_b = self.anchor_b
-        self.space.add(self.__generate_link__(self.a, joint.coord()))
-
-    def __find_common_body__(self):
-        """Find the body linking two joints."""
-        joints = self.joint0, self.joint1
-        bodies = [set((joints[0].a,)), set((joints[1].a,))]
-        for body, j in zip(bodies, joints):
-            body.add(j.b)
-            #if not isinstance(j, (PinUp, Nail)):
-            #    continue
-            for sup in j.superposed:
-                body.add(sup.a)
-                body.add(sup.b)
-        inter = bodies[0].intersection(bodies[1])
-        if len(inter) == 0:
-            message = ('Unable to find a common body between parents joints'
-                       ' {} and {}.').format(*joints)
-            raise linkage.UnbuildableError(self, message=message)
-        elif len(inter) == 1:
-            return inter.pop()
-        else:
-            message = ('Multiple common bodies between parents joints'
-                       ' {} and {}, parents of {}: {}.')
-            raise Exception(message.format(joints[0], joints[1], self, inter))
+        self._anchor_b = self._b.world_to_local(self.coord())
+        self.space.add(self.__generate_link__(self._a, joint.coord()))
 
     def reload(self):
+        """
+        Reload DynamicJoint coordinates.
+
+        Coordinates only depend of Body position and DO NOT use any linkage
+        constraint.
+
+        Returns
+        -------
+        None.
+
+        """
         DynamicJoint.reload(self)
 
-class DynamicPivot(linkage.Pivot, DynamicJoint, pm.constraints.PivotJoint):
-    """Dynamic counterpart. """
+
+class DynamicPivot(linkage.Pivot, DynamicJoint):
+    """Dynamic counterpart of a Pivot joint."""
 
     def __init__(self, x=0, y=0, joint0=None, space=None,
                  joint1=None, distance0=None, distance1=None, name=None,
                  radius=.3, density=1, shape_filter=None):
         linkage.Pivot.__init__(
-            self, x, y, joint0=joint0, joint1=joint1, name=name,
-            distance0=distance0, distance1=distance1)
+            self, x, y,
+            joint0=joint0, joint1=joint1,
+            name=name,
+            distance0=distance0, distance1=distance1
+            )
         DynamicJoint.__init__(
             self, space=space, radius=radius, density=density,
             shape_filter=shape_filter)
 
         if self.joint0 is not None:
-            self.set_anchor0(self.joint0, self.r0)
+            self.set_anchor_a(self.joint0, self.r0)
         if self.joint1 is not None:
-            self.set_anchor1(self.joint1, self.r1)
+            self.set_anchor_b(self.joint1, self.r1)
 
-    def set_anchor0(self, joint, distance=None):
+    def set_anchor_a(self, joint, distance=None):
+        """
+        Set anchor_a caracteristics.
+
+        Parameters
+        ----------
+        joint : DynamicJoint
+            DynamicJoint to use as anchor_a.
+        distance : float, optional
+            Distance to keep constant between anchor_a and self.
+            The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         linkage.Pivot.set_anchor0(self, joint, distance)
-        if not hasattr(self, 'a'):
+        if not hasattr(self, '_a'):
             self.__generate_body__(0)
             if isinstance(joint, Nail):
-                parent_body0 = joint.a
+                parent_body0 = joint._a
             else:
-                parent_body0 = joint.b
+                parent_body0 = joint._b
             pivot = pm.PivotJoint(
-                self.a, parent_body0,
+                self._a, parent_body0,
                 joint.coord())
             pivot.collide_bodies = False
             joint.superposed.add(pivot)
             self.space.add(pivot)
 
-    def set_anchor1(self, joint, distance=None):
-        linkage.Pivot.set_anchor1(self, joint, distance)
-        if not hasattr(self, 'b'):
-            self.__generate_body__(1)
-            pm.PivotJoint.__init__(
-                self, self._a, self._b,
-                self.coord())
-            self.collide_bodies = False
-            if isinstance(joint, Nail):
-                parent_body1 = joint.a
-            else:
-                parent_body1 = joint.b
-            pivot = pm.PivotJoint(
-                self.b, parent_body1,
-                joint.coord()
-                )
-            pivot.collide_bodies = False
-            joint.superposed.add(pivot)
-            self.space.add(self, pivot)
+    def set_anchor_b(self, joint, distance=None):
+        """
+        Set anchor_b caracteristics.
 
+        Parameters
+        ----------
+        joint : DynamicJoint
+            DynamicJoint to use as anchor_b.
+        distance : float, optional
+            Distance to keep constant between anchor_b and self.
+            The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        linkage.Pivot.set_anchor1(self, joint, distance)
+        if not hasattr(self, '_b'):
+            self.__generate_body__(1)
+            # PivotJoint on self position
+            self.pivot = pm.PivotJoint(self._a, self._b, self.coord())
+            if isinstance(joint, Nail):
+                parent_body1 = joint._a
+            else:
+                parent_body1 = joint._b
+            pivot_b = pm.PivotJoint(self._b, parent_body1, joint.coord())
+            joint.superposed.add(pivot_b)
+            self.space.add(self.pivot, pivot_b)
 
     def reload(self):
+        """
+        Reload DynamicJoint coordinates.
+
+        Coordinates only depend of Body position and DO NOT use any linkage
+        constraint.
+
+        Returns
+        -------
+        None.
+
+        """
         DynamicJoint.reload(self)
+
 
 class Motor(linkage.Crank, DynamicJoint):
     """
@@ -250,53 +384,111 @@ class Motor(linkage.Crank, DynamicJoint):
     The Motor is placed at the extremity of the body it creates.
     """
 
-    def __init__(self, x=None, y=None, joint0=None, joint1=None, space=None,
+    def __init__(self, x=None, y=None, joint0=None, space=None,
                  distance=None, angle=None, name=None, radius=.3, density=1,
                  shape_filter=None):
         linkage.Crank.__init__(self, x, y, joint0=joint0,
                                distance=distance, angle=angle, name=name)
         linkage.Crank.reload(self, dt=0)
         DynamicJoint.__init__(self, space=space, density=density,
-                              shape_filter=shape_filter)
+                              shape_filter=shape_filter, radius=radius)
         if joint0 is not None:
-            self.set_anchor0(joint0, distance=distance)
+            self.set_anchor_a(joint0, distance=distance)
 
-    def __set_ref_body__(self, body=None):
+    def __get_reference_body__(self, body=None):
+        """
+        Find a body that can be used as reference body.
+
+        Parameters
+        ----------
+        body : pymunk.Body, optional
+            Body to use as reference Body.
+            If set to None, use self.joint0_a.
+            The default is None.
+
+        Raises
+        ------
+        ValueError
+            Raised when body argument is not None and not in self.joint0
+            bodies.
+
+        Returns
+        -------
+        pymunk.Body
+            A valid Body to be used as reference.
+
+        """
         if body is None:
-            return self.joint0.a
-        elif body in (self.joint0.a, self.joint0.b):
+            return self.joint0._a
+        if body in (self.joint0._a, self.joint0._b):
             return body
-        else:
-            message = 'Argument body should in {} bodies'
-            raise ValueError(message.format(self.joint0))
+        message = 'Argument body should in {} bodies'
+        raise ValueError(message.format(self.joint0))
 
     def __generate_body__(self):
-        """ Generate the crank body only."""
+        """Generate the crank body only."""
         if hasattr(self, 'joint0') and isinstance(self.joint0, linkage.Joint):
             body = pm.Body()
             body.position = (pm.Vec2d(*self.coord()) + self.joint0.coord())/2
             seg = self.__generate_link__(body, self.joint0.coord())
-            self.a = self.b = body
+            self._a = self._b = body
             self._anchor_b = body.world_to_local(self.coord())
             self.space.add(body, seg)
 
-    def set_anchor0(self, joint, distance=None):
+    def set_anchor_a(self, joint, distance=None):
+        """
+        Set anchor_a caracteristics.
+
+        Parameters
+        ----------
+        joint : DynamicJoint
+            DynamicJoint to use as anchor_a.
+        distance : float, optional
+            Distance to keep constant between anchor_a and self.
+            The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         linkage.Crank.set_anchor0(self, joint, distance)
-        ref_body = self.__set_ref_body__()
-        if not hasattr(self, 'b'):
+        ref_body = self.__get_reference_body__()
+        if not hasattr(self, '_b'):
             self.__generate_body__()
-            self.pivot = pm.PivotJoint(ref_body, self.b, self.joint0.coord())
+            self.pivot = pm.PivotJoint(ref_body, self._b, self.joint0.coord())
             self.pivot.collide_bodies = False
-            self.actuator = pm.SimpleMotor(self.b, ref_body, self.angle)
+            self.actuator = pm.SimpleMotor(self._b, ref_body, self.angle)
             self.joint0.superposed.add(self.pivot)
             self.joint0.superposed.add(self.actuator)
             self.space.add(self.pivot, self.actuator)
 
     def reload(self):
+        """
+        Reload DynamicJoint coordinates.
+
+        Coordinates only depend of Body position and DO NOT use any linkage
+        constraint.
+
+        Returns
+        -------
+        None.
+
+        """
         DynamicJoint.reload(self)
 
 
 class DynamicLinkage(linkage.Linkage):
+    """
+    Dynamic couterpart of a kinematic linkage.Linkage.
+
+    It has several attributes linked to its dynamic nature and is close to an
+    empty shell in the ways you will use it.
+
+    Please not that it carries a load, which is relevant with real-world
+    simulation where the weight of legs is small compared to the weight of the
+    frame.
+    """
 
     __slots__ = ['joint_to_rigidbodies', 'rigidbodies', 'body', 'height',
                  'mechanical_energy', 'mass', 'space', 'density',
@@ -307,15 +499,28 @@ class DynamicLinkage(linkage.Linkage):
         """
         Instanciate a new DynamicLinkage.
 
-        Arguments
-        ---------
-        joints: joints to be part of the linkage. Kinematic joints will
-        be converted in there dynamic equivalent.
-        space: pymunk Space in which linkage should be instantiated
-        density: density of the Bodies in the linkage
-        load: mass of the load (default: 0)
-        name: user-friendly name for the linkage.
-        thickness: ratio bar length/width for each bar (radius in pymunk)
+        Parameters
+        ----------
+        joints : linkage.Joint
+            Joints to be part of the linkage. Kinematic joints will be
+            converted in there dynamic equivalents.
+        space : pymunk.Space
+            Space in which linkage should be instantiated.
+        density : float, optional
+            Density of the Bodies in the linkage. The default is 1.
+        load : float, optional
+            Mass of the load to carry. The default is 0.
+        name : TYPE, optional
+            User-friendly name for the linkage. The default is None. It will
+            be set to str(id(self)) if not provided.
+        thickness : float, optional
+            ratio bar length/width for each bar (radius in pymunk).
+            The default is .1.
+
+        Returns
+        -------
+        None.
+
         """
         super().__init__(joints=joints, name=name)
         self.joint_to_rigidbodies = [None] * len(self.joints)
@@ -378,22 +583,24 @@ class DynamicLinkage(linkage.Linkage):
         self.joints = tuple(dynajoints)
 
     def build_load(self, position, load_mass):
-        """The load this linkage should have."""
+        """Create the load this linkage have to carry."""
         load = pm.Body(load_mass)
         load.position = position
-        #load.angle = pi / 2
         vertices = (-.5, -.5), (-.5, .5), (.5, .5), (.5, -.5)
         segs = []
-        for i, v in enumerate(vertices):
-            segs.append(pm.Segment(load, v, vertices[(i+1) % len(vertices)],
-                                  self._thickness))
+        for i, vertex in enumerate(vertices):
+            segs.append(pm.Segment(load, vertex,
+                                   vertices[(i+1) % len(vertices)],
+                                   self._thickness))
             segs[-1].density = self.density
             # Rigodbodies in this group won't collide
             segs[-1].filter = self.filter
         self.space.add(load, *segs)
         return load
 
-    def convert_to_dynamic_linkage(linkage, space):
-        """Convert a classic Linkage to its dynamic counterpart."""
-        return DynamicLinkage(linkage.joints, space, density=1, load=1,
-                              name=linkage.name)
+
+def convert_to_dynamic_linkage(kinematic_linkage, space, density=1,
+                               load=1):
+    """Convert a classic Linkage to its dynamic counterpart."""
+    return DynamicLinkage(kinematic_linkage.joints, space, density=density,
+                          load=load, name=kinematic_linkage.name)
