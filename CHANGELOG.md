@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+ - The example file ``examples/strider.py`` is now shipped with the Python package.
+ - ``leggedsnake/geneticoptimizer.py`` can now automatically switch to the built-in GA algorithm if PyGAD is not installed.
+
+### Changed
+ - ``setup.cfg`` metadata
 
 ## [0.1.0-alpha] - 2021-06-23
 ### Added
@@ -17,8 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
  - You can now define linkages with an enormous number of legs. Systems with many should no longer break physics but your CPU instead :)
- -  
-
 
 ## [0.0.3-alpha] - 2021-06-23
 ### Added

@@ -8,7 +8,10 @@ Created on Thu Jun 10 21:20:47 2021.
 import numpy as np
 from numpy.random import rand, normal, randint
 # Optimization by genetic algorithm
-from pygad import GA
+try:
+    from pygad import GA
+except ModuleNotFoundError:
+    print("PyGad not installed. We will use legacy Genetic Optimizer.")
 from pylinkage.geometry import dist
 
 
@@ -54,7 +57,7 @@ def evolutionnary_optimization_legacy(
     ----------
     dna : dict
         Dictionary of editable values.
-    probs : list of floats
+    prob : list of floats
         List of probabilities of the good transmission of one
         characteristics.
     fitness : callable
@@ -63,12 +66,12 @@ def evolutionnary_optimization_legacy(
         The
     ite : int
         Number of iterations.
-    max_pop : TYPE, optional
+    max_pop : int, optional
         Maximum number of individuals. The default is 11.
-    init_pop : TYPE, optional
+    init_pop : sequence of object, optional
         Initial population, for wider INITIAL genetic diversity.
         The default is None.
-    max_genetic_dist : TYPE, optional
+    max_genetic_dist : float, optional
         Maximum genetic distance, before individuals
         cannot reproduce (separated species). The default is .7.
     startnstop : bool, optional
@@ -205,16 +208,73 @@ def evolutionnary_optimization_legacy(
 def evolutionnary_optimization(
         dna, prob, fitness, ite, max_pop=11, init_pop=None,
         max_genetic_dist=.7, startnstop=False, fitness_args=None):
+    """
+    Run the Genetic Optimizer.
+
+    Genetic Optimization is a procedural algorithm based on Darwinian evolution
+    models.
+
+    This function can use either PySwarms.GA if found, and automatically
+    falls backs to the legacy algorithm if not.
+
+    Parameters
+    ----------
+    dna : TYPE
+        DESCRIPTION.
+    prob : TYPE
+        DESCRIPTION.
+    fitness : callable
+        Evaluation function for an OPTIMIZATION problem.
+        Must return a float.
+    ite : int
+        Number of iterations.
+    max_pop : int, optional
+        Maximum number of individuals. The default is 11.
+    init_pop : list of object, optional
+        Initial population, for wider INITIAL genetic diversity.
+        The default is None.
+    max_genetic_dist : TYPE, optional
+        DESCRIPTION. The default is .7.
+    startnstop : bool, optional
+        Ability to close program without loosing population.
+        If True, we verify at initialization the existence of a data file.
+        Population is save every int(250 / max_pop) iterations.
+        The default is False.
+    fitness_args : sequence, optional
+        Positional arguments to send to the fitness function.
+        The default is None (no argument sent).
+
+    Returns
+    -------
+    TYPE
+        An iterable of the best fit individuals.
+
+    """
     def fitness_func(dims, index):
         fit = fitness([dims, 0, dna[2]], *fitness_args)
         return fit[0]
-    natural_history = GA(
-       num_generations=ite, num_parents_mating=int(np.ceil(max_pop / 10)),
-       fitness_func=fitness_func, initial_population=None,
-       sol_per_pop=max_pop, num_genes=len(dna[0]),
-       init_range_low=0, init_range_high=5,
-       crossover_type='uniform', crossover_probability=.5,
-       mutation_type="random", mutation_probability=prob)
-    natural_history.run()
-    natural_history.plot_result()
-    return natural_history
+    # If pyswarms.GA is installed
+    if GA:
+        natural_history = GA(
+           num_generations=ite,
+           num_parents_mating=int(np.ceil(max_pop / 10)),
+           fitness_func=fitness_func,
+           initial_population=init_pop,
+           sol_per_pop=max_pop,
+           num_genes=len(dna[0]),
+           init_range_low=0, init_range_high=5,
+           crossover_type='uniform', crossover_probability=.5,
+           mutation_type="random", mutation_probability=prob
+           )
+        natural_history.run()
+        natural_history.plot_result()
+        return natural_history
+
+    # Legacy fallback
+    return evolutionnary_optimization_legacy(
+        dna, prob, fitness, ite,
+        max_pop=max_pop, init_pop=init_pop,
+        max_genetic_dist=max_genetic_dist,
+        startnstop=startnstop,
+        fitness_args=fitness_args
+        )
