@@ -7,7 +7,7 @@ This package aims to provide reliable computation techniques in Python to build,
 
 ## Installation
 ### Using pip
-To download the package from PyPi, use:
+The package is hosted on PyPi as [leggedsnake](https://pypi.org/project/leggedsnake/), use:
 ``pip install leggedsnake``
 
 ### Setting up Virtual Environment
@@ -42,7 +42,7 @@ my_walker = Walker(
 )
 ```
 
-``Walker`` is an just herited class of ``Linkage``, with some useful methods, and behaves quite the same.
+``Walker`` is just a herited class of ``Linkage``, with some useful methods, and behaves quite the same way.
 
 ### Kinematic optimization using Particle Swarm Optimization (PSO)
 No change compared to a classic linkage optimization. You should use the ``step`` and ``stride`` method from the [utility module](https://github.com/HugoFara/leggedsnake/blob/master/leggedsnake/utility.py) as fitness functions. 
@@ -94,11 +94,11 @@ And now, relax while your computer recreates a civilisation of walking machines!
 
 ### Visualization
 For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html), an exemple file is provided at [strider.py](https://github.com/HugoFara/leggedsnake/blob/master/examples/strider.py). The linkage looks like this:
-![A Kinematic representation of Strider linkage](https://github.com/HugoFara/leggedsnake/raw/master/examples/images/Kinematic%20unoptimized%20Strider.gif)
+![A Kinematic representation of Strider linkage](https://github.com/HugoFara/leggedsnake/raw/master/leggedsnake/examples/images/Kinematic%20unoptimized%20Strider.gif)
 
 Looks cool? Let's simulate it dynamically!
 
-![Dynamic one-leg-pair Strider being tested](https://github.com/HugoFara/leggedsnake/raw/master/examples/images/Dynamic%20unoptimized%20one-legged%20Strider.gif)
+![Dynamic one-leg-pair Strider being tested](https://github.com/HugoFara/leggedsnake/raw/master/leggedsnake/examples/images/Dynamic%20unoptimized%20one-legged%20Strider.gif)
 
 Oops! Here is what you get when you forget to add more legs! There is **real danger here**, because your walker crawls well, you will be able to optimize efficiently the "crawler", *which may be not your goal*. 
 
@@ -106,12 +106,12 @@ Let's add three more leg pairs. Why three? Many legs means more mass and constra
 
 Let's have a look at the artist:
 
-![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/master/examples/images/Dynamic%20unoptimized%20strider.gif)
+![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/master/leggedsnake/examples/images/Dynamic%20unoptimized%20strider.gif)
 
-## Advices
+## Advice
 Use the vizualisation tools provided! The optimization tools should always give you a score with a better fitness, but it might not be what you expected. Tailor your optimization and *then* go for a long run will make you save a lot of time.
 
 **Do not** use optimized linkages from the start! The risk is to fall to quickly into a suboptimal solution. They are several mechanisms to prevent that (starting from random position), however it can always have an impact on the rest of the optimization.
 
 Try to minimize the number of elements in the optimizations! You can often use some linkage's properties to reduce the number of simulation parameters. For instance, the Strider linkage has an axial symmetry. While it is irrelevant to use this property in dynamic simulation, you can use "half" your Strider in a kinematic optimization, which is much faster:
-![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/master/examples/images/Kinematic%20half-Strider.gif)
+![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/master/leggedsnake/examples/images/Kinematic%20half-Strider.gif)
