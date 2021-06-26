@@ -38,16 +38,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.0.2-alpha] - 2021-06-22
 ### Added
-- ``requirement.txt`` was absent due to ``.gitignore`` missconfiguration.
+- ``requirement.txt`` was absent due to ``.gitignore`` misconfiguration.
 
 ### Changed
- - ``.gitignore`` ignore txt file only in leggedsnake folder
- - ``environment.yml`` more flexible (versions can be superior to the selected). Added pymunk>5.0.0, pylinkage
- - ``leggedsnake/utility.py`` not having zipfile or xml module error encapsulation
+ - ``.gitignore`` now ignores *.txt files only in the leggedsnake folder
+ - ``environment.yml`` more flexible (versions can be superior to the selected). pymunk>5.0.0 and pylinkage added.
+ - ``leggedsnake/utility.py`` not having zipfile or xml modules error encapsulation
 
 ### Fixed
- - ``setup.cfg`` was not PyPi compatibl.
-     Removed mail (use GitHub!), explicitly say that ``README.md`` is markdown (PyPi is conservative)
+ - ``setup.cfg`` was not PyPi compatible.
+     Removed mail (use GitHub!), we now explicitly say that ``README.md`` is markdown (PyPi is conservative)
 
 
 ## [0.0.1-alpha] - 2021-06-22
