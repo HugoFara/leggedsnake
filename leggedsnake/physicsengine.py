@@ -58,7 +58,7 @@ params = {
         "time_coef": 1,
         # Number of calculations for each frame
         "calc_rate": 300,
-        # Maximal number of subcalculus
+        # Maximal number of subcalculations
         "max_sub": 50,
     },
     # Display parameters
