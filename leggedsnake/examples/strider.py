@@ -4,7 +4,7 @@ Created on Sun Dec 23 21:03:11 2018.
 
 @author: HugoFara
 
-Complete simulator for strider mecanism, a type of walking mecanism.
+Complete simulator for strider mechanism, a type of walking mechanism.
 
 Directions:
     - First section gives objects definition, and links between them
@@ -115,7 +115,7 @@ def complete_strider(constraints, prev):
     * constraints: the sequence of geometrical constraints
     * prev: coordinates to set by default.
     """
-    # Fixed points (mecanism body)
+    # Fixed points (mechanism body)
     # A is the origin
     A = Static(x=0, y=0, name="A")
     # Vertical axis for convience,
@@ -167,7 +167,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
     strider : Linkage
         The requested strider linkage.
     """
-    # Fixed points (mecanism body)
+    # Fixed points (mechanism body)
     # A is the origin
     A = Static(x=0, y=0, name="A")
     # Vertical axis for convience,
@@ -215,7 +215,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
 
 def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
     """
-    Give mecanism a dynamic model and launch video.
+    Give mechanism a dynamic model and launch video.
 
     Arguments
     ---------
@@ -290,7 +290,7 @@ ani = []
 
 
 def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
-                    ite=400, blind_ite=200, *args, **kwargs):
+                    iters=400, *args, **kwargs):
     """
     Optimize linkage geometrically using PSO.
 
@@ -310,7 +310,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         If show is 0, save the image each {save_each} frame. The default is 0.
     age : int, optional
         Number of agents to simulate. The default is 300.
-    ite : int, optional
+    iters : int, optional
         Number of iterations to run through. The default is 400.
     blind_ite : int, optional
         Number of iterations without evaluation. The default is 200.
@@ -332,8 +332,8 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
     if show == 1:
         out = wo.particle_swarm_optimization(
             eval_func, linkage,
-            dims, age, ite=ite, iterable=True,
-            bounds=bounds, neigh=.5, *args,
+            center=dims, n_particles=age, iters=iters, #iterable=True,
+            bounds=bounds, dimensions=len(dims), *args,
         )
 
         fig = plt.figure("Swarm in polar graph")
@@ -348,7 +348,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             frames=zip(out.pos_history, out.cost_history),
             fargs=(fig, lines, t), blit=True,
             interval=10, repeat=True,
-            save_count=(ite-1) * bool(save_each))
+            save_count=(iters - 1) * bool(save_each))
         ani.append(animation)
         plt.show()
         if save_each:
@@ -359,15 +359,15 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                         "application maximum",
                         'comment': "Made with Python and Matplotlib",
                         'description': "The swarm tries to find best dimension"
-                        " set for Strider legged mecanism"})
+                        " set for Strider legged mechanism"})
 
             ani[-1].save(r"PSO.mp4", writer=writer)
         return out
     elif show == 2:
         out = wo.particle_swarm_optimization(
                 eval_func, linkage,
-                dims, age, ite=ite, iterable=True,
-                bounds=bounds, neigh=.5, *args)
+                dims, age, iters=iters, iterable=True,
+                bounds=bounds, dimensions=len(dims), *args)
 
         fig = plt.figure("Swarm in tiled mode")
         cells = int(np.ceil(np.sqrt(age)))
@@ -377,7 +377,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         animation = anim.FuncAnimation(
             fig, lambda *args: visu.swarm_tiled_repr(linkage, *args),
             out.pos_history, fargs=(fig, axes, param2dimensions), blit=False,
-            interval=40, repeat=False, save_count=(ite-1) * bool(save_each)
+            interval=40, repeat=False, save_count=(iters - 1) * bool(save_each)
             )
         ani.append(animation)
         plt.show(block=not save_each)
@@ -389,7 +389,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                         "application maximum",
                         'comment': "Made with Python and Matplotlib",
                         'description': "The swarm looks for best dimension "
-                        "set for Strider legged mecanism"}
+                        "set for Strider legged mechanism"}
                 )
 
             ani[-1].save("Particle swarm optimization.mp4", writer=writer)
@@ -397,8 +397,10 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
 
     elif save_each:
         for dim, i in wo.particle_swarm_optimization(
-                eval_func, linkage, dims, age, ite=ite,
-                bounds=bounds, iterable=True, *args):
+                eval_func, linkage, dims, age, iters=iters,
+                bounds=bounds, #iterable=True,
+                dimensions=len(dims), # *args
+        ):
             if not i % save_each:
                 f = open('PSO optimizer.txt', 'w')
                 # We only keep best results
@@ -413,8 +415,11 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
     else:
         out = tuple(
             wo.particle_swarm_optimization(
-                eval_func, linkage, dims, n_indi=age, bounds=bounds,
-                ite=ite, blind_iter=blind_ite, iterable=False, *args))
+                eval_func, linkage, dims, n_particles=age, bounds=bounds,
+                dimensions=len(dims),
+                iters=iters, # iterable=False,
+                *args)
+            )
         return out
         return out.sort(key=lambda x: x[1], reverse=True)
 
@@ -439,7 +444,7 @@ def fitness(dna, linkage_hollow):
     """
     linkage_hollow.set_num_constraints(param2dimensions(dna[0]), flat=False)
     linkage_hollow.rebuild(dna[2])
-    # Check if mecanism is buildable
+    # Check if mechanism is buildable
     try:
         # Save initial coordinates
         pos = tuple(linkage_hollow.step())[-1]
@@ -467,7 +472,7 @@ def fitness(dna, linkage_hollow):
         return tot / dur, pos
 
 
-def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, ite=10,
+def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
                         init_pop=None, save=False, startnstop=False):
     """
     Optimization of the linkage by genetic algorithm.
@@ -482,7 +487,7 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, ite=10,
         Initial positions. The default is None.
     pop : int, optional
         Number of individuals. The default is 10.
-    ite : int, optional
+    iters : int, optional
         Number of iterations to perform. The default is 10.
     init_pop : int, optional
         Initial population for a highest initial genetic diversity.
@@ -506,7 +511,7 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, ite=10,
     if not init_pop:
         init_pop = pop
     o = go.evolutionnary_optimization(
-        dna=dna, prob=.07, fitness=fitness, ite=ite, max_pop=pop,
+        dna=dna, prob=.07, fitness=fitness, iters=iters, max_pop=pop,
         init_pop=init_pop, startnstop=startnstop, fitness_args=[linkage])
     if save:
         file = open('Evolutive optimizer.txt', 'w')
@@ -529,21 +534,24 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
         visu.show_linkage(linkage, prev=begin, title=str(datum[0]),
                           duration=10)
 
-#wu.step([(0, 0), (-1, 0), (-1, 1), (0, 1), (0, .5)], 0, .5)
-from cProfile import run
-#strider = complete_strider(param2dimensions(param), begin)
-strider = strider_builder(param2dimensions(param), begin,
-                          n_leg_pairs=5, minimal=False)
-#o = swarm_optimizer(show=1, save_each=1, age=10, ite=10, blind_ite=10)
-run('sym_stride_evaluator(strider, param, begin)')
-#optimized_striders = wo.exhaustive_optimization(
-#    sym_stride_evaluator, strider, param, delta_dim=.5)
-#optimized_striders = swarm_optimizer(strider, show=1, save_each=0, age=250,
-#                                     ite=200, blind_ite=1, bounds=bounds)
+strider = complete_strider(param2dimensions(param), begin)
+# Trials and errors optimization as comparison
+optimized_striders = wo.trials_and_errors_optimization(
+    sym_stride_evaluator, strider, param, delta_dim=.5
+)
+print(
+    "Score after trials and errors optimization: ". format(optimized_striders)[0][0]
+)
+# Particle swarm optimization
+#optimized_striders = swarm_optimizer(
+#    strider, show=1, save_each=0, age=250, iters=200, bounds=bounds,
+#)
 #show_optimized(strider, optimized_striders)
-#strider.add_legs(3)
-#visu.show_linkage(strider, save=False, duration=10, iteration_factor=n)
-#show_physics(strider, debug=False, duration=40, save=False)
-#o = evolutive_optimizer(
-#    strider, dims=param, prev=begin, pop=10, ite=100, init_pop=100,
-#    save=False, startnstop=False)
+# We add some legs
+strider.add_legs(3)
+visu.show_linkage(strider, save=False, duration=10, iteration_factor=n)
+show_physics(strider, debug=False, duration=40, save=False)
+o = evolutive_optimizer(
+    strider, dims=param, prev=begin, pop=10, ite=100, init_pop=100,
+    save=False, startnstop=False
+)

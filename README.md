@@ -107,6 +107,10 @@ Oops! Here is what you get when you forget to add more legs! There is **real dan
 
 Let's add three more leg pairs. Why three? Many legs means more mass and constraints, so less yield and more intensive computations. On the other hand, we always want the center of mass over the [support line](https://en.wikipedia.org/wiki/Support_polygon), which means that if the walker begins to lift a foot (let's say a front foot), and another doesn't come on the ground ahead of it, the linkage will to fall nose to the ground. With more foots we make the "snooping" time shorter, and a total of four leg pairs is a minimum for this *unoptimized* version. 
 
+A simple way to do it is:
+```python
+my_linkage.add_legs(3) # Replace "my_linkage" with your Walker object
+```
 Let's have a look at the artist:
 
 ![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/master/leggedsnake/examples/images/Dynamic%20unoptimized%20strider.gif)
