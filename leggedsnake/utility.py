@@ -11,6 +11,8 @@ It contain useful functions, and a "Joint" class (with herited classes), that
 make study of planar mecanisms easy.
 
 """
+from pylinkage.geometry import bounding_box
+
 try:
     # Used to read GeoGebra file
     import zipfile as zf
@@ -55,12 +57,12 @@ def stride(point, height):
     A step is a set of points of the locus, adjacents, with limited height
     difference, and containing the lowest point of the locus.
 
-    Please not that a step cannot be inclined. The resultut can be irrelevant
+    Please not that a step cannot be inclined. The result can be irrelevant
     for locus containing Diracs.
     """
     n_points = len(point)
     # Index of lowest point
-    p_min = min(enumerate(n_points), key=lambda elem: elem[1][1])[0]
+    p_min = min(enumerate(point), key=lambda elem: elem[1][1])[0]
 
     left, right = p_min - 1, p_min + 1
     for right in range(p_min + 1, n_points + p_min + 1):
@@ -77,25 +79,34 @@ def stride(point, height):
     return point[left:] + point[:right % n_points]
 
 
-def step(points, height, size, return_res=False, y_min=None, acc=[]):
+def step(points, height, width, return_res=False, y_min=None, acc=[]):
     """
-    Return if a step can satisfy overcross an obstacle.
+    Return if a step can overcross an obstacle during locus.
 
     Arguments
     ---------
-    point: point to follow
-    height: obstacle's height
-    size: obstacle's width
+    points : list[list[int]]
+        locus as a list of point coordinates.
+    height : float
+        obstacle's height
+    width : float
+        obstacle's width
     return_res:
         - If True: return the set of points that pass obstacle (slower).
         - If False: return if the obstacle can be passed
-    y_min: lowest ordinate (faster if provided)
+        The default is False
+    y_min : lowest ordinate in the locus (faster if provided)
     """
     if not points:
         return acc
+    # We compute the locus bounding box
+    bb = bounding_box(points)
+    # Quick sort for unfit systmes
+    if bb[2] - bb[0] < height or bb[1] - bb[3] < width:
+        return False
     # Origin of ordinates, for computing obstacle's height
     if y_min is None:
-        y_min = min(i[1] for i in points)
+        y_min = bb[0]
     # Index of first point passing obstacle
     for i, point in enumerate(points):
         if point[1] - y_min >= height:
@@ -107,7 +118,7 @@ def step(points, height, size, return_res=False, y_min=None, acc=[]):
     for k, point in enumerate(points[i:]):
         if point[1] - y_min < height:
             break
-        if abs(point[0] - x) >= size:
+        if abs(point[0] - x) >= width:
             ok = True
             if not return_res:
                 break
@@ -116,7 +127,7 @@ def step(points, height, size, return_res=False, y_min=None, acc=[]):
         return ok
     if ok:
         # We use an accumulator to keep track of points passing conditions
-        return step(points[k + 1:], height, size, return_res, y_min,
+        return step(points[k + 1:], height, width, return_res, y_min,
                     acc + [points[i:k]])
 
-    return step(points[k + 1:], height, size, return_res, y_min, acc)
+    return step(points[k + 1:], height, width, return_res, y_min, acc)

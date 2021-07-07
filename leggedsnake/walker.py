@@ -32,10 +32,11 @@ class Walker(lk.Linkage):
         iterations_factor = int(12 / (number + 1)) + 1
         # We use at least 12 steps to avoid bad initial positions
         new_positions = tuple(
-            self.step((number + 1) * iterations_factor,
-                      self.get_rotation_period() / (number + 1)
-                      / iterations_factor)
-            )[iterations_factor-1:-1:iterations_factor]
+            self.step(
+                (number + 1) * iterations_factor,
+                self.get_rotation_period() / (number + 1) / iterations_factor
+            )
+        )[iterations_factor - 1:-1:iterations_factor]
         # Because we have per-leg iterations
         # we have to save crank informations
         crank_memory = dict(zip(self._cranks, self._cranks))
@@ -44,8 +45,13 @@ class Walker(lk.Linkage):
             equiv = {None: None}
             # For each new joint
             for pos, j in zip(positions, self._solve_order):
-                common = {'x': pos[0], 'y': pos[1], 'joint0': equiv[j.joint0],
-                          'name': j.name + ' (copy {})'.format(i)}
+                if isinstance(j.joint0, lk.Static) and j.joint0 not in equiv:
+                    equiv[j.joint0] = j.joint0
+                common = {
+                    'x': pos[0], 'y': pos[1],
+                    'joint0': equiv[j.joint0],
+                    'name': j.name + ' ({})'.format(i)
+                }
                 if isinstance(j, lk.Static):
                     new_j = j
                 elif isinstance(j, lk.Crank):
@@ -57,15 +63,19 @@ class Walker(lk.Linkage):
                     crank_memory[j] = new_j
                     new_joints.append(new_j)
                 else:
+                    # Static joints not always included in joints
+                    if isinstance(j.joint1, lk.Static) and j.joint1 not in equiv:
+                        equiv[j.joint1] = j.joint1
                     common['joint1'] = equiv[j.joint1]
+
                     if isinstance(j, lk.Fixed):
                         new_j = lk.Fixed(
                             **common, distance=j.r, angle=j.angle
-                            )
+                        )
                     elif isinstance(j, lk.Pivot):
                         new_j = lk.Pivot(
                             **common, distance0=j.r0, distance1=j.r1
-                            )
+                        )
                     new_joints.append(new_j)
                 equiv[j] = new_j
         self.joints += tuple(new_joints)

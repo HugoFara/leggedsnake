@@ -86,7 +86,7 @@ class DynamicJoint(abc.ABC):
         if (
                 hasattr(self, 'joint' + sindex)
                 and isinstance(getattr(self, 'joint' + sindex), linkage.Joint)
-                ):
+        ):
             body = pm.Body()
             body.mass = 1
             parent_pos = pm.Vec2d(*getattr(self, 'joint' + sindex).coord())
@@ -205,7 +205,7 @@ class PinUp(linkage.Fixed, DynamicJoint):
         if (
                 isinstance(self.joint0, linkage.Joint) and
                 isinstance(self.joint1, linkage.Joint)
-                ):
+        ):
             linkage.Fixed.reload(self)
         if self.joint0 is not None:
             self.set_anchor_a(self.joint0, self.r, self.angle)
@@ -284,11 +284,11 @@ class DynamicPivot(linkage.Pivot, DynamicJoint):
             joint0=joint0, joint1=joint1,
             name=name,
             distance0=distance0, distance1=distance1
-            )
+        )
         DynamicJoint.__init__(
             self, space=space, radius=radius, density=density,
-            shape_filter=shape_filter)
-
+            shape_filter=shape_filter
+        )
         if self.joint0 is not None:
             self.set_anchor_a(self.joint0, self.r0)
         if self.joint1 is not None:
@@ -426,7 +426,7 @@ class Motor(linkage.Crank, DynamicJoint):
         """Generate the crank body only."""
         if hasattr(self, 'joint0') and isinstance(self.joint0, linkage.Joint):
             body = pm.Body()
-            body.position = (pm.Vec2d(*self.coord()) + self.joint0.coord())/2
+            body.position = (pm.Vec2d(*self.coord()) + self.joint0.coord()) / 2
             seg = self.__generate_link__(body, self.joint0.coord())
             self._a = self._b = body
             self._anchor_b = body.world_to_local(self.coord())
@@ -549,32 +549,52 @@ class DynamicLinkage(linkage.Linkage):
             raise Exception('Linkage {} Space not defined yet!'.format(self))
         dynajoints = []
         conversion_dict = {}
-        common = {'space': self.space, 'radius': self._thickness,
-                  'density': self.density, 'shape_filter': self.filter}
+        common = {
+            'space': self.space,
+            'radius': self._thickness,
+            'density': self.density,
+            'shape_filter': self.filter
+        }
         for joint in joints:
             common.update({'x': joint.x, 'y': joint.y, 'name': joint.name})
             if isinstance(joint, DynamicJoint):
                 djoint = joint
             elif isinstance(joint, linkage.Static):
                 djoint = Nail(body=self.body, **common)
-            elif isinstance(joint, linkage.Fixed):
-                djoint = PinUp(distance=joint.r, angle=joint.angle,
-                               joint0=conversion_dict[joint.joint0],
-                               joint1=conversion_dict[joint.joint1],
-                               **common)
-            elif isinstance(joint, linkage.Crank):
-                djoint = Motor(
-                    joint0=conversion_dict[joint.joint0],
-                    distance=joint.r, angle=joint.angle,
-                    **common
-                )
-            elif isinstance(joint, linkage.Pivot):
-                djoint = DynamicPivot(
-                    joint0=conversion_dict[joint.joint0],
-                    joint1=conversion_dict[joint.joint1],
-                    distance0=joint.r0, distance1=joint.r1,
-                    **common
-                )
+            # Joints with at least one reference
+            else:
+                """
+                Useless while qe don't support quick joint definition
+                if (
+                        isinstance(joint.joint0, linkage.Static)
+                        and joint.joint0 not in conversion_dict
+                ):
+                    conversion_dict[joint.joint0] = joint.joint0
+                if (
+                        hasattr(joint, "joint1")
+                        and isinstance(joint.joint1, linkage.Static)
+                        and joint.joint1 not in conversion_dict
+                ):
+                    conversion_dict[joint.joint1] = joint.joint1
+                """
+                if isinstance(joint, linkage.Fixed):
+                    djoint = PinUp(distance=joint.r, angle=joint.angle,
+                                   joint0=conversion_dict[joint.joint0],
+                                   joint1=conversion_dict[joint.joint1],
+                                   **common)
+                elif isinstance(joint, linkage.Crank):
+                    djoint = Motor(
+                        joint0=conversion_dict[joint.joint0],
+                        distance=joint.r, angle=joint.angle,
+                        **common
+                    )
+                elif isinstance(joint, linkage.Pivot):
+                    djoint = DynamicPivot(
+                        joint0=conversion_dict[joint.joint0],
+                        joint1=conversion_dict[joint.joint1],
+                        distance0=joint.r0, distance1=joint.r1,
+                        **common
+                    )
             dynajoints.append(djoint)
             conversion_dict[joint] = djoint
         self.joints = tuple(dynajoints)
@@ -587,7 +607,7 @@ class DynamicLinkage(linkage.Linkage):
         segs = []
         for i, vertex in enumerate(vertices):
             segs.append(pm.Segment(load, vertex,
-                                   vertices[(i+1) % len(vertices)],
+                                   vertices[(i + 1) % len(vertices)],
                                    self._thickness))
             segs[-1].density = self.density
             # Rigodbodies in this group won't collide

@@ -143,7 +143,7 @@ def complete_strider(constraints, prev):
         name="Strider"
     )
     strider.set_coords(prev)
-    strider.set_num_constraints(constraints)
+    strider.set_num_constraints(constraints, flat=False)
     return strider
 
 
@@ -207,7 +207,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
         prev.pop(-1)
         constraints.pop(-1)
     strider.set_coords(prev)
-    strider.set_num_constraints(constraints)
+    strider.set_num_constraints(constraints, flat=False)
     if n_leg_pairs > 1:
         strider.add_legs(n_leg_pairs - 1)
     return strider
@@ -234,7 +234,7 @@ def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
 
 def sym_stride_evaluator(linkage, dims, pos):
     """Give score to each dimension set for symmetric strider."""
-    linkage.set_num_constraints(param2dimensions(dims))
+    linkage.set_num_constraints(param2dimensions(dims), flat=False)
     linkage.set_coords(pos)
     try:
         points = 12
@@ -437,7 +437,7 @@ def fitness(dna, linkage_hollow):
         List of two elements: score (a float), and initial positions.
         Score is -float('inf') when mechanism building is impossible.
     """
-    linkage_hollow.set_num_constraints(param2dimensions(dna[0]))
+    linkage_hollow.set_num_constraints(param2dimensions(dna[0]), flat=False)
     linkage_hollow.rebuild(dna[2])
     # Check if mecanism is buildable
     try:
@@ -523,19 +523,19 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
         if datum[0] == 0:
             continue
         if symmetric:
-            linkage.set_num_constraints(param2dimensions(datum[1]))
+            linkage.set_num_constraints(param2dimensions(datum[1]), flat=False)
         else:
-            linkage.set_num_constraints(datum[1])
+            linkage.set_num_constraints(datum[1], flat=False)
         visu.show_linkage(linkage, prev=begin, title=str(datum[0]),
                           duration=10)
 
-
-#from cProfile import run
-strider = complete_strider(param2dimensions(param), begin)
+#wu.step([(0, 0), (-1, 0), (-1, 1), (0, 1), (0, .5)], 0, .5)
+from cProfile import run
+#strider = complete_strider(param2dimensions(param), begin)
 strider = strider_builder(param2dimensions(param), begin,
-                          n_leg_pairs=19, minimal=False)
+                          n_leg_pairs=5, minimal=False)
 #o = swarm_optimizer(show=1, save_each=1, age=10, ite=10, blind_ite=10)
-#run('swarm_optimizer(show=False, save_each=0, age=30, ite=400)')
+run('sym_stride_evaluator(strider, param, begin)')
 #optimized_striders = wo.exhaustive_optimization(
 #    sym_stride_evaluator, strider, param, delta_dim=.5)
 #optimized_striders = swarm_optimizer(strider, show=1, save_each=0, age=250,
@@ -543,7 +543,7 @@ strider = strider_builder(param2dimensions(param), begin,
 #show_optimized(strider, optimized_striders)
 #strider.add_legs(3)
 #visu.show_linkage(strider, save=False, duration=10, iteration_factor=n)
-show_physics(strider, debug=False, duration=40, save=False)
+#show_physics(strider, debug=False, duration=40, save=False)
 #o = evolutive_optimizer(
 #    strider, dims=param, prev=begin, pop=10, ite=100, init_pop=100,
 #    save=False, startnstop=False)

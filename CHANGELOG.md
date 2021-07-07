@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2-alpha] - 2021-07-07
+### Changed
+ - The ``step`` function execution speed has been increased by 25% when ``return_res`` is ``True``! Small performance improvement when ``return_res`` is ``False``.
+ - The ``size`` argument of ``step`` function is now known as ``witdh``.
+ - We now require pylinkage>=0.4.0.
+
+### Fixed
+ - Files in ``leggedsnake/examples/`` were not included in the PyPi package.
+ - The example was incompatible with [pylinkage](https://pypi.org/project/pylinkage/) 0.4.0.
+ - Test suite was unusable by tox.
+ - Tests fixed.
+
+### Security
+ - Tests with `tox.ini`` now include Python 3.9 and Flake 8.
+
 ## [0.1.1-alpha] - 2021-06-26
 ### Added
  - The example file ``examples/strider.py`` is now shipped with the Python package.

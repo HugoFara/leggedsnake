@@ -1,4 +1,4 @@
 numpy>=1.20.2
 pygad>=2.10.0
 pymunk>=6.0.0
-pylinkage
+pylinkage>=0.4.0
