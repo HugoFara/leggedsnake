@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+ - Sphinx documentation!
+
 ### Changed
  - I was testing my code on ``leggedsnake/examples/strider.py`` and that's why it was a big mess. I cleaned up that all. Sorry for the inconvenience!
 
