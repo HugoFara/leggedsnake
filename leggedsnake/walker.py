@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+The walker module give a simple interface between a generic linkage and a Walker.
+
+A generic linkage should be understood as a pylinkage.linkage.Linkage. Thus a
+Walker is a kinematic mechanism (not dynamic).
+
 Created on Thu Jun 10 21:13:12 2021.
 
 @author: HugoFara

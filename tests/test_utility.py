@@ -7,7 +7,7 @@ Created on Mon Jun 21 13:55:59 2021.
 """
 
 import unittest
-from ..utility import stride, step
+from leggedsnake.utility import stride, step
 
 
 class TestStride(unittest.TestCase):

@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This module is provides optimizers and wrappers for Gentic Optimization (GA).
+
+As for now I didn't tried a convinding GA library. This is why you can either
+use PyGAD or the builtt-in version. The switch between versions is made
+automatically on wether or not you have PyGAD installed.
+
 Created on Thu Jun 10 21:20:47 2021.
 
 @author: HugoFara

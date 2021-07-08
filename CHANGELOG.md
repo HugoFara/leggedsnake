@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Sphinx documentation!
 
 ### Changed
+ - Tests moved from ``leggedsnake/tests`` to ``tests/``.
+ - Examples moved from ``leggedsnake/examples/`` to ``docs/source/examples/``
  - I was testing my code on ``leggedsnake/examples/strider.py`` and that's why it was a big mess. I cleaned up that all. Sorry for the inconvenience!
 
 ### Fixed
  - A lot of outdated code in the ``leggedsnake/examples/strider.py``
+ - Changelog URL was broken in ``setup.cfg``.
 
 ## [0.1.2-alpha] - 2021-07-07
 ### Changed

@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 """
+Also known as WalkerUtility.
+
+This module aims to standardize and simplify study of walking mechanisms.
+
+It contain useful functions that make study of planar mechanisms easy.
+
 Created on Sat Nov 17 20:35:39 2018.
 
 @author: HugoFara
-
-WalkerUtility
-This module aim to standardize and simplify study of walking mecanisms.
-
-It contain useful functions, and a "Joint" class (with herited classes), that
-make study of planar mecanisms easy.
-
 """
 from pylinkage.geometry import bounding_box
 

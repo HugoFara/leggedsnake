@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu May 27 18:49:07 2021.
+This module is an interface between Pymunk and a kinematic linkage.
 
-@author: HugoFara
-
-Interface between pymunk and a kinematic linkage
+It provide various classes to overwrite the pylinkage.Joint objects.
+It also includes a DynamicLinkage that inheritates from
+pylinkage.linkage.Linkage.
+Enventually a handy convert_to_dynamic_linkage methoc can generate a
+DynamicLinkage from a pylinkage.linkage.Linkage.
 """
 import abc
 from math import atan2
@@ -19,6 +21,18 @@ class DynamicJoint(abc.ABC):
 
     def __init__(self, body0=None, body1=None, space=None, radius=.3,
                  density=1, shape_filter=None):
+        """
+        Partial class to generate a DynamicJoint.
+
+        A DynamicJoint is a Joint that can handle Pymunk Bodies.
+        :param body0: first pymunk.Body to link to.
+        :param body1: second pymunk.Body to link to.
+        :param space: pymunk.Space in which the DynamicJoint exist.
+        :param radius: DynamicJoint will generate hulles.
+        :param density: density of the hull, mass will be computed accordingly.
+        :param shape_filter: prevent hulles from colliding with each another.
+        Useful is the same linkage for instance.
+        """
         if isinstance(body0, pm.Body):
             self._a = body0
             self._anchor_a = body0.world_to_local(self.coord())
