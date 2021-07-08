@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This module is provides optimizers and wrappers for Gentic Optimization (GA).
+The geneticoptimizer module provides optimizers and wrappers for GA.
 
-As for now I didn't tried a convinding GA library. This is why you can either
-use PyGAD or the builtt-in version. The switch between versions is made
-automatically on wether or not you have PyGAD installed.
+As for now I didn't tried a convincing Genetic Algorithm library. This is why
+you can either use PyGAD or the builtt-in version. The switch between versions
+is made automatically on wether or not you have PyGAD installed.
 
 Created on Thu Jun 10 21:20:47 2021.
 
@@ -230,7 +230,7 @@ def evolutionnary_optimization(
     prob : TYPE
         DESCRIPTION.
     fitness : callable
-        Evaluation function for an OPTIMIZATION problem.
+        Evaluation function for an %AXIMISATION problem.
         Must return a float.
     ite : int
         Number of iterations.

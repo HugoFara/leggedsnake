@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This module gives a dynamic behavior to legged mechanism.
+The physicsengine module gives a dynamic behavior to legged mechanism.
 
 Is uses the 2D physics engine chipmunk, this is why it can only be used on
 planar mechanisms.

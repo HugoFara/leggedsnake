@@ -1,5 +1,9 @@
+======
 walker
 ======
+
+Inheritance for Linkages
+========================
 .. automodule:: leggedsnake.walker
    :members:
    :undoc-members:

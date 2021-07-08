@@ -1,5 +1,9 @@
+==============
 dynamiclinkage
 ==============
+
+Interface to dynamic compatible joints
+======================================
 .. automodule:: leggedsnake.dynamiclinkage
    :members:
    :undoc-members:

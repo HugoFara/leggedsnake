@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec 23 21:03:11 2018.
-
-@author: HugoFara
-
 Complete simulator for strider mechanism, a type of walking mechanism.
 
 Directions:
     - First section gives objects definition, and links between them
     - Second section explains how simulation works.
     - Third section is for display.
+
+Created on Sun Dec 23 21:03:11 2018.
+
+@author: HugoFara
 """
 
 import matplotlib.pyplot as plt

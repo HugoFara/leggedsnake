@@ -1,5 +1,9 @@
+================
 geneticoptimizer
 ================
+
+Optimization using Genetic Algorithms (GA)
+==========================================
 .. automodule:: leggedsnake.geneticoptimizer
    :members:
    :undoc-members:

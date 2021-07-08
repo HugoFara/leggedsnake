@@ -10,14 +10,17 @@ Welcome to LeggedSnake's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   README
-   LICENSE
-   CHANGELOG
+   readmelink
+   changeloglink
    api/walker
    api/utility
    api/dynamiclinkage
    api/physicsengine
    api/geneticoptimizer
+   licenselink
+
+.. mdinclude::
+   ../../README.md
 
 
 Indices and tables

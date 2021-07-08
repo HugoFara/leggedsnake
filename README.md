@@ -61,8 +61,9 @@ Kinematic optimization is fast, however it can return weird results, and it has 
 
 We handle everything almost evything world definition to linkage conversion. Appart from the GA parameters, you just have to define a fitness function. Here are the main steps for a **maximisation problem**:
 1. Create a function of two arguments, the first one should be the paramaters of the linkage, the second the initial positions for the joints.
-2. Try to do a revolution in **kinematic simulation**. If the Walker raises an ``UnbuildableError`` set its score to ``-float('inf')``.
-3. Otherwise use this procedure 
+1. Try to do a revolution in **kinematic simulation**. If the Walker raises an ``UnbuildableError`` set its score to ``-float('inf')``.
+1. Otherwise use this procedure 
+
 ```python
 from leggedsnake import physicsengine as pe
 
@@ -97,7 +98,7 @@ def dynamic_linkage_fitness(walker):
 And now, relax while your computer recreates a civilisation of walking machines!
 
 ### Visualization
-For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html), an exemple file is provided at [strider.py](https://github.com/HugoFara/leggedsnake/blob/master/examples/strider.py). The linkage looks like this:
+For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html), an exemple file is provided at ``docs/source/examples/strider.py``. The linkage looks like this:
 ![A Kinematic representation of Strider linkage](https://github.com/HugoFara/leggedsnake/raw/master/docs/source/examples/images/Kinematic%20unoptimized%20Strider.gif)
 
 Looks cool? Let's simulate it dynamically!

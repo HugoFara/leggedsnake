@@ -67,15 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``requirement.txt`` was absent due to ``.gitignore`` misconfiguration.
 
 ### Changed
- - ``.gitignore`` now ignores *.txt files only in the leggedsnake folder
+ - ``.gitignore`` now ignores .txt files only in the leggedsnake folder.
  - ``environment.yml`` more flexible (versions can be superior to the selected). pymunk>5.0.0 and pylinkage added.
- - ``leggedsnake/utility.py`` not having zipfile or xml modules error encapsulation
+ - ``leggedsnake/utility.py`` not having zipfile or xml modules error encapsulation.
 
 ### Fixed
  - ``setup.cfg`` was not PyPi compatible.
      Removed mail (use GitHub!), we now explicitly say that ``README.md`` is markdown (PyPi is conservative)
-
-
+   
 ## [0.0.1-alpha] - 2021-06-22
 Basic version, supporting Genetic Algorithm optimization, but with various problems.
 ### Added
@@ -97,5 +96,3 @@ Basic version, supporting Genetic Algorithm optimization, but with various probl
  - ``setup.cfg``
  - ``setup.py`` empty, for compatibility purposes only
  - ``tox.ini`` tox with Python 3.7 and 3.8
-
-

@@ -1,5 +1,9 @@
+=============
 physicsengine
 =============
+
+Dynamic Simulator
+=================
 .. automodule:: leggedsnake.physicsengine
    :members:
    :undoc-members:
