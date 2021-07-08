@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - The example was incompatible with [pylinkage](https://pypi.org/project/pylinkage/) 0.4.0.
  - Test suite was unusable by tox.
  - Tests fixed.
+ - Incompatible argument between PyGAD init_pop and built-in GA.
 
 ### Security
  - Tests with `tox.ini`` now include Python 3.9 and Flake 8.

@@ -1,5 +1,5 @@
 [![PyPI version fury.io](https://badge.fury.io/py/leggedsnake.svg)](https://pypi.python.org/pypi/leggedsnake/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE.rst)
 # leggedsnake
 
 LeggedSnake is a Python library providing reliable computationnal techniques to build, simulate and optimize planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism). It is divided in three main parts:

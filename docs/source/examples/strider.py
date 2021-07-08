@@ -68,12 +68,6 @@ bounds = ((0, 0, 0, 0, 0, 0, 0, 0),
 # Initial coordinates according to previous dimensions
 begin = ((0, 0), (0, 1), (1.41, 1.41), (-1.41, 1.41), (0, -1), (-2.25, 0),
          (2.25, 0), (-1.4, -1.2), (1.4, -1.2), (-2.7, -2.7), (2.7, -2.7))
-"""
-param = {1.5707963267948966: 1.6087602528022467, 3.141592653589793: 3.36478019266876, 4.71238898038469: 4.982560396344311, 'rockerL': 2.584774044408933, 'one': 1.1394106709324356, 'phi': 3.3257392473742047, 'femur': 2.098116925770731, 'tibia': 2.4696281593446883, 'triangle': 1.9080888204659163, 'rockerS': 1.451669502360432, 'ape': 0.6108747637740084, 'f': 1.5197400988301764}
-# Set of initial positions the goes well with previous dimensions
-begin = [(0, 0), (0, 1), (1.0944496744512664, 1.563004432776993), (-1.0944496744512662, 1.563004432776993), (6.123233995736766e-17, -1.0), (-2.4116997155170004, -0.0700745498561018), (2.411699715517001, -0.070074549856102), (-1.2359355451543963, -1.7614510308005955), (1.235935545154396, -1.761451030800596), (-2.543371738668845, -2.5361900629145095), (2.543371738668845, -2.5361900629145095), (1.138589676216803, 0.043246112509899), (-1.385210184363346, -0.514867786605443), (3.1919664890008175, 1.6131825842727139), (0.1663113596606027, -1.0347238403357382), (2.5894451182451443, 0.091855066624656), (0.0178909396676118, -2.5471990787847707), (3.841518904259255, -0.7694934124293479), (-0.2521962696426615, 1.1111497282603409), (-2.656493683094839, 0.1622499399173982), (1.84845375652758, -0.3949466591601567), (-1.5669070372523302, 1.72668197080705), (1.17286598517539, 1.3878118217539663), (-0.297066585737247, 0.891747724480835), (-0.2621340406012742, 0.8874270757701106), (-1.0980787313568554, -0.3041048779227688), (-3.1681379353978905, 1.2437684219358172), (1.479298183094035, -0.4995149633987277), (-2.541216000676675, -0.46126456099549), (-0.1143206787728823, -1.3716087130725885), (-3.9155070920685544, -1.1100587996515308), (0.4942397142541866, -2.76418338469027)]
-"""
-
 
 def param2dimensions(param=param, flat=False):
     """
@@ -507,12 +501,10 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
     linkage.rebuild(prev)
     linkage.add_legs(3)
     linkage.step()
-    dna = list(dims), 0, list(linkage.get_pos())
-    if not init_pop:
-        init_pop = pop
+    dna = list(dims), 0, list(linkage.get_coords())
     o = go.evolutionnary_optimization(
-        dna=dna, prob=.07, fitness=fitness, iters=iters, max_pop=pop,
-        init_pop=init_pop, startnstop=startnstop, fitness_args=[linkage])
+        dna=dna, prob=.07, fitness=fitness, ite=iters, max_pop=pop,
+        startnstop=startnstop, fitness_args=[linkage])
     if save:
         file = open('Evolutive optimizer.txt', 'w')
         # We only keep 10 best results
@@ -535,23 +527,28 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
                           duration=10)
 
 strider = complete_strider(param2dimensions(param), begin)
+print(
+    "Initial score: {}"
+        . format(sym_stride_evaluator(strider, param, begin))
+)
 # Trials and errors optimization as comparison
 optimized_striders = wo.trials_and_errors_optimization(
     sym_stride_evaluator, strider, param, delta_dim=.5
 )
 print(
-    "Score after trials and errors optimization: ". format(optimized_striders)[0][0]
+    "Score after trials and errors optimization: {}"
+        . format(optimized_striders[0][0])
 )
 # Particle swarm optimization
 #optimized_striders = swarm_optimizer(
 #    strider, show=1, save_each=0, age=250, iters=200, bounds=bounds,
 #)
 #show_optimized(strider, optimized_striders)
+visu.show_linkage(strider, save=False, duration=10, iteration_factor=n)
 # We add some legs
 strider.add_legs(3)
-visu.show_linkage(strider, save=False, duration=10, iteration_factor=n)
 show_physics(strider, debug=False, duration=40, save=False)
 o = evolutive_optimizer(
-    strider, dims=param, prev=begin, pop=10, ite=100, init_pop=100,
+    strider, dims=param, prev=begin, pop=10, iters=100,
     save=False, startnstop=False
 )

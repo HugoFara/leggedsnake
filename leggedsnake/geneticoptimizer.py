@@ -279,7 +279,8 @@ def evolutionnary_optimization(
     # Legacy fallback
     return evolutionnary_optimization_legacy(
         dna, prob, fitness, ite,
-        max_pop=max_pop, init_pop=init_pop,
+        max_pop=max_pop,
+        init_pop=len(init_pop),
         max_genetic_dist=max_genetic_dist,
         startnstop=startnstop,
         fitness_args=fitness_args
