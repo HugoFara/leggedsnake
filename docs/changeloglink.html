@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Changelog &#8212; LeggedSnake 0.1.2-alpha documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="walker" href="api/walker.html" />
+    <link rel="prev" title="leggedsnake" href="readmelink.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
+and this project adheres to <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<div class="section" id="unreleased">
+<h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="added">
+<h3>Added<a class="headerlink" href="#added" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Sphinx documentation!</p></li>
+</ul>
+</div>
+<div class="section" id="changed">
+<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Tests moved from <code class="docutils literal notranslate"><span class="pre">leggedsnake/tests</span></code> to <code class="docutils literal notranslate"><span class="pre">tests/</span></code>.</p></li>
+<li><p>Examples moved from <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/</span></code> to <code class="docutils literal notranslate"><span class="pre">docs/source/examples/</span></code></p></li>
+<li><p>I was testing my code on <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/strider.py</span></code> and that’s why it was a big mess. I cleaned up that all. Sorry for the inconvenience!</p></li>
+</ul>
+</div>
+<div class="section" id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>A lot of outdated code in the <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/strider.py</span></code></p></li>
+<li><p>Changelog URL was broken in <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="alpha-2021-07-07">
+<h2>[0.1.2-alpha] - 2021-07-07<a class="headerlink" href="#alpha-2021-07-07" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>Changed<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">step</span></code> function execution speed has been increased by 25% when <code class="docutils literal notranslate"><span class="pre">return_res</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>! Small performance improvement when <code class="docutils literal notranslate"><span class="pre">return_res</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">size</span></code> argument of <code class="docutils literal notranslate"><span class="pre">step</span></code> function is now known as <code class="docutils literal notranslate"><span class="pre">witdh</span></code>.</p></li>
+<li><p>We now require pylinkage&gt;=0.4.0.</p></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>Fixed<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Files in <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/</span></code> were not included in the PyPi package.</p></li>
+<li><p>The example was incompatible with <a class="reference external" href="https://pypi.org/project/pylinkage/">pylinkage</a> 0.4.0.</p></li>
+<li><p>Test suite was unusable by tox.</p></li>
+<li><p>Tests fixed.</p></li>
+<li><p>Incompatible argument between PyGAD init_pop and built-in GA.</p></li>
+</ul>
+</div>
+<div class="section" id="security">
+<h3>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Tests with <cite>tox.ini`</cite> now include Python 3.9 and Flake 8.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="alpha-2021-06-26">
+<h2>[0.1.1-alpha] - 2021-06-26<a class="headerlink" href="#alpha-2021-06-26" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id3">
+<h3>Added<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>The example file <code class="docutils literal notranslate"><span class="pre">examples/strider.py</span></code> is now shipped with the Python package.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/geneticoptimizer.py</span></code> can now automatically switch to the built-in GA algorithm if PyGAD is not installed.</p></li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h3>Changed<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> metadata</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="alpha-2021-06-25">
+<h2>[0.1.0-alpha] - 2021-06-25<a class="headerlink" href="#alpha-2021-06-25" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id5">
+<h3>Added<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Code vulnerabilities automatic checks</p></li>
+<li><p>Example videos in <code class="docutils literal notranslate"><span class="pre">examples/images/</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h3>Changed<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Manny reforms in code style, to make the dynamic part naming conventions consistent with Pymunk.</p></li>
+<li><p>Images in the <code class="docutils literal notranslate"><span class="pre">README.md</span></code>!</p></li>
+</ul>
+</div>
+<div class="section" id="id7">
+<h3>Fixed<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>You can now define linkages with an enormous number of legs. Systems with many should no longer break physics but your CPU instead :)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="alpha-2021-06-23">
+<h2>[0.0.3-alpha] - 2021-06-23<a class="headerlink" href="#alpha-2021-06-23" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id8">
+<h3>Added<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Started walktrough demo in <code class="docutils literal notranslate"><span class="pre">README.md</span></code></p></li>
+<li><p>Automatic release to PyPi</p></li>
+</ul>
+</div>
+<div class="section" id="id9">
+<h3>Fixed<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Pymunk version should be at least 6.0.0 in requirement files.</p></li>
+<li><p>Some URLs typos in <code class="docutils literal notranslate"><span class="pre">README.md</span></code></p></li>
+<li><p>Versionning tests not executing (GitHub action)</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="alpha-2021-06-22">
+<h2>[0.0.2-alpha] - 2021-06-22<a class="headerlink" href="#alpha-2021-06-22" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id10">
+<h3>Added<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">requirement.txt</span></code> was absent due to <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> misconfiguration.</p></li>
+</ul>
+</div>
+<div class="section" id="id11">
+<h3>Changed<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> now ignores .txt files only in the leggedsnake folder.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> more flexible (versions can be superior to the selected). pymunk&gt;5.0.0 and pylinkage added.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/utility.py</span></code> not having zipfile or xml modules error encapsulation.</p></li>
+</ul>
+</div>
+<div class="section" id="id12">
+<h3>Fixed<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> was not PyPi compatible.</dt><dd><p>Removed mail (use GitHub!), we now explicitly say that <code class="docutils literal notranslate"><span class="pre">README.md</span></code> is markdown (PyPi is conservative)</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="id13">
+<h2>[0.0.1-alpha] - 2021-06-22<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
+<p>Basic version, supporting Genetic Algorithm optimization, but with various problems.</p>
+<div class="section" id="id14">
+<h3>Added<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CODE_OF_CONDUCT.md</span></code> to help community</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> MIT License</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MANIFEST.in</span></code> to include more files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">README.md</span></code> as a very minimal version</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> with matplotlib, numpy, and pygad requirement</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">examples/strider.py</span></code> a complete demo with Strider linkage</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/__init__.py</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/dynamiclinkage.py</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/geneticoptimizer.py</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/physicsengine.py</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/show_evolution.py</span></code> just a legacy package, no utility</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/tests/test_utility.py</span></code> untested test case</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/utility.py</span></code> contain some useful evalution function (<code class="docutils literal notranslate"><span class="pre">step</span></code> and <code class="docutils literal notranslate"><span class="pre">stride</span></code>) and a broken GeoGebra interface.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">walker.py</span></code> defines the <code class="docutils literal notranslate"><span class="pre">Walker</span></code> object.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">setup.py</span></code> empty, for compatibility purposes only</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tox.ini</span></code> tox with Python 3.7 and 3.8</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">LeggedSnake</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readmelink.html">leggedsnake</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#unreleased">[Unreleased]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpha-2021-07-07">[0.1.2-alpha] - 2021-07-07</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-26">[0.1.1-alpha] - 2021-06-26</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-25">[0.1.0-alpha] - 2021-06-25</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-23">[0.0.3-alpha] - 2021-06-23</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-22">[0.0.2-alpha] - 2021-06-22</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id13">[0.0.1-alpha] - 2021-06-22</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utility.html">utility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/dynamiclinkage.html">dynamiclinkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/physicsengine.html">physicsengine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/geneticoptimizer.html">geneticoptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licenselink.html">MIT License</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="readmelink.html" title="previous chapter">leggedsnake</a></li>
+      <li>Next: <a href="api/walker.html" title="next chapter">walker</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Hugo Farajallah.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/changeloglink.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
