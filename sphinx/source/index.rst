@@ -17,7 +17,6 @@ Welcome to LeggedSnake's documentation!
    api/dynamiclinkage
    api/physicsengine
    api/geneticoptimizer
-   licenselink
 
 .. mdinclude::
    ../../README.md

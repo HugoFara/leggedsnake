@@ -5,8 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.3-alpha] - 2021-07-10
+This package was lacking real documentation, it is fixed in this version.
 ### Added
  - Sphinx documentation!
+ - Web site hosted on GitHub pages, check [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
 
 ### Changed
  - Tests moved from ``leggedsnake/tests`` to ``tests/``.
