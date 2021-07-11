@@ -11,11 +11,12 @@ This package was lacking real documentation, it is fixed in this version.
 ### Added
  - Sphinx documentation!
  - Web site hosted on GitHub pages, check [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
+ - Expanded README with the quick links section.
 
 ### Changed
  - Tests moved from ``leggedsnake/tests`` to ``tests/``.
- - Examples moved from ``leggedsnake/examples/`` to ``docs/source/examples/``
- - I was testing my code on ``leggedsnake/examples/strider.py`` and that's why it was a big mess. I cleaned up that all. Sorry for the inconvenience!
+ - Examples moved from ``leggedsnake/examples/`` to ``docs/examples/``.
+ - I was testing my code on ``leggedsnake/examples/strider.py``  (old path) and that's why it was a big mess. I cleaned up that all. Sorry for the inconvenience!
 
 ### Fixed
  - A lot of outdated code in the ``leggedsnake/examples/strider.py``
