@@ -11,6 +11,17 @@ Created on Thu Jun 10 20:35:00 2021
 @author: HugoFara
 """
 
+# Pylinkage is a sister project and some kind of backend for leggedsnake
+from pylinkage import (
+    bounding_box, generate_bounds,
+    Static, Fixed, Pivot, Crank,
+    Linkage,
+    trials_and_errors_optimization, particle_swarm_optimization,
+    kinematic_minimization, kinematic_maximization,
+    UnbuildableError, HypostaticError,
+    show_linkage,
+)
+
 from .utility import step, stride
 from .walker import Walker
 from .geneticoptimizer import (

@@ -15,16 +15,7 @@ Created on Sun Dec 23 21:03:11 2018.
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 import numpy as np
-import pylinkage.optimizer as wo
-from pylinkage.exceptions import UnbuildableError
-from pylinkage.linkage import Static, Pivot, Fixed, Crank
-import pylinkage.visualizer as visu
-
-from leggedsnake import utility as wu
-from leggedsnake.walker import Walker
-from leggedsnake import physicsengine as pe
-from leggedsnake import geneticoptimizer as go
-
+import leggedsnake as ls
 
 # Simulation parameters
 # Nunber of points for crank complet turn
@@ -111,27 +102,27 @@ def complete_strider(constraints, prev):
     """
     # Fixed points (mechanism body)
     # A is the origin
-    A = Static(x=0, y=0, name="A")
+    A = ls.Static(x=0, y=0, name="A")
     # Vertical axis for convience,
-    Y = Static(0, 1, name="Point (0, 1)")
+    Y = ls.Static(0, 1, name="Point (0, 1)")
     # For drawing only
     Y.joint0 = A
     # Not fixed because we will optimize this position
-    B = Fixed(joint0=A, joint1=Y, name="Frame right (B)")
-    B_p = Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
+    B = ls.Fixed(joint0=A, joint1=Y, name="Frame right (B)")
+    B_p = ls.Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
     # Pivot joints, explicitely defined to be modified later
     # Joint linked to crank. Coordinates are chosen in each frame
-    C = Crank(joint0=A, angle=2*np.pi/n, name="Crank link (C)")
-    D = Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
-    E = Pivot(joint0=B, joint1=C, name="Right knee link (E)")
+    C = ls.Crank(joint0=A, angle=2*np.pi/n, name="Crank link (C)")
+    D = ls.Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
+    E = ls.Pivot(joint0=B, joint1=C, name="Right knee link (E)")
     # F is fixed relative to C and E
-    F = Fixed(joint0=C, joint1=E, name='Left ankle link (F)')
+    F = ls.Fixed(joint0=C, joint1=E, name='Left ankle link (F)')
     # G fixed to C and D
-    G = Fixed(joint0=C, joint1=D, name='Right ankle link (G)')
-    H = Pivot(joint0=D, joint1=F, name="Left foot (H)")
-    Ii = Pivot(joint0=E, joint1=G, name="Right foot (I)")
+    G = ls.Fixed(joint0=C, joint1=D, name='Right ankle link (G)')
+    H = ls.Pivot(joint0=D, joint1=F, name="Left foot (H)")
+    Ii = ls.Pivot(joint0=E, joint1=G, name="Right foot (I)")
     # Mechanisme definition
-    strider = Walker(
+    strider = ls.Walker(
         joints=(A, Y, B, B_p, C, D, E, F, G, H, Ii),
         order=(A, Y, B, B_p, C, D, E, F, G, H, Ii),
         name="Strider"
@@ -163,28 +154,28 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
     """
     # Fixed points (mechanism body)
     # A is the origin
-    A = Static(x=0, y=0, name="A")
+    A = ls.Static(x=0, y=0, name="A")
     # Vertical axis for convience,
-    Y = Static(0, 1, name="Point (0, 1)")
+    Y = ls.Static(0, 1, name="Point (0, 1)")
     # For drawing only
     Y.joint0 = A
     # Not fixed because we will optimize this position
-    B = Fixed(joint0=A, joint1=Y, name="Frame right (B)")
-    B_p = Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
+    B = ls.Fixed(joint0=A, joint1=Y, name="Frame right (B)")
+    B_p = ls.Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
     # Pivot joints, explicitely defined to be modified later
     # Joint linked to crank. Coordinates are chosen in each frame
-    C = Crank(joint0=A, angle=2*np.pi/n, name="Crank link (C)")
-    D = Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
-    E = Pivot(joint0=B, joint1=C, name="Right knee link (E)")
+    C = ls.Crank(joint0=A, angle=2*np.pi/n, name="Crank link (C)")
+    D = ls.Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
+    E = ls.Pivot(joint0=B, joint1=C, name="Right knee link (E)")
     # F is fixed relative to C and E
-    F = Fixed(joint0=C, joint1=E, name='Left ankle link (F)')
-    H = Pivot(joint0=D, joint1=F, name="Left foot (H)")
+    F = ls.Fixed(joint0=C, joint1=E, name='Left ankle link (F)')
+    H = ls.Pivot(joint0=D, joint1=F, name="Left foot (H)")
     joints = [A, Y, B, B_p, C, D, E, F, H]
     if not minimal:
         # G fixed to C and D
-        G = Fixed(joint0=C, joint1=D, name='Right ankle link (G)')
+        G = ls.Fixed(joint0=C, joint1=D, name='Right ankle link (G)')
         joints.insert(-1, G)
-        joints.append(Pivot(joint0=E, joint1=G, name="Right foot (I)"))
+        joints.append(ls.Pivot(joint0=E, joint1=G, name="Right foot (I)"))
     # Mechanisme definition
     strider = Walker(
         joints=joints,
@@ -211,20 +202,29 @@ def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
     """
     Give mechanism a dynamic model and launch video.
 
-    Arguments
-    ---------
-    prev: previous coordinates to use
-    debug: launch in debug mode (frame by frame, with forces visualisation)
-    duration: simulation duration (in seconds)
-    save: save the video file instead of displaying it
+    Parameters
+    ----------
+    linkage : pylinkage.linkage.Linkage
+        Linkage to simulate
+    prev : tuple[tuple[float]], optional
+        Previous coordinates to use. The default is None.
+    debug : bool, optional
+        Launch in debug mode (frame by frame, with forces visualisation).
+        The default is False.
+    duration : float, optional
+        Simulation duration (in seconds). The default is 40.
+    save : bool, optional
+        Save the video file instead of displaying it. The default is False.
     """
     # Define intial positions
     linkage.rebuild(prev)
     if debug:
-        pe.video_debug(linkage)
+        ls.video_debug(linkage)
     else:
-        pe.video(linkage, duration, save)
+        ls.video(linkage, duration, save)
 
+# Ugly way to save (position + cost) history
+history = []
 
 def sym_stride_evaluator(linkage, dims, pos):
     """Give score to each dimension set for symmetric strider."""
@@ -238,45 +238,48 @@ def sym_stride_evaluator(linkage, dims, pos):
         # Again with n points, and at least 12 iterations
         # L = tuple(tuple(i) for i in linkage.step(iterations=n))
         factor = int(points / n) + 1
-        L = tuple(tuple(i) for i in linkage.step(
+        loci = tuple(tuple(i) for i in linkage.step(
             iterations=n * factor, dt=n / n / factor))
-    except UnbuildableError:
+        history.append(list(dims) + [0])
+    except ls.UnbuildableError:
         return 0
     else:
-        foot_locus = tuple(x[-2] for x in L)
+        foot_locus = tuple(x[-2] for x in loci)
         # Constraints check
-        if not wu.step(foot_locus, .5, .2):
+        if not ls.step(foot_locus, .5, .2):
             return 0
         # Performances evaluation
-        locus = wu.stride(foot_locus, .2)
-        return max(k[0] for k in locus) - min(k[0] for k in locus)
+        locus = ls.stride(foot_locus, .2)
+        score =  max(k[0] for k in locus) - min(k[0] for k in locus)
+        history[-1][-1] = score
+        return score
 
 
-def repr_polar_swarm(swarm, fig=None, lines=None, t=0):
+def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
     """
     Represent a swarm in a polar graph.
 
     Parameters
     ----------
-    swarm : tuple
-        List of dimensions then best cost.
-    fig : TYPE, optional
+    current_swarm : list[list[float]]
+        List of dimensions + cost (concatenated).
+    fig : matplotlib.pyplot.Figure, optional
         Figuer to draw on. The default is None.
-    lines : TYPE, optional
+    lines : list[matplotlib.pyplot.Artist], optional
         Lines to be modified. The default is None.
-    t : TYPE, optional
-        DESCRIPTION. The default is 0.
+    t : int, optional
+        Frame index. The default is 0.
 
     Returns
     -------
-    lines : TYPE
-        Lines modified.
+    lines : list[matplotlib.pyplot.Artist]
+        Lines with coordinates modified.
 
     """
-    dims, cost = swarm
-    for line, dimension_set in zip(lines, dims):
-        fig.suptitle("Best cost: {}".format(cost))
-        line.set_data(t, tuple(dimension_set) + (-cost,))
+    best_cost = max(x[-1] for x in current_swarm)
+    fig.suptitle("Best cost: {}".format(best_cost))
+    for line, dimension_set in zip(lines, current_swarm):
+        line.set_data(t, dimension_set)
     return lines
 
 
@@ -290,10 +293,10 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
 
     Parameters
     ----------
-    linkage : TYPE
-        DESCRIPTION.
-    dims : TYPE, optional
-        DESCRIPTION. The default is param.
+    linkage : pylinkage.linkage.Linkage
+        The linkage to optimize.
+    dims : list[float], optional
+        The dimensions that should vary. The default is param.
     show : int, optional
         Type of visualisation.
         - 0 for None
@@ -308,25 +311,23 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         Number of iterations to run through. The default is 400.
     blind_ite : int, optional
         Number of iterations without evaluation. The default is 200.
-    *args : TYPE
-        DESCRIPTION.
-    **kwargs : TYPE
+    *args : list
+        Arguments to pass to the particle swarm optimization.
+    **kwargs : dict
         DESCRIPTION.
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    list
+        List of best fit linkages.
 
     """
     print("Initial dimensions: ", dims)
 
-    def eval_func(dims, pos):
-        return sym_stride_evaluator(linkage, dims, pos)
     if show == 1:
-        out = wo.particle_swarm_optimization(
-            eval_func, linkage,
-            center=dims, n_particles=age, iters=iters, #iterable=True,
+        out = ls.particle_swarm_optimization(
+            sym_stride_evaluator, linkage,
+            center=dims, n_particles=age, iters=iters,
             bounds=bounds, dimensions=len(dims), *args,
         )
 
@@ -337,9 +338,13 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         ax.set_xticks(t)
         ax.set_rmax(7)
         ax.set_xticklabels(param_names + ("score",))
+        formatted_history = [
+            history[i:i+age] for i in range(0, len(history), age)
+        ]
         animation = anim.FuncAnimation(
-            fig, func=repr_polar_swarm,
-            frames=zip(out.pos_history, out.cost_history),
+            fig,
+            func=repr_polar_swarm,
+            frames=formatted_history,
             fargs=(fig, lines, t), blit=True,
             interval=10, repeat=True,
             save_count=(iters - 1) * bool(save_each))
@@ -353,26 +358,33 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                         "application maximum",
                         'comment': "Made with Python and Matplotlib",
                         'description': "The swarm tries to find best dimension"
-                        " set for Strider legged mechanism"})
-
+                        " set for Strider legged mechanism"
+                }
+            )
             ani[-1].save(r"PSO.mp4", writer=writer)
         return out
     elif show == 2:
-        out = wo.particle_swarm_optimization(
-                eval_func, linkage,
-                dims, age, iters=iters, iterable=True,
-                bounds=bounds, dimensions=len(dims), *args)
+        # Tiled representation of swarm
+        out = ls.particle_swarm_optimization(
+            sym_stride_evaluator, linkage,
+            center=dims, n_particles=age, iters=iters,
+            bounds=bounds, dimensions=len(dims),
+            *args
+        )
 
         fig = plt.figure("Swarm in tiled mode")
         cells = int(np.ceil(np.sqrt(age)))
         axes = fig.subplots(cells, cells)
         lines = [ax.plot([], [], lw=.5, animated=False)[0]
                  for ax in axes.flatten()]
+        formatted_history = [
+            history[i:i+age][:-1] for i in range(0, len(history), age)
+        ]
         animation = anim.FuncAnimation(
-            fig, lambda *args: visu.swarm_tiled_repr(linkage, *args),
-            out.pos_history, fargs=(fig, axes, param2dimensions), blit=False,
+            fig, lambda *args: ls.swarm_tiled_repr(linkage, *args),
+            formatted_history, fargs=(fig, axes, param2dimensions), blit=False,
             interval=40, repeat=False, save_count=(iters - 1) * bool(save_each)
-            )
+        )
         ani.append(animation)
         plt.show(block=not save_each)
         if save_each:
@@ -390,7 +402,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         return out
 
     elif save_each:
-        for dim, i in wo.particle_swarm_optimization(
+        for dim, i in ls.particle_swarm_optimization(
                 eval_func, linkage, dims, age, iters=iters,
                 bounds=bounds, #iterable=True,
                 dimensions=len(dims), # *args
@@ -408,12 +420,13 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                 f.close()
     else:
         out = tuple(
-            wo.particle_swarm_optimization(
+            ls.particle_swarm_optimization(
                 eval_func, linkage, dims, n_particles=age, bounds=bounds,
                 dimensions=len(dims),
                 iters=iters, # iterable=False,
-                *args)
+                *args
             )
+        )
         return out
         return out.sort(key=lambda x: x[1], reverse=True)
 
@@ -442,7 +455,7 @@ def fitness(dna, linkage_hollow):
     try:
         # Save initial coordinates
         pos = tuple(linkage_hollow.step())[-1]
-    except UnbuildableError:
+    except ls.UnbuildableError:
         return - float('inf'), list()
     else:
         world = pe.World()
@@ -493,7 +506,7 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
 
     Returns
     -------
-    o : list
+    list
         List of optimized linkages with dimensions, score and initial
         positions.
 
@@ -502,9 +515,10 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
     linkage.add_legs(3)
     linkage.step()
     dna = list(dims), 0, list(linkage.get_coords())
-    o = go.evolutionnary_optimization(
+    o = ls.evolutionnary_optimization(
         dna=dna, prob=.07, fitness=fitness, ite=iters, max_pop=pop,
-        startnstop=startnstop, fitness_args=[linkage])
+        startnstop=startnstop, fitness_args=[linkage]
+    )
     if save:
         file = open('Evolutive optimizer.txt', 'w')
         # We only keep 10 best results
@@ -523,28 +537,30 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
             linkage.set_num_constraints(param2dimensions(datum[1]), flat=False)
         else:
             linkage.set_num_constraints(datum[1], flat=False)
-        visu.show_linkage(linkage, prev=begin, title=str(datum[0]),
-                          duration=10)
+        ls.show_linkage(
+            linkage, prev=begin, title=str(datum[0]), duration=10
+        )
 
 strider = complete_strider(param2dimensions(param), begin)
 print(
     "Initial score: {}"
-        . format(sym_stride_evaluator(strider, param, begin))
+        .format(sym_stride_evaluator(strider, param, begin))
 )
 # Trials and errors optimization as comparison
-optimized_striders = wo.trials_and_errors_optimization(
-    sym_stride_evaluator, strider, param, delta_dim=.5
+optimized_striders = ls.trials_and_errors_optimization(
+    sym_stride_evaluator, strider, param, divisions=3
 )
 print(
     "Score after trials and errors optimization: {}"
-        . format(optimized_striders[0][0])
+        .format(optimized_striders[0][0])
 )
+
 # Particle swarm optimization
-#optimized_striders = swarm_optimizer(
-#    strider, show=1, save_each=0, age=250, iters=200, bounds=bounds,
-#)
+optimized_striders = swarm_optimizer(
+    strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
+)
 #show_optimized(strider, optimized_striders)
-visu.show_linkage(strider, save=False, duration=10, iteration_factor=n)
+ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
 # We add some legs
 strider.add_legs(3)
 show_physics(strider, debug=False, duration=40, save=False)
