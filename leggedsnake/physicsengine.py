@@ -349,7 +349,7 @@ def get_bounding_box(linkage):
     """
     Return the bounding box for this linkage.
 
-    The bounding box is in form ((min_x, max_x), min_y, max_y).
+    The bounding box is in form ((min_x, max_x), (min_y, max_y)).
     """
     data = [i.coord() for i in linkage.joints]
     data.extend(tuple(i.position) for i in linkage.rigidbodies)
@@ -400,8 +400,15 @@ def video(linkage, duration=30, save=False):
     """
     Give the rigidbody a dynamic model and launch simulation with video.
 
-    duration: duration (in seconds) of the simulation
-    save: to save it as a file.
+    Parameters
+    ----------
+    linkage : Union[pylinkage.linkage.Linkage,
+    leggedsnake.dynamiclinkage.DynamicLinkage]
+        The Linkage you want to simulate.
+    duration : float, optional
+        Duration (in seconds) of the simulation. The default is 40.
+    save : bool, optional
+        If you want to save it as a .mp4 file.
     """
     if isinstance(linkage, dlink.DynamicLinkage):
         world = VisualWorld(linkage.space)

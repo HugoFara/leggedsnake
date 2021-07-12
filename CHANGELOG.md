@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ## Added
+ - It is now possible and advised to import class and functions using quick paths, for instance ``from leggedsnake import Walker`` in stead of ``from leggedsnake.walker import Walker``.
  - We now use [bump2version](https://pypi.org/project/bump2version/) for version maintenance.
 
 ## [0.1.3-alpha] - 2021-07-10
@@ -38,7 +39,7 @@ This package was lacking real documentation, it is fixed in this version.
  - Incompatible argument between PyGAD init_pop and built-in GA.
 
 ### Security
- - Tests with `tox.ini`` now include Python 3.9 and Flake 8.
+ - Tests with ``tox.ini`` now include Python 3.9 and Flake 8.
 
 ## [0.1.1-alpha] - 2021-06-26
 ### Added
