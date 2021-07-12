@@ -11,3 +11,5 @@ from . import walker
 from . import geneticoptimizer
 from . import dynamiclinkage
 from . import physicsengine
+
+__version__ = "0.1.3"
