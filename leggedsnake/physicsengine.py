@@ -17,7 +17,7 @@ import pymunk as pm
 import pymunk.matplotlib_util
 import matplotlib.pyplot as plt
 import matplotlib.animation as anim
-from pylinkage.geometry import norm, cyl_to_cart
+from pylinkage.geometry import norm, cyl_to_cart, bounding_box
 from pylinkage.linkage import Static, Crank, Fixed, Pivot
 
 from . import dynamiclinkage as dlink
@@ -96,11 +96,19 @@ class World:
     this purpose.
     """
 
-    def __init__(self, space=None):
+    def __init__(self, space=None, road_y=-5):
         """
         Initiate rigidbodies and simulation.
 
         Add rigidbodies in linkage.
+
+        Parameters
+        ----------
+        space : pymunk.space.Space, optional
+            Space of simulation. The default is None.
+        road_y : float, optional
+            The ordinate of the ground. Useful when likages have long legs.
+            The default is -5.
         """
         if isinstance(space, pm.Space):
             self.space = space
@@ -111,7 +119,7 @@ class World:
         set_space_constraints(self.space)
 
         # The road which will be built
-        self.road = [(-15, -7.5), (15, -7.5)]
+        self.road = [(-15, road_y), (15, road_y)]
         # First road parts
         seg = pm.Segment(self.space.static_body, self.road[0], self.road[-1],
                          .1)
@@ -257,9 +265,19 @@ class World:
 class VisualWorld(World):
     """Same as parent class World, but with matplotlib objects."""
 
-    def __init__(self, space=None):
-        """Instantiate the world and objects to be displayed."""
-        super().__init__(space=space)
+    def __init__(self, space=None, road_y=-5):
+        """
+        Instantiate the world and objects to be displayed.
+
+        Parameters
+        ----------
+        space : pymunk.space.Space, optional
+            Space of simulation. The default is None.
+        road_y : float, optional
+            The ordinate of the ground. Useful when likages have long legs.
+            The default is -5.
+        """
+        super().__init__(space=space, road_y=road_y)
         self.fig, self.ax = plt.subplots()
         self.ax.set_aspect('equal')
         self.linkage_im = []
@@ -345,24 +363,29 @@ def recalc_linkage(linkage):
         j.reload()
 
 
-def get_bounding_box(linkage):
+def linkage_bb(linkage):
     """
     Return the bounding box for this linkage.
 
-    The bounding box is in form ((min_x, max_x), (min_y, max_y)).
+    The bounding box is in form (min_y, max_x, max_y, min_x).
+
+    Parameters
+    ----------
+    linkage : pylinkage.linkage.Linkage
+        The linkage from which to get the bounding box.
     """
     data = [i.coord() for i in linkage.joints]
-    data.extend(tuple(i.position) for i in linkage.rigidbodies)
-    return ((min(x for x, y in data), max(x for x, y in data)),
-            (min(y for x, y in data), max(y for x, y in data)))
+    if isinstance(linkage, dlink.DynamicLinkage):
+        data.extend(tuple(i.position) for i in linkage.rigidbodies)
+    return bounding_box(data)
 
 
 def im_debug(world, linkage):
     """Use pymunk debugging for visual debugging."""
-    bbox = get_bounding_box(linkage)
+    bbox = linkage_bb(linkage)
     world.ax.clear()
-    world.ax.set_xlim(int(bbox[0][0]) - 5, int(bbox[0][1]) + 5)
-    world.ax.set_ylim(int(bbox[1][0]) - 5, int(bbox[1][1]) + 5)
+    world.ax.set_xlim(int(bbox[3]) - 5, int(bbox[1]) + 5)
+    world.ax.set_ylim(int(bbox[2]) - 5, int(bbox[0]) + 5)
     world.ax.scatter([i.x for i in linkage.joints],
                      [i.y for i in linkage.joints], c='r')
     for j in linkage.joints:
@@ -377,10 +400,11 @@ def im_debug(world, linkage):
 
 def video_debug(linkage):
     """Launch the simulation frame by frame, useful for debug."""
+    road_y = linkage_bb(linkage)[0] - 1
     if isinstance(linkage, dlink.DynamicLinkage):
-        world = VisualWorld(linkage.space)
+        world = VisualWorld(linkage.space, road_y=road_y)
     else:
-        world = VisualWorld()
+        world = VisualWorld(road_y=road_y)
     world.add_linkage(linkage)
     dynamiclinkage = world.linkages[-1]
     for _ in range(1, int(1e3)):
@@ -410,19 +434,23 @@ def video(linkage, duration=30, save=False):
     save : bool, optional
         If you want to save it as a .mp4 file.
     """
+    road_y = linkage_bb(linkage)[0] - 1
     if isinstance(linkage, dlink.DynamicLinkage):
-        world = VisualWorld(linkage.space)
+        world = VisualWorld(linkage.space, road_y=road_y)
     else:
-        world = VisualWorld()
+        world = VisualWorld(road_y=road_y)
     world.add_linkage(linkage)
     # Number of frames for the selected duration
     n = int(params["camera"]["fps"] * duration
             / params["simul"]["time_coef"])
 
-    ani.append(anim.FuncAnimation(
+    ani.append(
+        anim.FuncAnimation(
             world.fig, world.update, frames=range(1, n),
             interval=int(1000 / params["camera"]["fps"]),
-            repeat=False, blit=False))
+            repeat=False, blit=False
+        )
+    )
     if save:
         writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
         ani[-1].save(f"Dynamic {linkage.name}.mp4", writer=writer)

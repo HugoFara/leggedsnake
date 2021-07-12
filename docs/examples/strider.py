@@ -222,6 +222,7 @@ def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
         ls.video_debug(linkage)
     else:
         ls.video(linkage, duration, save)
+    plt.show()
 
 # Ugly way to save (position + cost) history
 history = []
@@ -458,7 +459,7 @@ def fitness(dna, linkage_hollow):
     except ls.UnbuildableError:
         return - float('inf'), list()
     else:
-        world = pe.World()
+        world = ls.World()
         world.add_linkage(linkage_hollow)
         # Simulation duration (in seconds)
         duration = 40
@@ -466,8 +467,8 @@ def fitness(dna, linkage_hollow):
         tot = 0
         # Motor turned on duration
         dur = 0
-        n = duration * pe.params["camera"]["fps"]
-        n /= pe.params["simul"]["time_coef"]
+        n = duration * ls.params["camera"]["fps"]
+        n /= ls.params["simul"]["time_coef"]
         for j in range(int(n)):
             efficiency, energy = world.update(j)
             tot += efficiency
@@ -548,7 +549,7 @@ print(
 )
 # Trials and errors optimization as comparison
 optimized_striders = ls.trials_and_errors_optimization(
-    sym_stride_evaluator, strider, param, divisions=3
+    sym_stride_evaluator, strider, param, divisions=4
 )
 print(
     "Score after trials and errors optimization: {}"
@@ -559,12 +560,20 @@ print(
 optimized_striders = swarm_optimizer(
     strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
 )
-#show_optimized(strider, optimized_striders)
+print(
+    "Score after particle swarm optimization: {}"
+        .format(optimized_striders[0][0])
+)
+show_optimized(strider, optimized_striders)
 ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
 # We add some legs
 strider.add_legs(3)
 show_physics(strider, debug=False, duration=40, save=False)
-o = evolutive_optimizer(
+optimized_striders = evolutive_optimizer(
     strider, dims=param, prev=begin, pop=10, iters=100,
     save=False, startnstop=False
+)
+print(
+    "Fitness after evolutive optimization: {}"
+        .format(optimized_striders[0][0])
 )
