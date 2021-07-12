@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>physicsengine &mdash; LeggedSnake 0.1.3-alpha documentation</title>
+  <title>physicsengine &mdash; LeggedSnake 0.1.4-alpha documentation</title>
   
 
   
@@ -172,24 +172,39 @@ so it can be difficult to test something other than a walker.</p>
 <p>&#64;author: HugoFara</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.VisualWorld">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">VisualWorld</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.VisualWorld" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">VisualWorld</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">road_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.VisualWorld" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#leggedsnake.physicsengine.World" title="leggedsnake.physicsengine.World"><code class="xref py py-class docutils literal notranslate"><span class="pre">leggedsnake.physicsengine.World</span></code></a></p>
 <p>Same as parent class World, but with matplotlib objects.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.VisualWorld.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.VisualWorld.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">road_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.VisualWorld.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Instantiate the world and objects to be displayed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>space</strong> (<em>pymunk.space.Space</em><em>, </em><em>optional</em>) – Space of simulation. The default is None.</p></li>
+<li><p><strong>road_y</strong> (<em>float</em><em>, </em><em>optional</em>) – The ordinate of the ground. Useful when likages have long legs.
+The default is -5.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.VisualWorld.add_linkage">
 <span class="sig-name descname"><span class="pre">add_linkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.VisualWorld.add_linkage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a linkage to the world, and create the appropriate Artist objects.</p>
-<dl class="simple">
-<dt>linkage<span class="classifier">pylinkage.linkage.Linkage</span></dt><dd><p>The linkage you want to add, can be a Walker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>linkage</strong> (<em>pylinkage.linkage.Linkage</em>) – The linkage you want to add, can be a Walker.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None.</p>
 </dd>
 </dl>
-<p>None.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -208,16 +223,25 @@ so it can be difficult to test something other than a walker.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.World">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">World</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.World" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">World</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">road_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.World" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A world contain a space of simulation, at least one linkage, and a road.</p>
 <p>It is not intended to be rendered visually per se, see VisualWorld for
 this purpose.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.World.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.World.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">road_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-</span> <span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.World.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initiate rigidbodies and simulation.</p>
 <p>Add rigidbodies in linkage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>space</strong> (<em>pymunk.space.Space</em><em>, </em><em>optional</em>) – Space of simulation. The default is None.</p></li>
+<li><p><strong>road_y</strong> (<em>float</em><em>, </em><em>optional</em>) – The ordinate of the ground. Useful when likages have long legs.
+The default is -5.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -230,7 +254,11 @@ this purpose.</p>
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.World.build_road">
 <span class="sig-name descname"><span class="pre">build_road</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">positive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.World.build_road" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a road part.</p>
-<p>positive: if False (default), the road part will be added on the left.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>positive</strong> (<em>if False</em><em> (</em><em>default</em><em>)</em><em>, </em><em>the road part will be added on the left.</em>) – </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -242,16 +270,21 @@ this purpose.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.physicsengine.get_bounding_box">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">get_bounding_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.get_bounding_box" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the bounding box for this linkage.</p>
-<p>The bounding box is in form ((min_x, max_x), min_y, max_y).</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.im_debug">
 <span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">im_debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linkage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.im_debug" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use pymunk debugging for visual debugging.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.physicsengine.linkage_bb">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">linkage_bb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.linkage_bb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the bounding box for this linkage.</p>
+<p>The bounding box is in form (min_y, max_x, max_y, min_x).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>linkage</strong> (<em>pylinkage.linkage.Linkage</em>) – The linkage from which to get the bounding box.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -270,8 +303,16 @@ this purpose.</p>
 <dt class="sig sig-object py" id="leggedsnake.physicsengine.video">
 <span class="sig-prename descclassname"><span class="pre">leggedsnake.physicsengine.</span></span><span class="sig-name descname"><span class="pre">video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.physicsengine.video" title="Permalink to this definition">¶</a></dt>
 <dd><p>Give the rigidbody a dynamic model and launch simulation with video.</p>
-<p>duration: duration (in seconds) of the simulation
-save: to save it as a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linkage</strong> (<em>Union</em><em>[</em><em>pylinkage.linkage.Linkage</em><em>,</em>) – </p></li>
+<li><p><strong>leggedsnake.dynamiclinkage.DynamicLinkage</strong><strong>]</strong> – The Linkage you want to simulate.</p></li>
+<li><p><strong>duration</strong> (<em>float</em><em>, </em><em>optional</em>) – Duration (in seconds) of the simulation. The default is 40.</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>optional</em>) – If you want to save it as a .mp4 file.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

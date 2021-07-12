@@ -19,7 +19,7 @@ Welcome to LeggedSnake's documentation!
    api/geneticoptimizer
 
 .. mdinclude::
-   ../../README.md
+   ../README.md
 
 
 Indices and tables

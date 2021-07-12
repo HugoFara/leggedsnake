@@ -5,11 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-## Added
+
+## [0.1.4-alpha] - 2021-07-12
+### Added
  - It is now possible and advised to import class and functions using quick paths, for instance ``from leggedsnake import Walker`` in stead of ``from leggedsnake.walker import Walker``.
  - You do no longer have to manually import [pylinkage](https://hugofara.github.io/pylinkage/), we silently import the useful stuff for you.
  - We now use [bump2version](https://pypi.org/project/bump2version/) for version maintenance.
- - This is fixed by the ``road_y`` parameter in ``World`` let you define a custom height for the base ground. 
+ - This is fixed by the ``road_y`` parameter in ``World`` let you define a custom height for the base ground.
 
 ### Changed
  - ``docs/examples/strider.py`` has been updated to the latest version of leggedsnake 0.1.4.
@@ -17,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
  - The full swarm reprensentation in polar graph has been repaired in ``docs/examples/strider.py``.
  - During a dynamic simulation, linkages with long legs could appear through the road.
+ - The documentation was not properly rendered because Napoleon (NumPy coding style) was not integrated.
 
 ## [0.1.3-alpha] - 2021-07-10
 This package was lacking real documentation, it is fixed in this version.

@@ -22,7 +22,7 @@ copyright = '2021, Hugo Farajallah'
 author = 'Hugo Farajallah'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.3-alpha'
+release = '0.1.4-alpha'
 
 
 # -- General configuration ---------------------------------------------------
@@ -35,7 +35,9 @@ extensions = [
     'sphinx.ext.autodoc',
     # Useful for markdown integration
     'm2r2',
-    'sphinx.ext.githubpages'
+    'sphinx.ext.githubpages',
+    # For NumPy style docustrings
+    'sphinx.ext.napoleon',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

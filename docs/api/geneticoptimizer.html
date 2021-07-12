@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>geneticoptimizer &mdash; LeggedSnake 0.1.3-alpha documentation</title>
+  <title>geneticoptimizer &mdash; LeggedSnake 0.1.4-alpha documentation</title>
   
 
   
@@ -175,16 +175,19 @@ is made automatically on wether or not you have PyGAD installed.</p>
 <p>Child are genrated by a uniform crossover followed by a random “resetting”
 mutation of each gene. The resetting is a normal law.</p>
 <p>Initial positions come from one of the two parents randomly.</p>
-<dl class="simple">
-<dt>par1<span class="classifier">list of three elements</span></dt><dd><p>Dna of first parent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>par1</strong> (<em>list of three elements</em>) – Dna of first parent.</p></li>
+<li><p><strong>par2</strong> (<em>list of three elements</em>) – Dna of second parent.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability for each gene to mutate, width of a normal law.</p></li>
+</ul>
 </dd>
-<dt>par2<span class="classifier">list of three elements</span></dt><dd><p>Dna of second parent.</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>child</strong> – Dna of the child.</p>
 </dd>
-<dt>prob<span class="classifier">float</span></dt><dd><p>Probability for each gene to mutate, width of a normal law.</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>child<span class="classifier">list of three elements</span></dt><dd><p>Dna of the child.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of three elements</p>
 </dd>
 </dl>
 </dd></dl>
@@ -197,34 +200,31 @@ mutation of each gene. The resetting is a normal law.</p>
 models.</p>
 <p>This function can use either PySwarms.GA if found, and automatically
 falls backs to the legacy algorithm if not.</p>
-<dl class="simple">
-<dt>dna<span class="classifier">TYPE</span></dt><dd><p>DESCRIPTION.</p>
-</dd>
-<dt>prob<span class="classifier">TYPE</span></dt><dd><p>DESCRIPTION.</p>
-</dd>
-<dt>fitness<span class="classifier">callable</span></dt><dd><p>Evaluation function for an %AXIMISATION problem.
-Must return a float.</p>
-</dd>
-<dt>ite<span class="classifier">int</span></dt><dd><p>Number of iterations.</p>
-</dd>
-<dt>max_pop<span class="classifier">int, optional</span></dt><dd><p>Maximum number of individuals. The default is 11.</p>
-</dd>
-<dt>init_pop<span class="classifier">list of object, optional</span></dt><dd><p>Initial population, for wider INITIAL genetic diversity.
-The default is None.</p>
-</dd>
-<dt>max_genetic_dist<span class="classifier">TYPE, optional</span></dt><dd><p>DESCRIPTION. The default is .7.</p>
-</dd>
-<dt>startnstop<span class="classifier">bool, optional</span></dt><dd><p>Ability to close program without loosing population.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dna</strong> (<em>TYPE</em>) – DESCRIPTION.</p></li>
+<li><p><strong>prob</strong> (<em>TYPE</em>) – DESCRIPTION.</p></li>
+<li><p><strong>fitness</strong> (<em>callable</em>) – Evaluation function for an %AXIMISATION problem.
+Must return a float.</p></li>
+<li><p><strong>ite</strong> (<em>int</em>) – Number of iterations.</p></li>
+<li><p><strong>max_pop</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of individuals. The default is 11.</p></li>
+<li><p><strong>init_pop</strong> (<em>list of object</em><em>, </em><em>optional</em>) – Initial population, for wider INITIAL genetic diversity.
+The default is None.</p></li>
+<li><p><strong>max_genetic_dist</strong> (<em>TYPE</em><em>, </em><em>optional</em>) – DESCRIPTION. The default is .7.</p></li>
+<li><p><strong>startnstop</strong> (<em>bool</em><em>, </em><em>optional</em>) – Ability to close program without loosing population.
 If True, we verify at initialization the existence of a data file.
 Population is save every int(250 / max_pop) iterations.
-The default is False.</p>
+The default is False.</p></li>
+<li><p><strong>fitness_args</strong> (<em>sequence</em><em>, </em><em>optional</em>) – Positional arguments to send to the fitness function.
+The default is None (no argument sent).</p></li>
+</ul>
 </dd>
-<dt>fitness_args<span class="classifier">sequence, optional</span></dt><dd><p>Positional arguments to send to the fitness function.
-The default is None (no argument sent).</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An iterable of the best fit individuals.</p>
 </dd>
-</dl>
-<dl class="simple">
-<dt>TYPE</dt><dd><p>An iterable of the best fit individuals.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>TYPE</p>
 </dd>
 </dl>
 </dd></dl>
@@ -233,38 +233,35 @@ The default is None (no argument sent).</p>
 <dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evolutionnary_optimization_legacy">
 <span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionnary_optimization_legacy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ite</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_genetic_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startnstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionnary_optimization_legacy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optimization by genetic algorithm (GA).</p>
-<dl class="simple">
-<dt>dna<span class="classifier">dict</span></dt><dd><p>Dictionary of editable values.</p>
-</dd>
-<dt>prob<span class="classifier">list of floats</span></dt><dd><p>List of probabilities of the good transmission of one
-characteristics.</p>
-</dd>
-<dt>fitness<span class="classifier">callable</span></dt><dd><p>Evaluation function.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dna</strong> (<em>dict</em>) – Dictionary of editable values.</p></li>
+<li><p><strong>prob</strong> (<em>list of floats</em>) – List of probabilities of the good transmission of one
+characteristics.</p></li>
+<li><p><strong>fitness</strong> (<em>callable</em>) – Evaluation function.
 Return float.
-The</p>
-</dd>
-<dt>ite<span class="classifier">int</span></dt><dd><p>Number of iterations.</p>
-</dd>
-<dt>max_pop<span class="classifier">int, optional</span></dt><dd><p>Maximum number of individuals. The default is 11.</p>
-</dd>
-<dt>init_pop<span class="classifier">sequence of object, optional</span></dt><dd><p>Initial population, for wider INITIAL genetic diversity.
-The default is None.</p>
-</dd>
-<dt>max_genetic_dist<span class="classifier">float, optional</span></dt><dd><p>Maximum genetic distance, before individuals
-cannot reproduce (separated species). The default is .7.</p>
-</dd>
-<dt>startnstop<span class="classifier">bool, optional</span></dt><dd><p>Ability to close program without loosing population.
+The</p></li>
+<li><p><strong>ite</strong> (<em>int</em>) – Number of iterations.</p></li>
+<li><p><strong>max_pop</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of individuals. The default is 11.</p></li>
+<li><p><strong>init_pop</strong> (<em>sequence of object</em><em>, </em><em>optional</em>) – Initial population, for wider INITIAL genetic diversity.
+The default is None.</p></li>
+<li><p><strong>max_genetic_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum genetic distance, before individuals
+cannot reproduce (separated species). The default is .7.</p></li>
+<li><p><strong>startnstop</strong> (<em>bool</em><em>, </em><em>optional</em>) – Ability to close program without loosing population.
 If True, we verify at initialization the existence of a data file.
 Population is save every int(250 / max_pop) iterations.
-The default is False.</p>
+The default is False.</p></li>
+<li><p><strong>fitness_args</strong> (<em>sequence</em><em>, </em><em>optional</em>) – Positional arguments to send to the fitness function.
+The default is None (no argument sent).</p></li>
+</ul>
 </dd>
-<dt>fitness_args<span class="classifier">sequence, optional</span></dt><dd><p>Positional arguments to send to the fitness function.
-The default is None (no argument sent).</p>
-</dd>
-</dl>
-<dl class="simple">
-<dt>list</dt><dd><p>List of 3-tuples: best dimensions, best score and initial positions.
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of 3-tuples: best dimensions, best score and initial positions.
 The list is sorted by score order.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -286,27 +283,35 @@ unique distribution <a class="footnote-reference brackets" href="#id5" id="id2">
 <p>New code should use the <code class="docutils literal notranslate"><span class="pre">normal</span></code> method of a <code class="docutils literal notranslate"><span class="pre">default_rng()</span></code>
 instance instead; please see the <span class="xref std std-ref">random-quick-start</span>.</p>
 </div>
-<dl class="simple">
-<dt>loc<span class="classifier">float or array_like of floats</span></dt><dd><p>Mean (“centre”) of the distribution.</p>
-</dd>
-<dt>scale<span class="classifier">float or array_like of floats</span></dt><dd><p>Standard deviation (spread or “width”) of the distribution. Must be
-non-negative.</p>
-</dd>
-<dt>size<span class="classifier">int or tuple of ints, optional</span></dt><dd><p>Output shape.  If the given shape is, e.g., <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">n,</span> <span class="pre">k)</span></code>, then
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>loc</strong> (<em>float</em><em> or </em><em>array_like of floats</em>) – Mean (“centre”) of the distribution.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em> or </em><em>array_like of floats</em>) – Standard deviation (spread or “width”) of the distribution. Must be
+non-negative.</p></li>
+<li><p><strong>size</strong> (<em>int</em><em> or </em><em>tuple of ints</em><em>, </em><em>optional</em>) – Output shape.  If the given shape is, e.g., <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">n,</span> <span class="pre">k)</span></code>, then
 <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">k</span></code> samples are drawn.  If size is <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
 a single value is returned if <code class="docutils literal notranslate"><span class="pre">loc</span></code> and <code class="docutils literal notranslate"><span class="pre">scale</span></code> are both scalars.
-Otherwise, <code class="docutils literal notranslate"><span class="pre">np.broadcast(loc,</span> <span class="pre">scale).size</span></code> samples are drawn.</p>
+Otherwise, <code class="docutils literal notranslate"><span class="pre">np.broadcast(loc,</span> <span class="pre">scale).size</span></code> samples are drawn.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>out</strong> – Drawn samples from the parameterized normal distribution.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray or scalar</p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
 <dl class="simple">
-<dt>out<span class="classifier">ndarray or scalar</span></dt><dd><p>Drawn samples from the parameterized normal distribution.</p>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.stats.norm</span></code></dt><dd><p>probability density function, distribution or cumulative density function, etc.</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.normal</span></code></dt><dd><p>which should be used for new code.</p>
 </dd>
 </dl>
-<dl class="simple">
-<dt>scipy.stats.norm<span class="classifier">probability density function, distribution or</span></dt><dd><p>cumulative density function, etc.</p>
-</dd>
-</dl>
-<p>Generator.normal: which should be used for new code.</p>
+</div>
+<p class="rubric">Notes</p>
 <p>The probability density for the Gaussian distribution is</p>
 <div class="math notranslate nohighlight">
 \[p(x) = \frac{1}{\sqrt{ 2 \pi \sigma^2 }}
@@ -319,6 +324,7 @@ the standard deviation (the function reaches 0.607 times its maximum at
 <span class="math notranslate nohighlight">\(x + \sigma\)</span> and <span class="math notranslate nohighlight">\(x - \sigma\)</span> <a class="footnote-reference brackets" href="#id5" id="id3">2</a>).  This implies that
 normal is more likely to return samples lying close to the mean, rather
 than those far away.</p>
+<p class="rubric">References</p>
 <dl class="footnote brackets">
 <dt class="label" id="id4"><span class="brackets">1</span></dt>
 <dd><p>Wikipedia, “Normal distribution”,
@@ -330,6 +336,7 @@ Random Variables and Random Signal Principles”, 4th ed., 2001,
 pp. 51, 51, 125.</p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
 <p>Draw samples from the distribution:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span> <span class="c1"># mean and standard deviation</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
@@ -376,16 +383,31 @@ other NumPy functions like <cite>numpy.zeros</cite> and <cite>numpy.ones</cite>.
 <p>Create an array of the given shape and populate it with
 random samples from a uniform distribution
 over <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1)</span></code>.</p>
-<dl class="simple">
-<dt>d0, d1, …, dn<span class="classifier">int, optional</span></dt><dd><p>The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d0</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p></li>
+<li><p><strong>d1</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p></li>
+<li><p><strong>...</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p></li>
+<li><p><strong>dn</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
+If no argument is given a single Python float is returned.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>out</strong> – Random values.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray, shape <code class="docutils literal notranslate"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code></p>
 </dd>
 </dl>
-<dl>
-<dt>out<span class="classifier">ndarray, shape <code class="docutils literal notranslate"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code></span></dt><dd><p>Random values.</p>
-</dd>
-</dl>
-<p>random</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">random</span></code></p>
+</div>
+<p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
 <span class="go">array([[ 0.14022471,  0.96360618],  #random</span>
 <span class="go">       [ 0.37601032,  0.25528411],  #random</span>
@@ -406,37 +428,44 @@ the specified dtype in the “half-open” interval [<cite>low</cite>, <cite>hig
 <p>New code should use the <code class="docutils literal notranslate"><span class="pre">integers</span></code> method of a <code class="docutils literal notranslate"><span class="pre">default_rng()</span></code>
 instance instead; please see the <span class="xref std std-ref">random-quick-start</span>.</p>
 </div>
-<dl>
-<dt>low<span class="classifier">int or array-like of ints</span></dt><dd><p>Lowest (signed) integers to be drawn from the distribution (unless
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>low</strong> (<em>int</em><em> or </em><em>array-like of ints</em>) – Lowest (signed) integers to be drawn from the distribution (unless
 <code class="docutils literal notranslate"><span class="pre">high=None</span></code>, in which case this parameter is one above the
-<em>highest</em> such integer).</p>
-</dd>
-<dt>high<span class="classifier">int or array-like of ints, optional</span></dt><dd><p>If provided, one above the largest (signed) integer to be drawn
+<em>highest</em> such integer).</p></li>
+<li><p><strong>high</strong> (<em>int</em><em> or </em><em>array-like of ints</em><em>, </em><em>optional</em>) – If provided, one above the largest (signed) integer to be drawn
 from the distribution (see above for behavior if <code class="docutils literal notranslate"><span class="pre">high=None</span></code>).
-If array-like, must contain integer values</p>
-</dd>
-<dt>size<span class="classifier">int or tuple of ints, optional</span></dt><dd><p>Output shape.  If the given shape is, e.g., <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">n,</span> <span class="pre">k)</span></code>, then
+If array-like, must contain integer values</p></li>
+<li><p><strong>size</strong> (<em>int</em><em> or </em><em>tuple of ints</em><em>, </em><em>optional</em>) – Output shape.  If the given shape is, e.g., <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">n,</span> <span class="pre">k)</span></code>, then
 <code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">k</span></code> samples are drawn.  Default is None, in which case a
-single value is returned.</p>
-</dd>
-<dt>dtype<span class="classifier">dtype, optional</span></dt><dd><p>Desired dtype of the result. Byteorder must be native.
+single value is returned.</p></li>
+<li><p><strong>dtype</strong> (<em>dtype</em><em>, </em><em>optional</em>) – <p>Desired dtype of the result. Byteorder must be native.
 The default value is int.</p>
 <div class="versionadded">
 <p><span class="versionmodified added">New in version 1.11.0.</span></p>
 </div>
+</p></li>
+</ul>
 </dd>
-</dl>
-<dl class="simple">
-<dt>out<span class="classifier">int or ndarray of ints</span></dt><dd><p><cite>size</cite>-shaped array of random integers from the appropriate
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>out</strong> – <cite>size</cite>-shaped array of random integers from the appropriate
 distribution, or a single such random int if <cite>size</cite> not provided.</p>
 </dd>
-</dl>
-<dl>
-<dt>random_integers<span class="classifier">similar to <cite>randint</cite>, only for the closed</span></dt><dd><p>interval [<cite>low</cite>, <cite>high</cite>], and 1 is the lowest value if <cite>high</cite> is
-omitted.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int or ndarray of ints</p>
 </dd>
 </dl>
-<p>Generator.integers: which should be used for new code.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">random_integers</span></code></dt><dd><p>similar to <cite>randint</cite>, only for the closed interval [<cite>low</cite>, <cite>high</cite>], and 1 is the lowest value if <cite>high</cite> is omitted.</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.integers</span></code></dt><dd><p>which should be used for new code.</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 <span class="go">array([1, 0, 0, 0, 1, 1, 0, 0, 1, 0]) # random</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
