@@ -35,7 +35,7 @@ param = (
     # AB distance (=AB_p) "triangle":
     2,
     # "ape":
-    np.pi/4,
+    np.pi / 4,
     # femur = 3 for higher steps, 2 for standard, 1.8 is good enough
     1.8,
     # "rockerL":
@@ -43,7 +43,7 @@ param = (
     # "rockerS":
     1.4,
     # "phi":
-    np.pi+.2,
+    np.pi + .2,
     # "tibia":
     2.5,
     # "f":
@@ -59,6 +59,7 @@ bounds = ((0, 0, 0, 0, 0, 0, 0, 0),
 # Initial coordinates according to previous dimensions
 begin = ((0, 0), (0, 1), (1.41, 1.41), (-1.41, 1.41), (0, -1), (-2.25, 0),
          (2.25, 0), (-1.4, -1.2), (1.4, -1.2), (-2.7, -2.7), (2.7, -2.7))
+
 
 def param2dimensions(param=param, flat=False):
     """
@@ -112,7 +113,7 @@ def complete_strider(constraints, prev):
     B_p = ls.Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
     # Pivot joints, explicitely defined to be modified later
     # Joint linked to crank. Coordinates are chosen in each frame
-    C = ls.Crank(joint0=A, angle=2*np.pi/n, name="Crank link (C)")
+    C = ls.Crank(joint0=A, angle=2 * np.pi / n, name="Crank link (C)")
     D = ls.Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
     E = ls.Pivot(joint0=B, joint1=C, name="Right knee link (E)")
     # F is fixed relative to C and E
@@ -164,7 +165,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
     B_p = ls.Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
     # Pivot joints, explicitely defined to be modified later
     # Joint linked to crank. Coordinates are chosen in each frame
-    C = ls.Crank(joint0=A, angle=2*np.pi/n, name="Crank link (C)")
+    C = ls.Crank(joint0=A, angle=2 * np.pi / n, name="Crank link (C)")
     D = ls.Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
     E = ls.Pivot(joint0=B, joint1=C, name="Right knee link (E)")
     # F is fixed relative to C and E
@@ -177,7 +178,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
         joints.insert(-1, G)
         joints.append(ls.Pivot(joint0=E, joint1=G, name="Right foot (I)"))
     # Mechanisme definition
-    strider = Walker(
+    strider = ls.Walker(
         joints=joints,
         order=joints,
         name="Strider"
@@ -224,8 +225,10 @@ def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
         ls.video(linkage, duration, save)
     plt.show()
 
+
 # Ugly way to save (position + cost) history
 history = []
+
 
 def sym_stride_evaluator(linkage, dims, pos):
     """Give score to each dimension set for symmetric strider."""
@@ -234,13 +237,19 @@ def sym_stride_evaluator(linkage, dims, pos):
     try:
         points = 12
         # Complete revolution with 12 points
-        tuple(tuple(i) for i in linkage.step(iterations=points + 1,
-                                             dt=n/points))
+        tuple(
+            tuple(i) for i in linkage.step(
+                iterations=points + 1, dt=n / points
+            )
+        )
         # Again with n points, and at least 12 iterations
         # L = tuple(tuple(i) for i in linkage.step(iterations=n))
         factor = int(points / n) + 1
-        loci = tuple(tuple(i) for i in linkage.step(
-            iterations=n * factor, dt=n / n / factor))
+        loci = tuple(
+            tuple(i) for i in linkage.step(
+                iterations=n * factor, dt=n / n / factor
+            )
+        )
         history.append(list(dims) + [0])
     except ls.UnbuildableError:
         return 0
@@ -251,7 +260,7 @@ def sym_stride_evaluator(linkage, dims, pos):
             return 0
         # Performances evaluation
         locus = ls.stride(foot_locus, .2)
-        score =  max(k[0] for k in locus) - min(k[0] for k in locus)
+        score = max(k[0] for k in locus) - min(k[0] for k in locus)
         history[-1][-1] = score
         return score
 
@@ -340,7 +349,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         ax.set_rmax(7)
         ax.set_xticklabels(param_names + ("score",))
         formatted_history = [
-            history[i:i+age] for i in range(0, len(history), age)
+            history[i:i + age] for i in range(0, len(history), age)
         ]
         animation = anim.FuncAnimation(
             fig,
@@ -355,11 +364,11 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             writer = anim.FFMpegWriter(
                 fps=24, bitrate=1800,
                 metadata={
-                        'title': "Particule swarm looking for R^8 in R "
-                        "application maximum",
-                        'comment': "Made with Python and Matplotlib",
-                        'description': "The swarm tries to find best dimension"
-                        " set for Strider legged mechanism"
+                    'title': "Particule swarm looking for R^8 in R "
+                    "application maximum",
+                    'comment': "Made with Python and Matplotlib",
+                    'description': "The swarm tries to find best dimension"
+                    " set for Strider legged mechanism"
                 }
             )
             ani[-1].save(r"PSO.mp4", writer=writer)
@@ -379,7 +388,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         lines = [ax.plot([], [], lw=.5, animated=False)[0]
                  for ax in axes.flatten()]
         formatted_history = [
-            history[i:i+age][:-1] for i in range(0, len(history), age)
+            history[i:i + age][:-1] for i in range(0, len(history), age)
         ]
         animation = anim.FuncAnimation(
             fig, lambda *args: ls.swarm_tiled_repr(linkage, *args),
@@ -392,21 +401,27 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             writer = anim.FFMpegWriter(
                 fps=24, bitrate=1800,
                 metadata={
-                        'title': "Particule swarm looking for R^8 in R "
-                        "application maximum",
-                        'comment': "Made with Python and Matplotlib",
-                        'description': "The swarm looks for best dimension "
-                        "set for Strider legged mechanism"}
-                )
+                    'title': "Particule swarm looking for R^8 in R "
+                    "application maximum",
+                    'comment': "Made with Python and Matplotlib",
+                    'description': "The swarm looks for best dimension "
+                    "set for Strider legged mechanism"
+                }
+            )
 
             ani[-1].save("Particle swarm optimization.mp4", writer=writer)
         return out
 
     elif save_each:
         for dim, i in ls.particle_swarm_optimization(
-                eval_func, linkage, dims, age, iters=iters,
-                bounds=bounds, #iterable=True,
-                dimensions=len(dims), # *args
+                sym_stride_evaluator,
+                linkage,
+                dims,
+                age,
+                iters=iters,
+                bounds=bounds,
+                dimensions=len(dims),
+                # *args
         ):
             if not i % save_each:
                 f = open('PSO optimizer.txt', 'w')
@@ -422,9 +437,13 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
     else:
         out = tuple(
             ls.particle_swarm_optimization(
-                eval_func, linkage, dims, n_particles=age, bounds=bounds,
+                sym_stride_evaluator,
+                linkage,
+                dims,
+                n_particles=age,
+                bounds=bounds,
                 dimensions=len(dims),
-                iters=iters, # iterable=False,
+                iters=iters,
                 *args
             )
         )
@@ -542,18 +561,21 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
             linkage, prev=begin, title=str(datum[0]), duration=10
         )
 
+
 strider = complete_strider(param2dimensions(param), begin)
 print(
-    "Initial score: {}"
-        .format(sym_stride_evaluator(strider, param, begin))
+    "Initial score: {}".format(
+        sym_stride_evaluator(strider, param, begin)
+    )
 )
 # Trials and errors optimization as comparison
 optimized_striders = ls.trials_and_errors_optimization(
     sym_stride_evaluator, strider, param, divisions=4
 )
 print(
-    "Score after trials and errors optimization: {}"
-        .format(optimized_striders[0][0])
+    "Score after trials and errors optimization: {}".format(
+        optimized_striders[0][0]
+    )
 )
 
 # Particle swarm optimization
@@ -561,8 +583,9 @@ optimized_striders = swarm_optimizer(
     strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
 )
 print(
-    "Score after particle swarm optimization: {}"
-        .format(optimized_striders[0][0])
+    "Score after particle swarm optimization: {}".format(
+        optimized_striders[0][0]
+    )
 )
 show_optimized(strider, optimized_striders)
 ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
@@ -574,6 +597,7 @@ optimized_striders = evolutive_optimizer(
     save=False, startnstop=False
 )
 print(
-    "Fitness after evolutive optimization: {}"
-        .format(optimized_striders[0][0])
+    "Fitness after evolutive optimization: {}".format(
+        optimized_striders[0][0]
+    )
 )
