@@ -39,4 +39,4 @@ from .physicsengine import (
     World, VisualWorld
 )
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"

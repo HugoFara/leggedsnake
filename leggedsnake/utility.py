@@ -90,11 +90,12 @@ def step(points, height, width, return_res=False, y_min=None, acc=[]):
         obstacle's height
     width : float
         obstacle's width
-    return_res:
+    return_res: bool, optional
         - If True: return the set of points that pass obstacle (slower).
         - If False: return if the obstacle can be passed
-        The default is False
-    y_min : lowest ordinate in the locus (faster if provided)
+        The default is False.
+    y_min : float, optional
+        Lowest ordinate in the locus (faster if provided)
     """
     if not points:
         return acc

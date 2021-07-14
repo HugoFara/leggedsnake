@@ -22,7 +22,7 @@ copyright = '2021, Hugo Farajallah'
 author = 'Hugo Farajallah'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.4-alpha'
+release = '0.1.5-alpha'
 
 
 # -- General configuration ---------------------------------------------------
