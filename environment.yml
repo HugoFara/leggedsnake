@@ -9,7 +9,8 @@ dependencies:
   - numpy-base>=1.20.2
   - numpydoc>=1.1.0
   - pymunk>=6.0.0
+  - tqdm>=4.40.0
   - pip
   - pip:
     - pygad>=2.10.0
-    - pylinkage>=0.4.0
+    - pylinkage>=0.5.0

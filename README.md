@@ -1,4 +1,5 @@
 [![PyPI version fury.io](https://badge.fury.io/py/leggedsnake.svg)](https://pypi.python.org/pypi/leggedsnake/)
+[![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=week&units=international_system&left_color=grey&right_color=orange&left_text=Downloads/week)](https://pepy.tech/project/leggedsnake)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE.rst)
 # leggedsnake
 LeggedSnake is a project intended to make the simulation of walking linkages fast and easy. We believe that building walking linkages is fun and could be useful. Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.

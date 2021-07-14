@@ -26,7 +26,7 @@ from .utility import step, stride
 from .walker import Walker
 from .geneticoptimizer import (
     evolutionnary_optimization,
-    evolutionnary_optimization_legacy
+    evolutionary_optimization,
 )
 from .dynamiclinkage import (
     Nail, PinUp, DynamicPivot, Motor,

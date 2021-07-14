@@ -18,7 +18,7 @@ import numpy as np
 import leggedsnake as ls
 
 # Simulation parameters
-# Nunber of points for crank complet turn
+# Number of points for crank complet turn
 n = 10
 # Time (in seconds) for a crank revolution
 speed = 100
@@ -49,16 +49,20 @@ param = (
     # "f":
     1.8,
 )
-# Optimized but useless stridder with step of size 5.05
+# Optimized but useless strider with step of size 5.05
 # param = (2.62484195, 1.8450077, 2.41535873, 2.83669735, 2.75235715,
 #         4.60386788, 3.49814371, 3.51517851)
 # Limits for parameters, will be used in optimizers
-bounds = ((0, 0, 0, 0, 0, 0, 0, 0),
-          (8, 2 * np.pi, 7.2, 10.4, 5.6, 2 * np.pi, 10, 7.6))
+bounds = (
+    (0, 0, 0, 0, 0, 0, 0, 0),
+    (8, 2 * np.pi, 7.2, 10.4, 5.6, 2 * np.pi, 10, 7.6)
+)
 
 # Initial coordinates according to previous dimensions
-begin = ((0, 0), (0, 1), (1.41, 1.41), (-1.41, 1.41), (0, -1), (-2.25, 0),
-         (2.25, 0), (-1.4, -1.2), (1.4, -1.2), (-2.7, -2.7), (2.7, -2.7))
+begin = (
+    (0, 0), (0, 1), (1.41, 1.41), (-1.41, 1.41), (0, -1), (-2.25, 0),
+    (2.25, 0), (-1.4, -1.2), (1.4, -1.2), (-2.7, -2.7), (2.7, -2.7)
+)
 
 
 def param2dimensions(param=param, flat=False):
@@ -83,35 +87,37 @@ def param2dimensions(param=param, flat=False):
     )
     if not flat:
         return out
-    flattout = []
-    for c in out:
-        if c == ():
-            flattout.append(0)
+    flat_dims = []
+    for constraint in out:
+        if constraint == ():
+            flat_dims.append(0)
         else:
-            flattout.extend(c)
-    return tuple(flattout)
+            flat_dims.extend(constraint)
+    return tuple(flat_dims)
 
 
 def complete_strider(constraints, prev):
     """
     Take two sequences to define strider linkage.
 
-    Arguments
-    ---------
-    * constraints: the sequence of geometrical constraints
-    * prev: coordinates to set by default.
+    Parameters
+    ----------
+    constraints : Union[tuple[float], tuple[tuple[float]]]
+        The sequence of geometrical constraints
+    prev : tuple[tuple[float]]
+        Coordinates to set by default.
     """
     # Fixed points (mechanism body)
     # A is the origin
     A = ls.Static(x=0, y=0, name="A")
-    # Vertical axis for convience,
+    # Vertical axis for convenience,
     Y = ls.Static(0, 1, name="Point (0, 1)")
     # For drawing only
     Y.joint0 = A
     # Not fixed because we will optimize this position
     B = ls.Fixed(joint0=A, joint1=Y, name="Frame right (B)")
     B_p = ls.Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
-    # Pivot joints, explicitely defined to be modified later
+    # Pivot joints, explicitly defined to be modified later
     # Joint linked to crank. Coordinates are chosen in each frame
     C = ls.Crank(joint0=A, angle=2 * np.pi / n, name="Crank link (C)")
     D = ls.Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
@@ -122,7 +128,7 @@ def complete_strider(constraints, prev):
     G = ls.Fixed(joint0=C, joint1=D, name='Right ankle link (G)')
     H = ls.Pivot(joint0=D, joint1=F, name="Left foot (H)")
     Ii = ls.Pivot(joint0=E, joint1=G, name="Right foot (I)")
-    # Mechanisme definition
+    # Mechanism definition
     strider = ls.Walker(
         joints=(A, Y, B, B_p, C, D, E, F, G, H, Ii),
         order=(A, Y, B, B_p, C, D, E, F, G, H, Ii),
@@ -150,20 +156,20 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
 
     Returns
     -------
-    strider : Linkage
+    strider : leggedssnake.walker.Walker
         The requested strider linkage.
     """
     # Fixed points (mechanism body)
     # A is the origin
     A = ls.Static(x=0, y=0, name="A")
-    # Vertical axis for convience,
+    # Vertical axis for convenience,
     Y = ls.Static(0, 1, name="Point (0, 1)")
     # For drawing only
     Y.joint0 = A
     # Not fixed because we will optimize this position
     B = ls.Fixed(joint0=A, joint1=Y, name="Frame right (B)")
     B_p = ls.Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
-    # Pivot joints, explicitely defined to be modified later
+    # Pivot joints, explicitly defined to be modified later
     # Joint linked to crank. Coordinates are chosen in each frame
     C = ls.Crank(joint0=A, angle=2 * np.pi / n, name="Crank link (C)")
     D = ls.Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
@@ -177,7 +183,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
         G = ls.Fixed(joint0=C, joint1=D, name='Right ankle link (G)')
         joints.insert(-1, G)
         joints.append(ls.Pivot(joint0=E, joint1=G, name="Right foot (I)"))
-    # Mechanisme definition
+    # Mechanism definition
     strider = ls.Walker(
         joints=joints,
         order=joints,
@@ -205,8 +211,8 @@ def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
 
     Parameters
     ----------
-    linkage : pylinkage.linkage.Linkage
-        Linkage to simulate
+    linkage : leggedsnake.walker.Walker
+        Linkage to simulate.
     prev : tuple[tuple[float]], optional
         Previous coordinates to use. The default is None.
     debug : bool, optional
@@ -448,7 +454,6 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             )
         )
         return out
-        return out.sort(key=lambda x: x[1], reverse=True)
 
 
 def fitness(dna, linkage_hollow):
@@ -469,7 +474,7 @@ def fitness(dna, linkage_hollow):
         List of two elements: score (a float), and initial positions.
         Score is -float('inf') when mechanism building is impossible.
     """
-    linkage_hollow.set_num_constraints(param2dimensions(dna[0]), flat=False)
+    linkage_hollow.set_num_constraints(param2dimensions(dna[1]), flat=False)
     linkage_hollow.rebuild(dna[2])
     # Check if mechanism is buildable
     try:
@@ -494,7 +499,6 @@ def fitness(dna, linkage_hollow):
             dur += energy
         if dur == 0:
             return - float('inf'), list()
-        print("Score:", tot / dur)
         # Return 100 times average yield, and initial positions
         return tot / dur, pos
 
@@ -532,12 +536,16 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
 
     """
     linkage.rebuild(prev)
-    linkage.add_legs(3)
     linkage.step()
-    dna = list(dims), 0, list(linkage.get_coords())
-    o = ls.evolutionnary_optimization(
-        dna=dna, prob=.07, fitness=fitness, ite=iters, max_pop=pop,
-        startnstop=startnstop, fitness_args=[linkage]
+    dna = 0, list(dims), list(linkage.get_coords())
+    o = ls.evolutionary_optimization(
+        dna=dna, prob=.07,
+        fitness=fitness,
+        iters=iters,
+        max_pop=pop,
+        init_pop=init_pop,
+        startnstop=startnstop,
+        fitness_args=[linkage]
     )
     if save:
         file = open('Evolutive optimizer.txt', 'w')
@@ -550,15 +558,15 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
     """Show the optimized linkages."""
-    for datum in zip(data.swarm.current_cost[:n_show], data.swarm.position):
-        if datum[0] == 0:
+    for datum in data:
+        if datum[0] <= 0:
             continue
         if symmetric:
             linkage.set_num_constraints(param2dimensions(datum[1]), flat=False)
         else:
             linkage.set_num_constraints(datum[1], flat=False)
         ls.show_linkage(
-            linkage, prev=begin, title=str(datum[0]), duration=10
+            linkage, prev=begin, title=str(datum[0]), duration=duration
         )
 
 

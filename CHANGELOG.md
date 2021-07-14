@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+ - Dependency to [tqdm](https://tqdm.github.io/) and matplotlib.
+ - The ``evolutionary_optimization`` replaces ``evolutionnary_optimization``.
+   - The ``ite`` parameter renamed ``iters`` for consistency with pylinkage.
+   - The new parameter ``verbose`` let you display a nice progress bar, more information on optimization state, or nothing.
+ - The best solution can be displayed with PyGAD as well.
+
+### Changed
+ - Typos and cleans-up in ``docs/examples/strider.py``.
+ - ``evolutionnary_optimization_legacy`` renamed to ``evolutionary_optimization_builtin``.
+   
+### Deprecated
+ - ``evolutionnary_optimization`` is now deprecated. Please use ``evolutionary_optimization``.
+
+### Removed
+ - Explicit dependency to PyGAD. There is no longer an annoying message when PyGAD is not installed.
 
 ## [0.1.4-alpha] - 2021-07-12
 ### Added
@@ -25,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This package was lacking real documentation, it is fixed in this version.
 ### Added
  - Sphinx documentation!
- - Web site hosted on GitHub pages, check [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
+ - Website hosted on GitHub pages, check [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
  - Expanded README with the quick links section.
 
 ### Changed
@@ -81,7 +97,7 @@ This package was lacking real documentation, it is fixed in this version.
 ### Fixed
  - Pymunk version should be at least 6.0.0 in requirement files.
  - Some URLs typos in ``README.md``
- - Versionning tests not executing (GitHub action)
+ - Versioning tests not executing (GitHub action)
 
 ## [0.0.2-alpha] - 2021-06-22
 ### Added
@@ -110,7 +126,7 @@ Basic version, supporting Genetic Algorithm optimization, but with various probl
  - ``leggedsnake/physicsengine.py``
  - ``leggedsnake/show_evolution.py`` just a legacy package, no utility
  - ``leggedsnake/tests/test_utility.py`` untested test case
- - ``leggedsnake/utility.py`` contain some useful evalution function (``step`` and ``stride``) and a broken GeoGebra interface.
+ - ``leggedsnake/utility.py`` contain some useful evaluation function (``step`` and ``stride``) and a broken GeoGebra interface.
  - ``walker.py`` defines the ``Walker`` object.
  - ``pyproject.toml`` 
  - ``setup.cfg``
