@@ -82,10 +82,13 @@
               
             
             
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">leggedsnake</a></li>
+              <p class="caption"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Modules</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">utility</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.utility">Utility functions for Walkers</a></li>
@@ -94,6 +97,16 @@
 <li class="toctree-l1"><a class="reference internal" href="dynamiclinkage.html">dynamiclinkage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="physicsengine.html">physicsengine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="geneticoptimizer.html">geneticoptimizer</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
 </ul>
 
             
@@ -178,21 +191,28 @@ items are the same as in the GeoGebra file.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.utility.step">
 <span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.utility.step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return if a step can overcross an obstacle during locus.</p>
+<dd><p>Return if a step can cross an obstacle during locus.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>points</strong> (<em>list</em><em>[</em><em>list</em><em>[</em><em>int</em><em>]</em><em>]</em>) – locus as a list of point coordinates.</p></li>
+<li><p><strong>points</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) – locus as a list of point coordinates.</p></li>
 <li><p><strong>height</strong> (<em>float</em>) – obstacle’s height</p></li>
 <li><p><strong>width</strong> (<em>float</em>) – obstacle’s width</p></li>
-<li><p><strong>return_res</strong> (<em>bool</em><em>, </em><em>optional</em>) – <ul>
-<li><p>If True: return the set of points that pass obstacle (slower).</p></li>
-<li><p>If False: return if the obstacle can be passed</p></li>
+<li><p><strong>return_res</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True: return the set of points that pass obstacle (slower).
+If False: return if the obstacle can be passed.
+The default is False.</p></li>
+<li><p><strong>y_min</strong> (<em>float</em><em>, </em><em>optional</em>) – Lowest ordinate in the locus (faster if provided).</p></li>
+<li><p><strong>acc</strong> (<em>list</em><em>, </em><em>optional</em>) – A subset of this locus that is able to cross. For internal use only.</p></li>
 </ul>
-<p>The default is False.</p>
-</p></li>
-<li><p><strong>y_min</strong> (<em>float</em><em>, </em><em>optional</em>) – Lowest ordinate in the locus (faster if provided)</p></li>
-</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>If <cite>return_res</cite> is False, return True if the locus can cross, False
+otherwise.
+If <cite>return_res</cite> is True, return the subset of point that is able to cross,
+and False if we can’t cross.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[bool, list[list[float]]]]</p>
 </dd>
 </dl>
 </dd></dl>

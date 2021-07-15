@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+ - The sidebar in the documentation a bit more useful.
 
 ## [0.2.0-alpha] - 2021-07-14
 ### Added
@@ -63,7 +65,7 @@ This package was lacking real documentation, it is fixed in this version.
 
 ### Fixed
  - Files in ``leggedsnake/examples/`` were not included in the PyPi package.
- - The example was incompatible with [pylinkage](https://pypi.org/project/pylinkage/) 0.4.0.
+ - The example was incompatible with pylinkage 0.4.0.
  - Test suite was unusable by tox.
  - Tests fixed.
  - Incompatible argument between PyGAD init_pop and built-in GA.

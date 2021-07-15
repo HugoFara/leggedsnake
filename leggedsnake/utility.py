@@ -80,28 +80,38 @@ def stride(point, height):
 
 def step(points, height, width, return_res=False, y_min=None, acc=[]):
     """
-    Return if a step can overcross an obstacle during locus.
+    Return if a step can cross an obstacle during locus.
 
     Arguments
     ---------
-    points : list[list[int]]
+    points : :obj:`list` of :obj:`list` of :obj:`float`
         locus as a list of point coordinates.
     height : float
         obstacle's height
     width : float
         obstacle's width
     return_res: bool, optional
-        - If True: return the set of points that pass obstacle (slower).
-        - If False: return if the obstacle can be passed
+        If True: return the set of points that pass obstacle (slower).
+        If False: return if the obstacle can be passed.
         The default is False.
     y_min : float, optional
-        Lowest ordinate in the locus (faster if provided)
+        Lowest ordinate in the locus (faster if provided).
+    acc : list, optional
+        A subset of this locus that is able to cross. For internal use only.
+
+    Returns
+    -------
+    Union[bool, list[list[float]]]]
+        If `return_res` is False, return True if the locus can cross, False
+        otherwise.
+        If `return_res` is True, return the subset of point that is able to cross,
+        and False if we can't cross.
     """
     if not points:
         return acc
     # We compute the locus bounding box
     bb = bounding_box(points)
-    # Quick sort for unfit systmes
+    # Quick sort for unfit systems
     if bb[2] - bb[0] < height or bb[1] - bb[3] < width:
         return False
     # Origin of ordinates, for computing obstacle's height
