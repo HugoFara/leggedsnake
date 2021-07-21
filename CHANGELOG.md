@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.3.0-beta] - 2021-07-21
 ### Added
  - Multiprocessing is here! The genetic optimization can now be run in parallel!
    Performances got improved by 65 % using 4 processes only.
@@ -14,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    computing when you want.
  - The sidebar in the documentation a bit more useful.
  - Not having tqdm will cause an exception.
+
+### Fixed
+ - Corrected the example, the genetic optimization is now properly fixed but
+slower.
 
 ### Removed
  - native support for PyGAD is no longer present.

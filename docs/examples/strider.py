@@ -588,8 +588,8 @@ print(
         optimized_striders[0][0]
     )
 )
-#show_optimized(strider, optimized_striders)
-#ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
+show_optimized(strider, optimized_striders)
+ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
 # We add some legs
 strider.add_legs(3)
 init_coords = strider.get_coords()
