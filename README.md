@@ -1,6 +1,6 @@
 [![PyPI version fury.io](https://badge.fury.io/py/leggedsnake.svg)](https://pypi.python.org/pypi/leggedsnake/)
-[![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=week&units=international_system&left_color=grey&right_color=orange&left_text=Downloads/week)](https://pepy.tech/project/leggedsnake)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE.rst)
+[![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=total&units=international_system&left_color=grey&right_color=green&left_text=Downloads/week)](https://pepy.tech/project/leggedsnake)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/master/LICENSE.rst)
 # leggedsnake
 LeggedSnake is a project intended to make the simulation of walking linkages fast and easy. We believe that building walking linkages is fun and could be useful. Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.
 
@@ -37,7 +37,7 @@ Dynamic optimization relies on multiple packages. First of all it uses [Pymunk](
 
 ## Usage
 
-The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/docs/examples/strider.py), which demonstrates all the techniques about the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
+The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/master/docs/examples/strider.py), which demonstrates all the techniques about the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
 
 ### Defining a ``Walker``
 First, you need to define joints for your ``Walker`` as described in [pylinkage](https://github.com/HugoFara/pylinkage) documentation. Once your joints (let's say they are in a joint object), you should have something like that:
