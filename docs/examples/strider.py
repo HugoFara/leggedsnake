@@ -474,7 +474,7 @@ def fitness(dna, linkage_hollow):
         List of two elements: score (a float), and initial positions.
         Score is -float('inf') when mechanism building is impossible.
     """
-    linkage_hollow.set_num_constraints(param2dimensions(dna[1]), flat=False)
+    linkage_hollow.set_num_constraints(dna[1])
     linkage_hollow.rebuild(dna[2])
     # Check if mechanism is buildable
     try:
@@ -544,7 +544,7 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
         init_pop=init_pop,
         startnstop=startnstop,
         fitness_args=(linkage,),
-        processes=1
+        processes=4
     )
     return out
 
@@ -571,7 +571,7 @@ print(
 )
 # Trials and errors optimization as comparison
 optimized_striders = ls.trials_and_errors_optimization(
-    sym_stride_evaluator, strider, param, divisions=4
+    sym_stride_evaluator, strider, param, divisions=4, verbose=True
 )
 print(
     "Score after trials and errors optimization: {}".format(
@@ -588,14 +588,20 @@ print(
         optimized_striders[0][0]
     )
 )
-show_optimized(strider, optimized_striders)
-ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
+#show_optimized(strider, optimized_striders)
+#ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
 # We add some legs
 strider.add_legs(3)
+init_coords = strider.get_coords()
 show_physics(strider, debug=False, duration=40, save=False)
+# Reload the position: the show_optimized
 optimized_striders = evolutive_optimizer(
-    strider, dims=param, prev=begin, pop=10, iters=100,
-    save=False, startnstop=False
+    strider,
+    dims=strider.get_num_constraints(),
+    prev=init_coords,
+    pop=10,
+    iters=100,
+    startnstop=False
 )
 print(
     "Fitness after genetic optimization: {}".format(
