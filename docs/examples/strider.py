@@ -538,22 +538,23 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
     linkage.rebuild(prev)
     linkage.step()
     dna = 0, list(dims), list(linkage.get_coords())
-    o = ls.evolutionary_optimization(
+    out = ls.evolutionary_optimization(
         dna=dna, prob=.07,
         fitness=fitness,
         iters=iters,
         max_pop=pop,
         init_pop=init_pop,
         startnstop=startnstop,
-        fitness_args=[linkage]
+        fitness_args=(linkage,),
+        processes=1
     )
     if save:
         file = open('Evolutive optimizer.txt', 'w')
         # We only keep 10 best results
-        for i in range(min(10, len(o))):
-            file.write('{}\n{}\n{}\n----\n'.format(o[i][0], o[i][1], o[i][2]))
+        for i in range(min(10, len(out))):
+            file.write('{}\n{}\n{}\n----\n'.format(out[i][0], out[i][1], out[i][2]))
         file.close()
-    return o
+    return out
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
@@ -605,7 +606,7 @@ optimized_striders = evolutive_optimizer(
     save=False, startnstop=False
 )
 print(
-    "Fitness after evolutive optimization: {}".format(
+    "Fitness after genetic optimization: {}".format(
         optimized_striders[0][0]
     )
 )

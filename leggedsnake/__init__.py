@@ -24,10 +24,7 @@ from pylinkage import (
 
 from .utility import step, stride
 from .walker import Walker
-from .geneticoptimizer import (
-    evolutionnary_optimization,
-    evolutionary_optimization,
-)
+from .geneticoptimizer import evolutionary_optimization
 from .dynamiclinkage import (
     Nail, PinUp, DynamicPivot, Motor,
     DynamicLinkage,

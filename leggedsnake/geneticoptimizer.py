@@ -4,37 +4,36 @@
 The geneticoptimizer module provides optimizers and wrappers for GA.
 
 As for now I didn't tried a convincing Genetic Algorithm library. This is why
-you can either use PyGAD or the built-in version. The switch between versions
-is made automatically on whether or not you have PyGAD installed.
+you it is built-in here. Feel free to propose a copyleft library on GitHub!
 
 Created on Thu Jun 10 21:20:47 2021.
 
 @author: HugoFara
 """
-import warnings
+import multiprocessing as mp
 import numpy as np
 from numpy.random import rand, normal, randint
-from pylinkage.geometry import dist
-# Optimization by genetic algorithm
-try:
-    from pygad import GA
-except ModuleNotFoundError:
-    GA = None
 # Progress bar
-try:
-    from tqdm import tqdm
-except ModuleNotFoundError:
-    tqdm = None
+import tqdm
+from pylinkage.geometry import dist
 
 
 def tqdm_verbosity(iterable, verbose=True, *args, **kwargs):
     """Wrapper for tqdm, that let you specify if you want verbosity."""
-    if verbose and tqdm:
-        for i in tqdm(iterable, *args, **kwargs):
+    if verbose:
+        for i in tqdm.tqdm(iterable, *args, **kwargs):
             yield i
     else:
         for i in iterable:
             yield i
+
+
+def kwargs_switcher(arg_name, kwargs, default=None):
+    """Simple function to return the good element from a kwargs dict."""
+    out = default
+    if arg_name in kwargs:
+        out = kwargs.pop(arg_name) or out
+    return out
 
 
 def load_population(file_path):
@@ -69,16 +68,16 @@ def birth(par1, par2, prob):
 
     Parameters
     ----------
-    par1 : list[float, tuple[float], tuple[tuple[float]]]
+    par1 : list[float, tuple of float, tuple of tuple of float]
         Dna of first parent.
-    par2 : list[float, tuple[float], tuple[tuple[float]]]
+    par2 : list[float, tuple of float, tuple of tuple of float]
         Dna of second parent.
     prob : list[float]
         Probability for each gene to mutate, width of a normal law.
 
     Returns
     -------
-    child : list[float, tuple[float], tuple[tuple[float]]]
+    child : list[float, tuple of float, tuple of tuple of float]
         Dna of the child.
 
     """
@@ -90,18 +89,76 @@ def birth(par1, par2, prob):
     return child
 
 
-def evaluate_population(pop, fitness, fitness_args, verbose=True):
-    """Evaluate the whole population, attribute scores."""
-    for dna in pop:
-        if fitness_args is not None:
-            fit = fitness(dna, *fitness_args)
-        else:
-            fit = fitness(dna)
-        # Score
-        dna[0] = fit[0]
-        if len(fit[1]):
-            # Don't change initial positions for unbuildable individual.
-            dna[2] = fit[1]
+def evaluate_individual(dna, fitness, fitness_args):
+    """Simple evaluation for a single individual.
+
+    Parameters
+    ---------
+    dna : list[float, tuple of float, tuple of tuple of float]
+        List of the individuals' DNAs
+    fitness : callable
+        Fitness function of signature fitness(dna, fitness_args) → float.
+    fitness_args : tuple
+        Additional arguments to pass to the fitness function. Usually the
+        initial positions of the joints.
+
+    Returns
+    -------
+    tuple
+        Score then initial coordinates.
+
+    See Also
+    --------
+    evaluate_population : counterpart for an entire population.
+    """
+    if fitness_args is None:
+        fit = fitness(dna)
+    else:
+        fit = fitness(dna, *fitness_args)
+    if len(fit[1]):
+        return fit[0], fit[1]
+    # Don't change initial positions for unbuildable individuals.
+    return fit[0], dna[2]
+
+
+def evaluate_population(pop, fitness, fitness_args, verbose=True, processes=1):
+    """
+    Evaluate the whole population, attribute scores.
+
+    Parameters
+    ---------
+    pop : list of list[float, tuple of float, tuple of tuple of float]
+        List of the individuals' DNAs
+    fitness : callable
+        Fitness function of signature fitness(dna, fitness_args) → float.
+    fitness_args : tuple
+        Additional arguments to pass to the fitness function. Usually the
+        initial positions of the joints.
+    verbose : bool, default=True
+        To display informations about population evaluation.
+    processes : int, default=1
+        Number of processes involved for a multiprocessors evaluation.
+
+    See Also
+    --------
+    evaluate_individual : same function but on a single DNA.
+    """
+    # For multiprocessing we load the processes
+    if processes > 1:
+        res = [None] * len(pop)
+        with mp.Pool(processes=processes) as pool:
+            # Load the processes
+            for i, dna in enumerate(pop):
+                res[i] = pool.apply_async(
+                    evaluate_individual, (dna, fitness, fitness_args)
+                )
+            # Then get data
+            for result, dna in zip(res, pop):
+                dna[0], dna[2] = result.get()
+    else:
+        for dna in pop:
+            dna[0], dna[2] = evaluate_individual(dna, fitness, fitness_args)
+
     if verbose:
         diversity = np.linalg.norm(
             np.var([dna[1] for dna in pop], axis=0)
@@ -165,21 +222,16 @@ def evolutionary_optimization_builtin(
         prob,
         fitness,
         iters,
-        max_pop=11,
-        init_pop=None,
-        max_genetic_dist=.7,
-        startnstop=False,
-        fitness_args=None,
-        verbose=1,
+        **kwargs
 ):
     """
     Optimization by genetic algorithm (GA).
 
     Parameters
     ----------
-    dna : list[float, tuple[float], tuple[tuple[float]]]
+    dna : list[float, tuple of float, tuple of tuple of float]
         DNA of individuals.
-    prob : list[float]
+    prob : list of float
         List of probabilities of the good transmission of one
         characteristics.
     fitness : callable
@@ -188,46 +240,57 @@ def evolutionary_optimization_builtin(
         The
     iters : int
         Number of iterations.
-    max_pop : int, optional
-        Maximum number of individuals. The default is 11.
-    init_pop : sequence of object, optional
-        Initial population, for wider INITIAL genetic diversity.
-        The default is None.
-    max_genetic_dist : float, optional
-        Maximum genetic distance, before individuals
-        cannot reproduce (separated species). The default is .7.
-    startnstop : bool, optional
-        Ability to close program without loosing population.
-        If True, we verify at initialization the existence of a data file.
-        Population is save every int(250 / max_pop) iterations.
-        The default is False.
-    fitness_args : sequence, optional
-        Positional arguments to send to the fitness function.
-        The default is None (no argument sent).
-    verbose : int, optional
-        Level of verbosity.
-        0 : no verbose, do not print anything.
-        1 : show a progress bar.
-        2 : complete report for each turn.
-        The default is 1.
+    **kwargs : dict
+        Other useful parameters for the optimization.
+
+        max_pop : int, default=11
+            Maximum number of individuals. The default is 11.
+        init_pop : sequence of object, default=None
+            Initial population, for wider INITIAL genetic diversity.
+            The default is None.
+        max_genetic_dist : float, default=.7
+            Maximum genetic distance, before individuals
+            cannot reproduce (separated species). The default is .7.
+        startnstop : bool, default=False
+            Ability to close program without loosing population.
+            If True, we verify at initialization the existence of a data file.
+            Population is save every int(250 / max_pop) iterations.
+            The default is False.
+        fitness_args : tuple
+            Keyword arguments to send to the fitness function.
+            The default is None (no argument sent).
+        verbose : int
+            Level of verbosity.
+            0 : no verbose, do not print anything.
+            1 : show a progress bar.
+            2 : complete report for each turn.
+            The default is 1.
+        processes : int, default=1
+            Number of processes that will evaluate the linkages.
 
     Returns
     -------
-    list[float, tuple[float], tuple[tuple[float]]]
+    list[float, tuple of float, tuple of tuple of float]
         List of 3-tuples: best dimensions, best score and initial positions.
         The list is sorted by score order.
     """
     file_path = 'Population data.txt'
+    startnstop = kwargs_switcher('startnstop', kwargs, False)
     if startnstop:
         pop = load_population(file_path)
     else:
         # At least two parents to begin with
         pop = [[dna[0], list(dna[1]), list(dna[2])] for _ in range(2)]
 
+    max_pop = kwargs_switcher('max_pop', kwargs, 11)
+    max_genetic_dist = kwargs_switcher('max_genetic_dist', kwargs, .7)
+    verbose = kwargs_switcher('verbose', kwargs, 1)
+    fitness_args = kwargs_switcher('fitness_args', kwargs, None)
+    # Number of evaluations to run in parallel
+    processes = kwargs_switcher('processes', kwargs, default=1)
     # "Garden of Eden" phase, add enough children to get as much individuals as
     # required
-    if not init_pop:
-        init_pop = max_pop
+    init_pop = kwargs_switcher('init_pop', kwargs, default=max_pop)
     for i in range(len(pop), init_pop):
         pop.append(
             birth(
@@ -244,12 +307,15 @@ def evolutionary_optimization_builtin(
         desc='Evolutionary optimization',
         postfix=postfix
     )
-    print("verbose", verbose)
     for i in iterations:
-        if verbose:
+        if verbose > 1:
             print(f"Turn: {i}, {len(pop)} individuals.")
         # Individuals evaluation
-        evaluate_population(pop, fitness, fitness_args, verbose=verbose > 1)
+        evaluate_population(
+            pop, fitness, fitness_args,
+            verbose=verbose > 1,
+            processes=processes
+        )
         # Population selection
         # Minimal score before death
         death_score = np.quantile([j[0] for j in pop], 1 - max_pop / len(pop))
@@ -288,13 +354,8 @@ def evolutionary_optimization(
         dna,
         fitness,
         iters,
-        prob=.1,
-        max_pop=11,
-        init_pop=None,
-        max_genetic_dist=.7,
-        startnstop=False,
-        fitness_args=None,
-        verbose=1,
+        prob=.07,
+        **kwargs
 ):
     """
     Run the Genetic Optimizer.
@@ -302,44 +363,47 @@ def evolutionary_optimization(
     Genetic Optimization is a procedural algorithm based on Darwinian evolution
     models.
 
-    This function can use either PySwarms.GA if found, and automatically
-    falls backs to the legacy algorithm if not.
+    As of today, this function will only use the built-in algorithm, but you
+    should still use it because we may implement another GA library.
 
     Parameters
     ----------
-    dna : list[float, tuple[float], tuple[tuple[float]]]
+    dna : list[float, tuple of float, tuple of tuple of float]
         DNA of a linkage in format (score, dimensions, initial coordinates).
-    prob : float
-        Mutation probability (PyGAD only).
+    prob : float or list of float, default=.07
+        Mutation probability for each gene.
     fitness : callable
         Evaluation function for an MAXIMISATION problem.
         Must return a float.
     iters : int
         Number of iterations.
-    max_pop : int, optional
-        Maximum number of individuals. The default is 11.
-    init_pop : Union[list[object], int], optional
-        Initial population, for wider INITIAL genetic diversity. Can also we a
-        number of individuals.
-        The default is None.
-    max_genetic_dist : float, optional
-        Maximum standard deviation between the dimensions of two individuals.
-        Above this limit they are considered different species and can't
-        reproduce. The default is .7.
-    startnstop : bool, optional
-        Ability to close program without loosing population.
-        If True, we verify at initialization the existence of a data file.
-        Population is save every int(250 / max_pop) iterations.
-        The default is False.
-    fitness_args : sequence, optional
-        Positional arguments to send to the fitness function.
-        The default is None (no argument sent).
-    verbose : int, optional
-        Level of verbosity.
-        0 : no verbose, do not print anything.
-        1 : show a progress bar.
-        2 : complete report for each turn.
-        The default is 1.
+    **kwargs : dict
+        Other useful parameters for the optimization.
+
+        max_pop : int, optional
+            Maximum number of individuals. The default is 11.
+        init_pop : sequence of object, optional
+            Initial population, for wider INITIAL genetic diversity.
+            The default is None.
+        max_genetic_dist : float, optional
+            Maximum genetic distance, before individuals
+            cannot reproduce (separated species). The default is .7.
+        startnstop : bool, optional
+            Ability to close program without loosing population.
+            If True, we verify at initialization the existence of a data file.
+            Population is save every int(250 / max_pop) iterations.
+            The default is False.
+        fitness_args : tuple
+            Positional arguments to send to the fitness function.
+            The default is None (no argument sent).
+        verbose : int, optional
+            Level of verbosity.
+            0 : no verbose, do not print anything.
+            1 : show a progress bar.
+            2 : complete report for each turn.
+            The default is 1.
+        processes : int, default=1
+            Number of processes that will evaluate the linkages.
 
     Returns
     -------
@@ -347,76 +411,14 @@ def evolutionary_optimization(
         An iterable of the best fit individuals, in format
         (score, dimensions, initial coordinates).
 
-    """
-    def fitness_func(dims, index):
-        """Wrapper for PyGAD which uses a different order."""
-        fit = fitness([0, dims, dna[2]], *fitness_args)
-        return fit[0]
-    # If pyswarms.GA is installed
-    if GA:
-        def pygad_verbose(genetic_algorithm):
-            if verbose:
-                print("Best solution", genetic_algorithm.best_solution())
-        natural_history = GA(
-            num_generations=iters,
-            num_parents_mating=int(np.ceil(max_pop / 10)),
-            fitness_func=fitness_func,
-            # initial_population=init_pop,
-            sol_per_pop=max_pop,
-            num_genes=len(dna[1]),
-            init_range_low=0, init_range_high=5,
-            crossover_type='uniform', crossover_probability=.5,
-            mutation_type="random", mutation_probability=prob,
-            on_generation=pygad_verbose
-        )
-        natural_history.run()
-        natural_history.plot_result()
-        return natural_history
+    See Also
+    --------
+    evolutionary_optimization_builtin : built-in genetic algorithm.
 
-    if not isinstance(init_pop, int):
-        init_pop = len(init_pop)
+    """
     # Legacy fallback
     return evolutionary_optimization_builtin(
         dna, prob, fitness,
         iters=iters,
-        max_pop=max_pop,
-        init_pop=init_pop,
-        max_genetic_dist=max_genetic_dist,
-        startnstop=startnstop,
-        fitness_args=fitness_args,
-        verbose=verbose
-    )
-
-
-def evolutionnary_optimization(
-        dna,
-        fitness,
-        ite,
-        prob=.1,
-        max_pop=11,
-        init_pop=None,
-        max_genetic_dist=.7,
-        startnstop=False,
-        fitness_args=None,
-):
-    """
-    For backward compatibility ONLY.
-
-    Please use the evolutionary_optimization function instead.
-    """
-    warnings.warn(
-        "This function has been renamed to evolutionary_optimization and will "
-        "get deleted in the next minor release.",
-        DeprecationWarning
-    )
-    return evolutionary_optimization(
-        dna=dna,
-        fitness=fitness,
-        iters=ite,
-        prob=prob,
-        max_pop=max_pop,
-        init_pop=init_pop,
-        max_genetic_dist=max_genetic_dist,
-        startnstop=startnstop,
-        fitness_args=fitness_args,
+        **kwargs
     )
