@@ -177,8 +177,7 @@
 <span id="optimization-using-genetic-algorithms-ga"></span><h2>Optimization using Genetic Algorithms (GA)<a class="headerlink" href="#module-leggedsnake.geneticoptimizer" title="Permalink to this headline">¶</a></h2>
 <p>The geneticoptimizer module provides optimizers and wrappers for GA.</p>
 <p>As for now I didn’t tried a convincing Genetic Algorithm library. This is why
-you can either use PyGAD or the built-in version. The switch between versions
-is made automatically on whether or not you have PyGAD installed.</p>
+you it is built-in here. Feel free to propose a copyleft library on GitHub!</p>
 <p>Created on Thu Jun 10 21:20:47 2021.</p>
 <p>&#64;author: HugoFara</p>
 <dl class="py function">
@@ -191,8 +190,8 @@ mutation of each gene. The resetting is a normal law.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>par1</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dna of first parent.</p></li>
-<li><p><strong>par2</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>]</em><em>]</em>) – Dna of second parent.</p></li>
+<li><p><strong>par1</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – Dna of first parent.</p></li>
+<li><p><strong>par2</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – Dna of second parent.</p></li>
 <li><p><strong>prob</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – Probability for each gene to mutate, width of a normal law.</p></li>
 </ul>
 </dd>
@@ -200,51 +199,109 @@ mutation of each gene. The resetting is a normal law.</p>
 <dd class="field-even"><p><strong>child</strong> – Dna of the child.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list[float, tuple[float], tuple[tuple[float]]]</p>
+<dd class="field-odd"><p>list[float, tuple of float, tuple of tuple of float]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evaluate_individual">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evaluate_individual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evaluate_individual" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple evaluation for a single individual.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – List of the individuals’ DNAs</p></li>
+<li><p><strong>fitness</strong> (<em>callable</em>) – Fitness function of signature fitness(dna, fitness_args) → float.</p></li>
+<li><p><strong>fitness_args</strong> (<em>tuple</em>) – Additional arguments to pass to the fitness function. Usually the
+initial positions of the joints.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Score then initial coordinates.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.evaluate_population" title="leggedsnake.geneticoptimizer.evaluate_population"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_population</span></code></a></dt><dd><p>counterpart for an entire population.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evaluate_population">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evaluate_population" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evaluate_population" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the whole population, attribute scores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pop</strong> (<em>list of list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – List of the individuals’ DNAs</p></li>
+<li><p><strong>fitness</strong> (<em>callable</em>) – Fitness function of signature fitness(dna, fitness_args) → float.</p></li>
+<li><p><strong>fitness_args</strong> (<em>tuple</em>) – Additional arguments to pass to the fitness function. Usually the
+initial positions of the joints.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>default=True</em>) – To display informations about population evaluation.</p></li>
+<li><p><strong>processes</strong> (<em>int</em><em>, </em><em>default=1</em>) – Number of processes involved for a multiprocessors evaluation.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.evaluate_individual" title="leggedsnake.geneticoptimizer.evaluate_individual"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_individual</span></code></a></dt><dd><p>same function but on a single DNA.</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evolutionary_optimization">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionary_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_genetic_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startnstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionary_optimization" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionary_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.07</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionary_optimization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the Genetic Optimizer.</p>
 <p>Genetic Optimization is a procedural algorithm based on Darwinian evolution
 models.</p>
-<p>This function can use either PySwarms.GA if found, and automatically
-falls backs to the legacy algorithm if not.</p>
+<p>As of today, this function will only use the built-in algorithm, but you
+should still use it because we may implement another GA library.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>]</em><em>]</em>) – DNA of a linkage in format (score, dimensions, initial coordinates).</p></li>
-<li><p><strong>prob</strong> (<em>float</em>) – Mutation probability (PyGAD only).</p></li>
+<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – DNA of a linkage in format (score, dimensions, initial coordinates).</p></li>
+<li><p><strong>prob</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>default=.07</em>) – Mutation probability for each gene.</p></li>
 <li><p><strong>fitness</strong> (<em>callable</em>) – Evaluation function for an MAXIMISATION problem.
 Must return a float.</p></li>
 <li><p><strong>iters</strong> (<em>int</em>) – Number of iterations.</p></li>
-<li><p><strong>max_pop</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of individuals. The default is 11.</p></li>
-<li><p><strong>init_pop</strong> (<em>Union</em><em>[</em><em>list</em><em>[</em><em>object</em><em>]</em><em>, </em><em>int</em><em>]</em><em>, </em><em>optional</em>) – Initial population, for wider INITIAL genetic diversity. Can also we a
-number of individuals.
-The default is None.</p></li>
-<li><p><strong>max_genetic_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum standard deviation between the dimensions of two individuals.
-Above this limit they are considered different species and can’t
-reproduce. The default is .7.</p></li>
-<li><p><strong>startnstop</strong> (<em>bool</em><em>, </em><em>optional</em>) – Ability to close program without loosing population.
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – <p>Other useful parameters for the optimization.</p>
+<dl class="simple">
+<dt>max_pop<span class="classifier">int, optional</span></dt><dd><p>Maximum number of individuals. The default is 11.</p>
+</dd>
+<dt>init_pop<span class="classifier">sequence of object, optional</span></dt><dd><p>Initial population, for wider INITIAL genetic diversity.
+The default is None.</p>
+</dd>
+<dt>max_genetic_dist<span class="classifier">float, optional</span></dt><dd><p>Maximum genetic distance, before individuals
+cannot reproduce (separated species). The default is .7.</p>
+</dd>
+<dt>startnstop<span class="classifier">bool, optional</span></dt><dd><p>Ability to close program without loosing population.
 If True, we verify at initialization the existence of a data file.
 Population is save every int(250 / max_pop) iterations.
-The default is False.</p></li>
-<li><p><strong>fitness_args</strong> (<em>sequence</em><em>, </em><em>optional</em>) – Positional arguments to send to the fitness function.
-The default is None (no argument sent).</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – Level of verbosity.
+The default is False.</p>
+</dd>
+<dt>fitness_args<span class="classifier">tuple</span></dt><dd><p>Positional arguments to send to the fitness function.
+The default is None (no argument sent).</p>
+</dd>
+<dt>verbose<span class="classifier">int, optional</span></dt><dd><p>Level of verbosity.
 0 : no verbose, do not print anything.
 1 : show a progress bar.
 2 : complete report for each turn.
-The default is 1.</p></li>
+The default is 1.</p>
+</dd>
+<dt>processes<span class="classifier">int, default=1</span></dt><dd><p>Number of processes that will evaluate the linkages.</p>
+</dd>
+</dl>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -255,38 +312,57 @@ The default is 1.</p></li>
 <dd class="field-odd"><p>list[dna]</p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.evolutionary_optimization_builtin" title="leggedsnake.geneticoptimizer.evolutionary_optimization_builtin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evolutionary_optimization_builtin</span></code></a></dt><dd><p>built-in genetic algorithm.</p>
+</dd>
+</dl>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evolutionary_optimization_builtin">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionary_optimization_builtin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_genetic_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startnstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionary_optimization_builtin" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionary_optimization_builtin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionary_optimization_builtin" title="Permalink to this definition">¶</a></dt>
 <dd><p>Optimization by genetic algorithm (GA).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>, </em><em>tuple</em><em>[</em><em>tuple</em><em>[</em><em>float</em><em>]</em><em>]</em><em>]</em>) – DNA of individuals.</p></li>
-<li><p><strong>prob</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – List of probabilities of the good transmission of one
+<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – DNA of individuals.</p></li>
+<li><p><strong>prob</strong> (<em>list of float</em>) – List of probabilities of the good transmission of one
 characteristics.</p></li>
 <li><p><strong>fitness</strong> (<em>callable</em>) – Evaluation function.
 Return float.
 The</p></li>
 <li><p><strong>iters</strong> (<em>int</em>) – Number of iterations.</p></li>
-<li><p><strong>max_pop</strong> (<em>int</em><em>, </em><em>optional</em>) – Maximum number of individuals. The default is 11.</p></li>
-<li><p><strong>init_pop</strong> (<em>sequence of object</em><em>, </em><em>optional</em>) – Initial population, for wider INITIAL genetic diversity.
-The default is None.</p></li>
-<li><p><strong>max_genetic_dist</strong> (<em>float</em><em>, </em><em>optional</em>) – Maximum genetic distance, before individuals
-cannot reproduce (separated species). The default is .7.</p></li>
-<li><p><strong>startnstop</strong> (<em>bool</em><em>, </em><em>optional</em>) – Ability to close program without loosing population.
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – <p>Other useful parameters for the optimization.</p>
+<dl class="simple">
+<dt>max_pop<span class="classifier">int, default=11</span></dt><dd><p>Maximum number of individuals. The default is 11.</p>
+</dd>
+<dt>init_pop<span class="classifier">sequence of object, default=None</span></dt><dd><p>Initial population, for wider INITIAL genetic diversity.
+The default is None.</p>
+</dd>
+<dt>max_genetic_dist<span class="classifier">float, default=.7</span></dt><dd><p>Maximum genetic distance, before individuals
+cannot reproduce (separated species). The default is .7.</p>
+</dd>
+<dt>startnstop<span class="classifier">bool, default=False</span></dt><dd><p>Ability to close program without loosing population.
 If True, we verify at initialization the existence of a data file.
 Population is save every int(250 / max_pop) iterations.
-The default is False.</p></li>
-<li><p><strong>fitness_args</strong> (<em>sequence</em><em>, </em><em>optional</em>) – Positional arguments to send to the fitness function.
-The default is None (no argument sent).</p></li>
-<li><p><strong>verbose</strong> (<em>int</em><em>, </em><em>optional</em>) – Level of verbosity.
+The default is False.</p>
+</dd>
+<dt>fitness_args<span class="classifier">tuple</span></dt><dd><p>Keyword arguments to send to the fitness function.
+The default is None (no argument sent).</p>
+</dd>
+<dt>verbose<span class="classifier">int</span></dt><dd><p>Level of verbosity.
 0 : no verbose, do not print anything.
 1 : show a progress bar.
 2 : complete report for each turn.
-The default is 1.</p></li>
+The default is 1.</p>
+</dd>
+<dt>processes<span class="classifier">int, default=1</span></dt><dd><p>Number of processes that will evaluate the linkages.</p>
+</dd>
+</dl>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -294,16 +370,15 @@ The default is 1.</p></li>
 The list is sorted by score order.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list[float, tuple[float], tuple[tuple[float]]]</p>
+<dd class="field-odd"><p>list[float, tuple of float, tuple of tuple of float]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evolutionnary_optimization">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionnary_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ite</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_pop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_genetic_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">startnstop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionnary_optimization" title="Permalink to this definition">¶</a></dt>
-<dd><p>For backward compatibility ONLY.</p>
-<p>Please use the evolutionary_optimization function instead.</p>
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.kwargs_switcher">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">kwargs_switcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.kwargs_switcher" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simple function to return the good element from a kwargs dict.</p>
 </dd></dl>
 
 <dl class="py function">
