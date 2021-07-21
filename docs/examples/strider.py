@@ -466,7 +466,7 @@ def fitness(dna, linkage_hollow):
         First element is dimensions. Second element is score (unused).
         Third element is initial positions.
     linkage_hollow : Linkage
-        A which will integrate this DNA (avoid redifining a new linkage).
+        A which will integrate this DNA (avoid redefining a new linkage).
 
     Returns
     -------
@@ -504,7 +504,7 @@ def fitness(dna, linkage_hollow):
 
 
 def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
-                        init_pop=None, save=False, startnstop=False):
+                        init_pop=None, startnstop=False):
     """
     Optimization of the linkage by genetic algorithm.
 
@@ -523,8 +523,6 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
     init_pop : int, optional
         Initial population for a highest initial genetic diversity.
         The default is None.
-    save : bool, optional
-        To save the optimized data. The default is False.
     startnstop : bool, optional
         To use a save save and save results regularly. The default is False.
 
@@ -548,18 +546,12 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
         fitness_args=(linkage,),
         processes=1
     )
-    if save:
-        file = open('Evolutive optimizer.txt', 'w')
-        # We only keep 10 best results
-        for i in range(min(10, len(out))):
-            file.write('{}\n{}\n{}\n----\n'.format(out[i][0], out[i][1], out[i][2]))
-        file.close()
     return out
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
     """Show the optimized linkages."""
-    for datum in data:
+    for datum in data[:min(len(data), n_show)]:
         if datum[0] <= 0:
             continue
         if symmetric:

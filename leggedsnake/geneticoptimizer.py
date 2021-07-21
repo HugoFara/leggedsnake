@@ -10,6 +10,8 @@ Created on Thu Jun 10 21:20:47 2021.
 
 @author: HugoFara
 """
+import os.path
+import json
 import multiprocessing as mp
 import numpy as np
 from numpy.random import rand, normal, randint
@@ -38,23 +40,42 @@ def kwargs_switcher(arg_name, kwargs, default=None):
 
 def load_population(file_path):
     """Return a population from a given file."""
-    f = open(file_path, 'r')
-    pop = []
-    for line in f.readlines():
-        if line[0] == '{' and line[-2] == '}':
-            pop.append([{}, 0, []])
-            for i in line[1:-2].split(", "):
-                j = i.replace("'", '').split(": ")
-                pop[-1][0][j[0]] = float(j[1])
-                ############################
-                # Warning: does not consider user's choice
-                """if j[0] != prob:
-                    prob = .07"""
-        elif line[0] == '[' and line[-2] == ']':
-            for i in line[2:-3].split('), ('):
-                j = i.split(', ')
-                pop[-1][2].append((float(j[0]), float(j[1])))
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+        pop = data[-1]['population']
     return pop
+
+
+def save_population(file_path, population, verbose=False, data_descriptors=None):
+    """
+    Save the population to a json file.
+
+    Parameters
+    ----------
+    file_path : str
+    population : list of dna
+    verbose : bool
+    data_descriptors : dict
+        Any additional value you want to save for the current generation.
+    """
+    if not os.path.exists(file_path):
+        data = [{'turn': 0, 'population': population}]
+        with open(file_path, 'x') as file:
+            json.dump(data, file)
+    else:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        turn = data[-1]['turn'] + 1
+        data.append({
+            'turn': turn,
+            'population': population
+        })
+        if data_descriptors is not None:
+            data[-1].update(data_descriptors)
+        with open(file_path, 'w') as file:
+            json.dump(data, file)
+    if verbose:
+        print('Data saved.')
 
 
 def birth(par1, par2, prob):
@@ -195,7 +216,7 @@ def select_parents(pop, verbose=True):
                 indexes.append(j)
                 break
     if verbose:
-        print(f"Median score: {median}, {len(parents)} parents\n----")
+        print(f"Median score: {median}, {len(parents)} parents")
     return parents
 
 
@@ -274,9 +295,9 @@ def evolutionary_optimization_builtin(
         List of 3-tuples: best dimensions, best score and initial positions.
         The list is sorted by score order.
     """
-    file_path = 'Population data.txt'
+    file_path = 'Population evolution.json'
     startnstop = kwargs_switcher('startnstop', kwargs, False)
-    if startnstop:
+    if startnstop and os.path.exists(file_path):
         pop = load_population(file_path)
     else:
         # At least two parents to begin with
@@ -299,7 +320,10 @@ def evolutionary_optimization_builtin(
                 prob
             )
         )
-    postfix = ["best_score", dna[0], "best_dimensions", dna[1]]
+    postfix = [
+        "best_score", max(x[0] for x in pop),
+        "best_dimensions", max(pop, key=lambda x: x[0])[1]
+    ]
     iterations = tqdm_verbosity(
         range(iters),
         verbose=verbose == 1,
@@ -325,15 +349,17 @@ def evolutionary_optimization_builtin(
         pop = list(filter(lambda x: x[0] >= death_score, pop))
         parents = select_parents(pop, verbose=verbose > 1)
         # We select the best fit individual to show off, we now he is a parent
-        postfix[1] = max(parents, key=lambda x: x[0])[0]
-        postfix[3] = max(parents, key=lambda x: x[0])[1]
-        if startnstop and not i % int(250 / max_pop):
-            file = open(file_path, 'w')
-            for j in pop:
-                file.write('%s\n%s\n%s\n----\n' % (j[0], j[1], j[2]))
-            file.close()
-            if verbose > 1:
-                print('Data saved.')
+        best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
+        postfix[1] = parents[best_id][0]
+        postfix[3] = parents[best_id][1]
+        if startnstop:
+            save_population(
+                file_path, pop, verbose > 1,
+                {
+                    'best_score': parents[best_id][0],
+                    'best_individual_id': best_id
+                }
+            )
         # Children generation
         children = make_children(parents, prob, max_genetic_dist)
         # Add to population

@@ -7,15 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
  - Multiprocessing is here! The genetic optimization can now be run in parallel!
-   Performances are easily improved by 30 % using 4 processes.
+   Performances got improved by 65 % using 4 processes only.
 
 ### Changed
+ - We now save data using JSON! Slow computer users, you can relax and stop 
+   computing when you want.
  - The sidebar in the documentation a bit more useful.
  - Not having tqdm will cause an exception.
 
 ### Removed
  - native support for PyGAD is no longer present.
- - ``evolutionnary_optimization`` (replaced by ``evolutionary_optimization``)
+ - ``evolutionnary_optimization`` (replaced by ``evolutionary_optimization``).
+ - Data saved in the old txt format are no longer readable (were they?)
 
 ## [0.2.0-alpha] - 2021-07-14
 ### Added
