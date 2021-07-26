@@ -59,21 +59,20 @@ def save_population(file_path, population, verbose=False, data_descriptors=None)
         Any additional value you want to save for the current generation.
     """
     if not os.path.exists(file_path):
-        data = [{'turn': 0, 'population': population}]
-        with open(file_path, 'x') as file:
-            json.dump(data, file)
+        data = []
+        turn = 0
     else:
         with open(file_path, 'r') as file:
             data = json.load(file)
         turn = data[-1]['turn'] + 1
-        data.append({
-            'turn': turn,
-            'population': population
-        })
-        if data_descriptors is not None:
-            data[-1].update(data_descriptors)
-        with open(file_path, 'w') as file:
-            json.dump(data, file)
+    data.append({
+        'turn': turn,
+        'population': population
+    })
+    if data_descriptors is not None:
+        data[-1].update(data_descriptors)
+    with open(file_path, 'w') as file:
+        json.dump(data, file)
     if verbose:
         print('Data saved.')
 

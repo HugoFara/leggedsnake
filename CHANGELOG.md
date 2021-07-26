@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+ - `data_descriptors` were not save for the first line of data only in 
+   ``geneticoptimizer``. 
+   
 ## [0.3.0-beta] - 2021-07-21
 ### Added
  - Multiprocessing is here! The genetic optimization can now be run in parallel!
