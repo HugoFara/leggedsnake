@@ -6,9 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- PyCharm configuration files.
+
 ### Fixed
- - `data_descriptors` were not save for the first line of data only in 
-   ``geneticoptimizer``. 
+
+- `data_descriptors` were not save for the first line of data only in 
+  ``geneticoptimizer``. 
+- Multiple grammar corrections.
    
 ## [0.3.0-beta] - 2021-07-21
 ### Added
@@ -140,7 +146,7 @@ This package was lacking real documentation, it is fixed in this version.
 
 ## [0.0.3-alpha] - 2021-06-23
 ### Added
- - Started walktrough demo in ``README.md``
+ - Started walkthrough demo in ``README.md``
  - Automatic release to PyPi
 
 ### Fixed

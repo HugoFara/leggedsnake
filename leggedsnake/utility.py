@@ -2,9 +2,9 @@
 """
 Also known as WalkerUtility.
 
-This module aims to standardize and simplify study of walking mechanisms.
+This module aims to standardize and simplify the study of walking mechanisms.
 
-It contain useful functions that make study of planar mechanisms easy.
+It contains useful functions that make study of planar mechanisms easy.
 
 Created on Sat Nov 17 20:35:39 2018.
 

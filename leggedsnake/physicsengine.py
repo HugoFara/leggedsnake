@@ -2,13 +2,13 @@
 """
 The physicsengine module gives a dynamic behavior to legged mechanism.
 
-Is uses the 2D physics engine chipmunk, this is why it can only be used on
+It uses the 2D physics engine chipmunk, this is why it can only be used on
 planar mechanisms.
-In theory you can use any type of mechanism, and not only planar mechanisms.
-In practice we do generate the road and some other parameters as the gravity,
+In theory, you can use any type of mechanism, and not only planar mechanisms.
+In practice, we do generate the road and some other parameters as the gravity,
 so it can be difficult to test something other than a walker.
 
-Created on Sat May 25 14:56:01 2019.
+Created on Sat May 25 2019 14:56:01.
 
 @author: HugoFara
 """
@@ -32,7 +32,7 @@ params = {
         "max_step": .5,
         # Steps frequency
         "step_freq": .1,
-        # Terrain variations, should not be above 1
+        # Terrain variations should not be above 1
         "noise": .9,
         # Road trunks length
         "section_len": 1,

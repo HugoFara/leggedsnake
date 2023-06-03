@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-The walker module give a simple interface between a generic linkage and a Walker.
+The walker module gives a simple interface between a generic linkage and a Walker.
 
 A generic linkage should be understood as a pylinkage.linkage.Linkage. Thus a
 Walker is a kinematic mechanism (not dynamic).
@@ -15,13 +15,13 @@ import pylinkage.linkage as lk
 
 
 class Walker(lk.Linkage):
-    """A Walker, or a leg mechanism, is a Linkage with some useful methods."""
+    """A Walker, or a leg mechanism is a Linkage with some useful methods."""
 
     def add_legs(self, number=2):
         """
         Add legs to a linkage, mostly for a dynamic simulation.
 
-        The leg is a subset a joints whose position inheritates from a crank.
+        The leg is a subset a joints whose position inherits from a crank.
 
         Parameters
         ----------
@@ -43,7 +43,7 @@ class Walker(lk.Linkage):
             )
         )[iterations_factor - 1:-1:iterations_factor]
         # Because we have per-leg iterations
-        # we have to save crank informations
+        # we have to save crank information
         crank_memory = dict(zip(self._cranks, self._cranks))
         # For each leg
         for i, positions in enumerate(new_positions):
@@ -90,7 +90,7 @@ class Walker(lk.Linkage):
         """
         Return the list of foot joints, joints that should be used as foots.
 
-        Formally, they are joints without children, there position does not
+        Formally, they are joints without children; there position does not
         influence other joints.
 
         Returns

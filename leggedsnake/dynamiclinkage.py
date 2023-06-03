@@ -3,10 +3,10 @@
 """
 The dynamiclinkage module is an interface between Pymunk and a kinematic linkage.
 
-It provide various classes to overwrite the pylinkage.Joint objects.
-It also includes a DynamicLinkage that inheritates from
+It provides various classes to overwrite the pylinkage.Joint objects.
+It also includes a DynamicLinkage that inherits from
 pylinkage.linkage.Linkage.
-Enventually a handy convert_to_dynamic_linkage methoc can generate a
+Eventually a handy convert_to_dynamic_linkage method can generate a
 DynamicLinkage from a pylinkage.linkage.Linkage.
 """
 import abc
@@ -33,15 +33,15 @@ class DynamicJoint(abc.ABC):
         body1 : pymunk.body.Body, optional
             Second Body to link to. The default is None
         space : pymunk.space.Space, optional
-            Simulation space in which the DynamicJoint exist.
+            Simulation space in which the DynamicJoint exists.
             The default is None.
         radius : float, optional
-            DynamicJoint will generate hulles of this radius. The default is .3.
+            DynamicJoint will generate hulls of this radius. The default is .3.
         density : float, optional
             Density of the hull, mass will be computed accordingly.
             The default is 1.
         shape_filter : pymunk.shapes.ShapeFilter, optional
-            Prevent hulles from colliding with each another. Useful is the same
+            Prevent hulls from colliding with each other. Useful is the same
             linkage for instance. The default is None.
         """
         if isinstance(body0, pm.Body):
@@ -61,7 +61,7 @@ class DynamicJoint(abc.ABC):
         """
         Create a pymunk.Segment between two joints on a body and return it.
 
-        First extremity of the segment is self Joint position, the other is
+        The first extremity of the segment is self Joint position, the other is
         parent_pos (a position).
 
         Parameters
@@ -69,7 +69,7 @@ class DynamicJoint(abc.ABC):
         body : pymunk.Body
             The Body you want the link to be added to.
         parent_pos : sequence
-            Any sequence of two float. It give th
+            Any sequence of two floats. It give th
 
         Returns
         -------
@@ -150,7 +150,7 @@ class DynamicJoint(abc.ABC):
         """
         Reload DynamicJoint coordinates.
 
-        Coordinates only depend of Body position and DO NOT use any linkage
+        Coordinates only depend on Body position and DO NOT use any linkage
         constraint.
 
         Returns
@@ -239,12 +239,12 @@ class PinUp(linkage.Fixed, DynamicJoint):
 
     def set_anchor_a(self, joint, distance=None, angle=None):
         """
-        Set first anchor charactertics.
+        Set first anchor characteristics.
 
         Parameters
         ----------
         joint : DynamicJoint
-            DynamicJoint to use as achor_a.
+            DynamicJoint to use as anchor_a.
         distance : float, optional
             Distance to keep constant. The default is None.
         angle : float, optional
@@ -259,10 +259,10 @@ class PinUp(linkage.Fixed, DynamicJoint):
 
     def set_anchor_b(self, joint):
         """
-        Set second anchor caracteristics.
+        Set second anchor characteristics.
 
         It will create errors if called before anchor_a is properly defined.
-        SIDE EFFECT : it create two Segment and add them to self.space.
+        SIDE EFFECT : it creates two Segment and add them to self.space.
 
         Parameters
         ----------
@@ -287,7 +287,7 @@ class PinUp(linkage.Fixed, DynamicJoint):
         """
         Reload DynamicJoint coordinates.
 
-        Coordinates only depend of Body position and DO NOT use any linkage
+        Coordinates only depend on Body position and DO NOT use any linkage
         constraint.
 
         Returns
@@ -321,7 +321,7 @@ class DynamicPivot(linkage.Pivot, DynamicJoint):
 
     def set_anchor_a(self, joint, distance=None):
         """
-        Set anchor_a caracteristics.
+        Set anchor_a characteristics.
 
         Parameters
         ----------
@@ -352,7 +352,7 @@ class DynamicPivot(linkage.Pivot, DynamicJoint):
 
     def set_anchor_b(self, joint, distance=None):
         """
-        Set anchor_b caracteristics.
+        Set anchor_b characteristics.
 
         Parameters
         ----------
@@ -384,7 +384,7 @@ class DynamicPivot(linkage.Pivot, DynamicJoint):
         """
         Reload DynamicJoint coordinates.
 
-        Coordinates only depend of Body position and DO NOT use any linkage
+        Coordinates only depend on Body position and DO NOT use any linkage
         constraint.
 
         Returns
@@ -399,7 +399,7 @@ class Motor(linkage.Crank, DynamicJoint):
     """
     A Motor is a crank.
 
-    It makes a link between a body and a sencond link it creates. It attaches
+    It makes a link between a body and a second link it creates. It attaches
     them with a PivotJoint, and adds a SimpleMotor over it. The bodies are now
     constrained to rotate around one each other.
 
@@ -489,7 +489,7 @@ class Motor(linkage.Crank, DynamicJoint):
         """
         Reload DynamicJoint coordinates.
 
-        Coordinates only depend of Body position and DO NOT use any linkage
+        Coordinates only depend on Body position and DO NOT use any linkage
         constraint.
 
         Returns
@@ -502,12 +502,12 @@ class Motor(linkage.Crank, DynamicJoint):
 
 class DynamicLinkage(linkage.Linkage):
     """
-    Dynamic couterpart of a kinematic linkage.Linkage.
+    Dynamic counterpart of a kinematic linkage.Linkage.
 
     It has several attributes linked to its dynamic nature and is close to an
     empty shell in the ways you will use it.
 
-    Please not that it carries a load, which is relevant with real-world
+    Please note that it carries a load, which is relevant with real-world
     simulation where the weight of legs is small compared to the weight of the
     frame.
     """

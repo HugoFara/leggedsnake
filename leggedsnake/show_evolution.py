@@ -23,13 +23,13 @@ def draw_any_func(axis, scores, func):
 
 
 def draw_median_score(axis, scores):
-    """Compute a median vector form a score matrix and draw it."""
+    """Compute a median vector from a score matrix and draw it."""
     median = tuple(map(np.nanmedian, scores))
     axis.plot(median, c='g', label="Median score")
 
 
 def draw_best_score(axis, scores):
-    """Compute a best score vector form a score matrix and draw it."""
+    """Compute the best score vector form a score matrix and draw it."""
     best = tuple(map(np.nanmax, scores))
     axis.plot(best, c='r', label="Best score")
 

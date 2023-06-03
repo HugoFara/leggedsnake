@@ -3,8 +3,8 @@
 """
 The geneticoptimizer module provides optimizers and wrappers for GA.
 
-As for now I didn't tried a convincing Genetic Algorithm library. This is why
-you it is built-in here. Feel free to propose a copyleft library on GitHub!
+As for now, I didn't try a convincing Genetic Algorithm library. This is why
+it is built-in here. Feel free to propose a copyleft library on GitHub!
 
 Created on Thu Jun 10 21:20:47 2021.
 
@@ -190,14 +190,14 @@ def evaluate_population(pop, fitness, fitness_args, verbose=True, processes=1):
 def select_parents(pop, verbose=True):
     """Selection 1/4 of the population as parents."""
     median = np.median([dna[0] for dna in pop])
-    # Index of best individual
+    # Index of the best individual
     best_index, best_dna = max(enumerate(pop), key=lambda x: x[1][0])
     # Parents selection, 1/4 of population
     parents = []
     indexes = []
     for j, individual in enumerate(pop):
         # Parents whose score is above median.
-        # Individuals with best fitness are more likely to be selected
+        # Individuals with the best fitness are more likely to be selected
         if (
                 .5 * (individual[0] - best_dna[0]) / (best_dna[0] - median)
         ) + 1 > max(rand(), .5):
