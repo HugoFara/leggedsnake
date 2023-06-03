@@ -155,9 +155,9 @@ def evaluate_population(pop, fitness, fitness_args, verbose=True, processes=1):
         Additional arguments to pass to the fitness function. Usually the
         initial positions of the joints.
     verbose : bool, default=True
-        To display informations about population evaluation.
+        To display information about population evaluation.
     processes : int, default=1
-        Number of processes involved for a multiprocessors evaluation.
+        Number of processes involved for a multiprocessor evaluation.
 
     See Also
     --------
@@ -265,7 +265,7 @@ def evolutionary_optimization_builtin(
 
         max_pop : int, default=11
             Maximum number of individuals. The default is 11.
-        init_pop : sequence of object, default=None
+        init_pop : sequence of objects, default=None
             Initial population, for wider INITIAL genetic diversity.
             The default is None.
         max_genetic_dist : float, default=.7
@@ -308,10 +308,10 @@ def evolutionary_optimization_builtin(
     fitness_args = kwargs_switcher('fitness_args', kwargs, None)
     # Number of evaluations to run in parallel
     processes = kwargs_switcher('processes', kwargs, default=1)
-    # "Garden of Eden" phase, add enough children to get as much individuals as
+    # "Garden of Eden" phase, add enough children to get as many individuals as
     # required
     init_pop = kwargs_switcher('init_pop', kwargs, default=max_pop)
-    for i in range(len(pop), init_pop):
+    for _ in range(len(pop), init_pop):
         pop.append(
             birth(
                 pop[randint(len(pop) - 1)],
@@ -398,7 +398,7 @@ def evolutionary_optimization(
     prob : float or list of float, default=.07
         Mutation probability for each gene.
     fitness : callable
-        Evaluation function for an MAXIMISATION problem.
+        Evaluation function for a MAXIMISATION problem.
         Must return a float.
     iters : int
         Number of iterations.
@@ -407,7 +407,7 @@ def evolutionary_optimization(
 
         max_pop : int, optional
             Maximum number of individuals. The default is 11.
-        init_pop : sequence of object, optional
+        init_pop : sequence of objects, optional
             Initial population, for wider INITIAL genetic diversity.
             The default is None.
         max_genetic_dist : float, optional

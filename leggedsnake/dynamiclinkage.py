@@ -93,9 +93,9 @@ class DynamicJoint(abc.ABC):
         ----------
         index : int, optional
             The interface index to assign the body to.
-            0 : assign to self.a
-            1 : assign to selb.b
-            2 : assign to self.a and self.b
+            0: assign to self.a
+            1: assign to self.b
+            2: assign to self.a and self.b
             The default is 0.
 
         Returns
@@ -262,7 +262,7 @@ class PinUp(linkage.Fixed, DynamicJoint):
         Set second anchor characteristics.
 
         It will create errors if called before anchor_a is properly defined.
-        SIDE EFFECT : it creates two Segment and add them to self.space.
+        SIDE EFFECT: creates two Segment objects and adds them to self.space.
 
         Parameters
         ----------
@@ -419,7 +419,7 @@ class Motor(linkage.Crank, DynamicJoint):
 
     def __get_reference_body__(self, body=None):
         """
-        Find a body that can be used as reference body.
+        Find a body that can be used as a reference body.
 
         Parameters
         ----------
@@ -437,7 +437,7 @@ class Motor(linkage.Crank, DynamicJoint):
         Returns
         -------
         pymunk.Body
-            A valid Body to be used as reference.
+            A valid Body to be used as a reference.
 
         """
         if body is None:
@@ -459,7 +459,7 @@ class Motor(linkage.Crank, DynamicJoint):
 
     def set_anchor_a(self, joint, distance=None):
         """
-        Set anchor_a caracteristics.
+        Set anchor_a characteristics.
 
         Parameters
         ----------
@@ -525,7 +525,7 @@ class DynamicLinkage(linkage.Linkage):
         ----------
         joints : linkage.Joint
             Joints to be part of the linkage. Kinematic joints will be
-            converted in there dynamic equivalents.
+            converted to their dynamic equivalents.
         space : pymunk.Space
             Space in which linkage should be instantiated.
         density : float, optional
@@ -635,7 +635,7 @@ class DynamicLinkage(linkage.Linkage):
                                    vertices[(i + 1) % len(vertices)],
                                    self._thickness))
             segs[-1].density = self.density
-            # Rigodbodies in this group won't collide
+            # Rigidbodies in this group won't collide
             segs[-1].filter = self.filter
         self.space.add(load, *segs)
         return load

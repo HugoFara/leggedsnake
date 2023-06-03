@@ -4,7 +4,7 @@
 Main module of the leggedsnake library, to build walking machines easily.
 
 Please see https://hugofara.github.io/leggedsnake/ for complete documentation.
-A local copy should have been shipped with this package under the docs folder.
+A local copy should have been shipped with this package under the docs/ folder.
 
 Created on Thu Jun 10 20:35:00 2021
 

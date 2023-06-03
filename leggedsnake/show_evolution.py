@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jun 10 14:30:05 2019.
-
 The show_evolution module provides data visualization about GA.
 
-
+Created on Mon Jun 10 2019 14:30:05.
 
 @author: HugoFara
 """

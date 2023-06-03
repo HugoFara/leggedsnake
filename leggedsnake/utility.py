@@ -6,7 +6,7 @@ This module aims to standardize and simplify the study of walking mechanisms.
 
 It contains useful functions that make study of planar mechanisms easy.
 
-Created on Sat Nov 17 20:35:39 2018.
+Created on Sat Nov 17 2018 20:35:39.
 
 @author: HugoFara
 """
@@ -117,7 +117,7 @@ def step(points, height, width, return_res=False, y_min=None, acc=[]):
     # Origin of ordinates, for computing obstacle's height
     if y_min is None:
         y_min = bb[0]
-    # Index of first point passing obstacle
+    # Index of a first point passing obstacle
     for i, point in enumerate(points):
         if point[1] - y_min >= height:
             break

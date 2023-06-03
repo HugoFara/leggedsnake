@@ -67,7 +67,7 @@ params = {
     },
     # Display parameters
     "camera": {
-        # Do you want to follow system of view whole scene?
+        # Do you want to follow a system of view whole scene?
         "dynamic_camera": True,
         # Required frames per second
         "fps": 20,
@@ -90,7 +90,7 @@ def set_space_constraints(space):
 
 class World:
     """
-    A world contain a space of simulation, at least one linkage, and a road.
+    A world contains a space of simulation, at least one linkage, and a road.
 
     It is not intended to be rendered visually per se, see VisualWorld for
     this purpose.
@@ -107,7 +107,7 @@ class World:
         space : pymunk.space.Space, optional
             Space of simulation. The default is None.
         road_y : float, optional
-            The ordinate of the ground. Useful when likages have long legs.
+            The ordinate of the ground. Useful when linkages have long legs.
             The default is -5.
         """
         if isinstance(space, pm.Space):
@@ -358,7 +358,7 @@ class VisualWorld(World):
 
 
 def recalc_linkage(linkage):
-    """Assign the good position to all joints."""
+    """Assign a good position to all joints."""
     for j in linkage.joints:
         j.reload()
 

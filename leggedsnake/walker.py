@@ -6,7 +6,7 @@ The walker module gives a simple interface between a generic linkage and a Walke
 A generic linkage should be understood as a pylinkage.linkage.Linkage. Thus a
 Walker is a kinematic mechanism (not dynamic).
 
-Created on Thu Jun 10 21:13:12 2021.
+Created on Thu Jun 10 2021 21:13:12.
 
 @author: HugoFara
 """
@@ -42,7 +42,7 @@ class Walker(lk.Linkage):
                 self.get_rotation_period() / (number + 1) / iterations_factor
             )
         )[iterations_factor - 1:-1:iterations_factor]
-        # Because we have per-leg iterations
+        # Because we have per-leg iterations,
         # we have to save crank information
         crank_memory = dict(zip(self._cranks, self._cranks))
         # For each leg
@@ -90,13 +90,13 @@ class Walker(lk.Linkage):
         """
         Return the list of foot joints, joints that should be used as foots.
 
-        Formally, they are joints without children; there position does not
+        Formally, they are joints without children; their positions do not
         influence other joints.
 
         Returns
         -------
         candidates : list
-            List of terminal joints, foots.
+            List of terminal joints, feet.
 
         """
         candidates = list(self.joints)
