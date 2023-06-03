@@ -67,8 +67,8 @@ A = ls.Static(x=0, y=0, name="A")
 B = ls.Crank(1, 0, distance=1, angle=0.31, name="Crank")
 # etc... let's say with have joints up to E
 my_walker = ls.Walker(
-  joints=(A, B, C, D, E),
-  name="My Walker"
+    joints=(A, B, C, D, E),
+    name="My Walker"
 )
 ```
 
@@ -101,32 +101,35 @@ have to define a fitness function. Here are the main steps for a **maximisation 
 3. Otherwise, use the following procedure: 
 
 ```python3
+import leggedsnake as ls
+
 def dynamic_linkage_fitness(walker):
-  """
-  Make the dynamic evaluation of a Walker.
-  
-  Return yield and initial position of joints.
-  """
-  world = pe.World()
-  # We handle all the conversions
-  world.add_linkage(walker)
-  # Simulation duration (in seconds)
-  duration = 40
-  # Somme of yields
-  tot = 0
-  # Motor turned on duration
-  dur = 0
-  n = duration * pe.params["camera"]["fps"]
-  n /= pe.params["simul"]["time_coef"]
-  for j in range(int(n)):
-      efficiency, energy = world.update(j)
-      tot += efficiency
-      dur += energy
-  if dur == 0:
-      return - float('inf'), list()
-  print("Score:", tot / dur)
-  # Return 100 times average yield, and initial positions as the final score
-  return tot / dur, pos
+    """
+    Make the dynamic evaluation of a Walker.
+    
+    Return yield and initial position of joints.
+    """
+    world = ls.World()
+    # We handle all the conversions
+    world.add_linkage(walker)
+    # Simulation duration (in seconds)
+    duration = 40
+    # Somme of yields
+    tot = 0
+    # Motor turned on duration
+    dur = 0
+    n = duration * ls.params["camera"]["fps"]
+    n /= ls.params["simul"]["time_coef"]
+    pos = tuple(walker.step())[-1]
+    for j in range(int(n)):
+        efficiency, energy = world.update(j)
+        tot += efficiency
+        dur += energy
+    if dur == 0:
+        return - float('inf'), list()
+    print("Score:", tot / dur)
+    # Return 100 times average yield, and initial positions as the final score
+    return tot / dur, pos
 ```
 
 And now, relax while your computer creates a civilization of walking machines!
