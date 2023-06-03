@@ -3,11 +3,11 @@
 Complete simulator for strider mechanism, a type of walking mechanism.
 
 Directions:
-    - First section gives objects definition, and links between them
-    - Second section explains how simulation works.
+    - The first section gives objects definition, and links between them
+    - The second section explains how simulation works.
     - Third section is for display.
 
-Created on Sun Dec 23 21:03:11 2018.
+Created on Sun Dec 23 2018 21:03:11.
 
 @author: HugoFara
 """
@@ -18,7 +18,7 @@ import numpy as np
 import leggedsnake as ls
 
 # Simulation parameters
-# Number of points for crank complet turn
+# Number of points for crank complete turn
 n = 10
 # Time (in seconds) for a crank revolution
 speed = 100
@@ -29,14 +29,16 @@ Parameters that can change without changing joints between objects.
 Can be distance between joints, or an angle.
 Units are given relative to crank length, which is normalized to 1.
 """
-param_names = ("triangle", "ape", "femur", "rockerL",
-               "rockerS", "f", "tibia", "phi")
+param_names = (
+    "triangle", "ape", "femur", "rockerL", "rockerS", "f", "tibia", "phi"
+)
+
 param = (
     # AB distance (=AB_p) "triangle":
     2,
     # "ape":
     np.pi / 4,
-    # femur = 3 for higher steps, 2 for standard, 1.8 is good enough
+    # femur = 3 for higher steps, 2 for the standard size but 1.8 is good enough
     1.8,
     # "rockerL":
     2.6,
@@ -49,7 +51,7 @@ param = (
     # "f":
     1.8,
 )
-# Optimized but useless strider with step of size 5.05
+# Optimized but useless strider with a step of size 5.05
 # param = (2.62484195, 1.8450077, 2.41535873, 2.83669735, 2.75235715,
 #         4.60386788, 3.49814371, 3.51517851)
 # Limits for parameters, will be used in optimizers
@@ -216,14 +218,14 @@ def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
     prev : tuple[tuple[float]], optional
         Previous coordinates to use. The default is None.
     debug : bool, optional
-        Launch in debug mode (frame by frame, with forces visualisation).
+        Launch in debug mode (frame by frame, with forces visualization).
         The default is False.
     duration : float, optional
         Simulation duration (in seconds). The default is 40.
     save : bool, optional
         Save the video file instead of displaying it. The default is False.
     """
-    # Define intial positions
+    # Define initial positions
     linkage.rebuild(prev)
     if debug:
         ls.video_debug(linkage)
@@ -280,7 +282,7 @@ def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
     current_swarm : list[list[float]]
         List of dimensions + cost (concatenated).
     fig : matplotlib.pyplot.Figure, optional
-        Figuer to draw on. The default is None.
+        Figure to draw on. The default is None.
     lines : list[matplotlib.pyplot.Artist], optional
         Lines to be modified. The default is None.
     t : int, optional
@@ -314,7 +316,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
     dims : list[float], optional
         The dimensions that should vary. The default is param.
     show : int, optional
-        Type of visualisation.
+        Type of visualization.
         - 0 for None
         - 1 for polar graph
         - 2 for tiled 2D representation
@@ -370,7 +372,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             writer = anim.FFMpegWriter(
                 fps=24, bitrate=1800,
                 metadata={
-                    'title': "Particule swarm looking for R^8 in R "
+                    'title': "Particle swarm looking for R^8 in R "
                     "application maximum",
                     'comment': "Made with Python and Matplotlib",
                     'description': "The swarm tries to find best dimension"
@@ -407,7 +409,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             writer = anim.FFMpegWriter(
                 fps=24, bitrate=1800,
                 metadata={
-                    'title': "Particule swarm looking for R^8 in R "
+                    'title': "Particle swarm looking for R^8 in R "
                     "application maximum",
                     'comment': "Made with Python and Matplotlib",
                     'description': "The swarm looks for best dimension "
@@ -431,7 +433,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         ):
             if not i % save_each:
                 f = open('PSO optimizer.txt', 'w')
-                # We only keep best results
+                # We only keep the best results
                 dim.sort(key=lambda x: x[1], reverse=True)
                 for j in range(min(10, len(dim))):
                     par = {}
@@ -463,8 +465,8 @@ def fitness(dna, linkage_hollow):
     Parameters
     ----------
     dna : list of 3 elements
-        First element is dimensions. Second element is score (unused).
-        Third element is initial positions.
+        The first element is dimensions. The second element is score (unused).
+        The third element is initial positions.
     linkage_hollow : Linkage
         A which will integrate this DNA (avoid redefining a new linkage).
 
@@ -476,7 +478,7 @@ def fitness(dna, linkage_hollow):
     """
     linkage_hollow.set_num_constraints(dna[1])
     linkage_hollow.rebuild(dna[2])
-    # Check if mechanism is buildable
+    # Check if the mechanism is buildable
     try:
         # Save initial coordinates
         pos = tuple(linkage_hollow.step())[-1]
@@ -521,10 +523,10 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
     iters : int, optional
         Number of iterations to perform. The default is 10.
     init_pop : int, optional
-        Initial population for a highest initial genetic diversity.
+        Initial population for the highest initial genetic diversity.
         The default is None.
     startnstop : bool, optional
-        To use a save save and save results regularly. The default is False.
+        To save results to a file regularly, and fetch initial data from this file. The default is False.
 
     Returns
     -------
