@@ -566,49 +566,66 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
             linkage, prev=begin, title=str(datum[0]), duration=duration
         )
 
+def main(trials_and_errors, particle_swarm, genetic):
+    """
+    Optimize a strider with different settings.
 
-strider = complete_strider(param2dimensions(param), begin)
-print(
-    "Initial score: {}".format(
-        sym_stride_evaluator(strider, param, begin)
+    :param trials_and_errors: True to use trial and errors optimization.
+    :type trials_and_errors: bool
+    :param particle_swarm: True to use a particle swarm optimization
+    :type particle_swarm: bool
+    """
+    strider = complete_strider(param2dimensions(param), begin)
+    print(
+        "Initial score: {}".format(
+            sym_stride_evaluator(strider, param, begin)
+        )
     )
-)
-# Trials and errors optimization as comparison
-optimized_striders = ls.trials_and_errors_optimization(
-    sym_stride_evaluator, strider, param, divisions=4, verbose=True
-)
-print(
-    "Score after trials and errors optimization: {}".format(
-        optimized_striders[0][0]
-    )
-)
+    if trials_and_errors:
+        # Trials and errors optimization as comparison
+        optimized_striders = ls.trials_and_errors_optimization(
+            sym_stride_evaluator, strider, param, divisions=4, verbose=True
+        )
+        print(
+            "Score after trials and errors optimization: {}".format(
+                optimized_striders[0][0]
+            )
+        )
 
-# Particle swarm optimization
-optimized_striders = swarm_optimizer(
-    strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
-)
-print(
-    "Score after particle swarm optimization: {}".format(
-        optimized_striders[0][0]
-    )
-)
-show_optimized(strider, optimized_striders)
-ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
-# We add some legs
-strider.add_legs(3)
-init_coords = strider.get_coords()
-show_physics(strider, debug=False, duration=40, save=False)
-# Reload the position: the show_optimized
-optimized_striders = evolutive_optimizer(
-    strider,
-    dims=strider.get_num_constraints(),
-    prev=init_coords,
-    pop=10,
-    iters=100,
-    startnstop=False
-)
-print(
-    "Fitness after genetic optimization: {}".format(
-        optimized_striders[0][0]
-    )
-)
+    # Particle swarm optimization
+    if particle_swarm:
+        optimized_striders = swarm_optimizer(
+            strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
+        )
+        print(
+            "Score after particle swarm optimization: {}".format(
+                optimized_striders[0][0]
+            )
+        )
+
+    if genetic:
+        ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
+        # Add legs more legs to avoid falling
+        strider.add_legs(3)
+        init_coords = strider.get_coords()
+        show_physics(strider, debug=False, duration=40, save=False)
+        # Reload the position: the show_optimized
+        optimized_striders = evolutive_optimizer(
+            strider,
+            dims=strider.get_num_constraints(),
+            prev=init_coords,
+            pop=15,
+            iters=20,
+            startnstop=False
+        )
+        print(
+            "Fitness after genetic optimization: {}".format(
+                optimized_striders[0][0]
+            )
+        )
+        strider.set_coords(optimized_striders[0][2])
+        strider.set_num_constraints(optimized_striders[0][1], flat=False)
+        show_physics(strider, debug=False, duration=40, save=False)
+
+
+main(trials_and_errors=False, particle_swarm=False, genetic=True)
