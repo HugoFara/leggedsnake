@@ -163,7 +163,7 @@ def evaluate_population(pop, fitness, fitness_args, verbose=True, processes=1):
     --------
     evaluate_individual : same function but on a single DNA.
     """
-    # For multiprocessing we load the processes
+    # For multiprocessing, we load the processes
     if processes > 1:
         res = [None] * len(pop)
         with mp.Pool(processes=processes) as pool:
@@ -366,7 +366,7 @@ def evolutionary_optimization_builtin(
 
     out = []
     for dna in pop:
-        fit = fitness(dna)
+        fit = evaluate_individual(dna, fitness, fitness_args)
         if isinstance(fit, tuple):
             out.append((fit[0], fit[1], dna[2]))
         else:

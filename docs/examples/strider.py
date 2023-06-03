@@ -488,19 +488,21 @@ def fitness(dna, linkage_hollow):
         world = ls.World()
         world.add_linkage(linkage_hollow)
         # Simulation duration (in seconds)
-        duration = 40
+        duration = 30
         # Somme of yields
         tot = 0
         # Motor turned on duration
         dur = 0
-        n = duration * ls.params["camera"]["fps"]
-        n /= ls.params["simul"]["time_coef"]
-        for j in range(int(n)):
+        steps = int(
+            duration * ls.params["camera"]["fps"] /
+            ls.params["simul"]["time_coef"]
+        )
+        for j in range(steps):
             efficiency, energy = world.update(j)
             tot += efficiency
             dur += energy
         if dur == 0:
-            return - float('inf'), list()
+            return -float('inf'), list()
         # Return 100 times average yield, and initial positions
         return tot / dur, pos
 

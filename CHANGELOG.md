@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- `data_descriptors` were not save for the first line of data only in 
+- ``evolutionary_optimization_builtin`` was during the last evaluation of linkages.
+- ``data_descriptors`` were not save for the first line of data only in 
   ``geneticoptimizer``. 
 - Multiple grammar corrections.
    
