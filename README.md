@@ -63,11 +63,13 @@ documentation. Once your joints (let's say they are in a joint object), you shou
 import leggedsnake as ls
 
 # Center of the Walker
-A = ls.Static(x=0, y=0, name="A")
-B = ls.Crank(1, 0, distance=1, angle=0.31, name="Crank")
-# etc... let's say with have joints up to E
+linkage = {
+    "A": ls.Static(x=0, y=0, name="A"),
+    "B": ls.Crank(1, 0, distance=1, angle=0.31, name="Crank")
+    # etc...
+}
 my_walker = ls.Walker(
-    joints=(A, B, C, D, E),
+    joints=linkage.values(),
     name="My Walker"
 )
 ```

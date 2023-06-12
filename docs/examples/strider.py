@@ -109,31 +109,41 @@ def complete_strider(constraints, prev):
     prev : tuple[tuple[float]]
         Coordinates to set by default.
     """
-    # Fixed points (mechanism body)
-    # A is the origin
-    A = ls.Static(x=0, y=0, name="A")
-    # Vertical axis for convenience,
-    Y = ls.Static(0, 1, name="Point (0, 1)")
+    linka = {
+        # Fixed points (mechanism body)
+        # A is the origin
+        "A": ls.Static(x=0, y=0, name="A"),
+        # Vertical axis for convenience
+        "Y": ls.Static(0, 1, name="Point (0, 1)"),
+    }
     # For drawing only
-    Y.joint0 = A
-    # Not fixed because we will optimize this position
-    B = ls.Fixed(joint0=A, joint1=Y, name="Frame right (B)")
-    B_p = ls.Fixed(joint0=A, joint1=Y, name="Frame left (B_p)")
-    # Pivot joints, explicitly defined to be modified later
-    # Joint linked to crank. Coordinates are chosen in each frame
-    C = ls.Crank(joint0=A, angle=2 * np.pi / n, name="Crank link (C)")
-    D = ls.Pivot(joint0=B_p, joint1=C, name="Left knee link (D)")
-    E = ls.Pivot(joint0=B, joint1=C, name="Right knee link (E)")
-    # F is fixed relative to C and E
-    F = ls.Fixed(joint0=C, joint1=E, name='Left ankle link (F)')
-    # G fixed to C and D
-    G = ls.Fixed(joint0=C, joint1=D, name='Right ankle link (G)')
-    H = ls.Pivot(joint0=D, joint1=F, name="Left foot (H)")
-    Ii = ls.Pivot(joint0=E, joint1=G, name="Right foot (I)")
+    linka["Y"].joint0 = linka["A"]
+    linka.update({
+        # Not fixed because we will optimize this position
+        "B": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame right (B)"),
+        "B_p": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame left (B_p)"),
+        # Pivot joints, explicitly defined to be modified later
+        # Joint linked to crank. Coordinates are chosen in each frame
+        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / n, name="Crank link (C)")
+    })
+    linka.update({
+        "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
+        "E": ls.Pivot(joint0=linka["B"], joint1=linka["C"], name="Right knee link (E)")
+    })
+    linka.update({
+        # F is fixed relative to C and E
+        "F": ls.Fixed(joint0=linka["C"], joint1=linka["E"], name='Left ankle link (F)'),
+        # G fixed to C and D
+        "G": ls.Fixed(joint0=linka["C"], joint1=linka["D"], name='Right ankle link (G)')
+    })
+    linka.update({
+        "H": ls.Pivot(joint0=linka["D"], joint1=linka["F"], name="Left foot (H)"),
+        "I": ls.Pivot(joint0=linka["E"], joint1=linka["G"], name="Right foot (I)")
+    })
     # Mechanism definition
     strider = ls.Walker(
-        joints=(A, Y, B, B_p, C, D, E, F, G, H, Ii),
-        order=(A, Y, B, B_p, C, D, E, F, G, H, Ii),
+        joints=linka.values(),
+        order=linka.values(),
         name="Strider"
     )
     strider.set_coords(prev)
