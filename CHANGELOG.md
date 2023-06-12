@@ -1,4 +1,5 @@
 # Changelog
+
 All notable changes to the LeggedSnake will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
@@ -13,10 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - ``evolutionary_optimization_builtin`` was during the last evaluation of linkages.
-- ``data_descriptors`` were not save for the first line of data only in 
-  ``geneticoptimizer``. 
+- ``data_descriptors`` were not save for the first line of data only in
+  ``geneticoptimizer``.
 - Multiple grammar corrections.
-   
+
 ## [0.3.0-beta] - 2021-07-21
 
 ### Added
@@ -26,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- We now save data using JSON! Slow computer users, you can relax and stop 
+- We now save data using JSON! Slow computer users, you can relax and stop
   computing when you want.
 - The sidebar in the documentation is a bit more useful.
 - Not having tqdm will cause an exception.
@@ -46,56 +47,56 @@ slower.
 
 ### Added
 
- - Dependency to [tqdm](https://tqdm.github.io/) and matplotlib.
- - The ``evolutionary_optimization`` replaces ``evolutionnary_optimization``.
-   - The ``ite`` parameter renamed ``iters`` for consistency with pylinkage.
-   - The new parameter ``verbose`` let you display a nice progress bar, more 
-     information on optimization state, or nothing.
- - The best solution can be displayed with PyGAD as well.
+- Dependency to [tqdm](https://tqdm.github.io/) and matplotlib.
+- The ``evolutionary_optimization`` replaces ``evolutionnary_optimization``.
+  - The ``ite`` parameter renamed ``iters`` for consistency with pylinkage.
+  - The new parameter ``verbose`` let you display a nice progress bar, more
+    information on optimization state, or nothing.
+- The best solution can be displayed with PyGAD as well.
 
 ### Changed
 
 - Typos and cleans-up in ``docs/examples/strider.py``.
-- ``evolutionnary_optimization_legacy`` renamed to 
+- ``evolutionnary_optimization_legacy`` renamed to
   ``evolutionary_optimization_builtin``.
-   
+
 ### Deprecated
 
-- ``evolutionnary_optimization`` is now deprecated. Please use 
+- ``evolutionnary_optimization`` is now deprecated. Please use
   ``evolutionary_optimization``.
 
 ### Removed
 
-- Explicit dependency to PyGAD. There is no longer an annoying message when 
+- Explicit dependency to PyGAD. There is no longer an annoying message when
   PyGAD is not installed.
 
 ## [0.1.4-alpha] - 2021-07-12
 
 ### Added
 
-- It is now possible and advised to import class and functions using quick 
-  paths, for instance ``from leggedsnake import Walker`` instead of 
+- It is now possible and advised to import class and functions using quick
+  paths, for instance ``from leggedsnake import Walker`` instead of
   ``from leggedsnake.walker import Walker``.
-- You do no longer have to manually import 
-  [pylinkage](https://hugofara.github.io/pylinkage/), we silently import the 
+- You do no longer have to manually import
+  [pylinkage](https://hugofara.github.io/pylinkage/), we silently import the
   useful stuff for you.
 - We now use [bump2version](https://pypi.org/project/bump2version/) for version
   maintenance.
-- This is fixed by the ``road_y`` parameter in ``World`` let you define a 
+- This is fixed by the ``road_y`` parameter in ``World`` let you define a
   custom height for the base ground.
 
 ### Changed
 
-- ``docs/examples/strider.py`` has been updated to the latest version of 
+- ``docs/examples/strider.py`` has been updated to the latest version of
   leggedsnake 0.1.4.
-   
+
 ### Fixed
 
-- The full swarm representation in polar graph has been repaired in 
+- The full swarm representation in polar graph has been repaired in
   ``docs/examples/strider.py``.
 - During a dynamic simulation, linkages with long legs could appear through the
   road.
-- The documentation was not properly rendered because Napoleon (NumPy coding 
+- The documentation was not properly rendered because Napoleon (NumPy coding
   style) was not integrated.
 
 ## [0.1.3-alpha] - 2021-07-10
@@ -105,7 +106,7 @@ This package was lacking real documentation, it is fixed in this version.
 ### Added
 
 - Sphinx documentation!
-- Website hosted on GitHub pages, check 
+- Website hosted on GitHub pages, check
   [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
 - Expanded README with the quick links section.
 
@@ -114,7 +115,7 @@ This package was lacking real documentation, it is fixed in this version.
 - Tests moved from ``leggedsnake/tests`` to ``tests/``.
 - Examples moved from ``leggedsnake/examples/`` to ``docs/examples/``.
 - I was testing my code on ``leggedsnake/examples/strider.py``  (the old path) and
-  that's why it was a big mess. I cleaned up that all. Sorry for the 
+  that's why it was a big mess. I cleaned up that all. Sorry for the
   inconvenience!
 
 ### Fixed
@@ -126,7 +127,7 @@ This package was lacking real documentation, it is fixed in this version.
 
 ### Changed
 
-- The ``step`` function execution speed has been increased by 25% when 
+- The ``step`` function execution speed has been increased by 25% when
   ``return_res`` is ``True``! Small performance improvement when ``return_res``
   is ``False``.
 - The ``size`` argument of ``step`` function is now known as ``witdh``.
@@ -148,9 +149,9 @@ This package was lacking real documentation, it is fixed in this version.
 
 ### Added
 
-- The example file ``examples/strider.py`` is now shipped with the Python 
+- The example file ``examples/strider.py`` is now shipped with the Python
   package.
-- ``leggedsnake/geneticoptimizer.py`` can now automatically switch to the 
+- ``leggedsnake/geneticoptimizer.py`` can now automatically switch to the
   built-in GA algorithm if PyGAD is not installed.
 
 ### Changed
@@ -166,8 +167,8 @@ This package was lacking real documentation, it is fixed in this version.
 
 ### Changed
 
-- Many reforms in code style in order to make the dynamic part of naming conventions 
-  consistent with Pymunk. 
+- Many reforms in code style in order to make the dynamic part of naming conventions
+  consistent with Pymunk.
 - Images in the ``README.md``!
 
 ### Fixed
@@ -197,22 +198,23 @@ This package was lacking real documentation, it is fixed in this version.
 ### Changed
 
 - ``.gitignore`` now ignores .txt files only in the leggedsnake folder.
-- ``environment.yml`` more flexible (versions can be superior to the selected). 
+- ``environment.yml`` more flexible (versions can be superior to the selected).
   pymunk>5.0.0 and pylinkage added.
-- ``leggedsnake/utility.py`` not having zipfile or xml modules error 
+- ``leggedsnake/utility.py`` not having zipfile or xml modules error
   encapsulation.
 
 ### Fixed
 
-- ``setup.cfg`` was not PyPi compatible. Removed mail (use GitHub!), we now 
+- ``setup.cfg`` was not PyPi compatible. Removed mail (use GitHub!), we now
   explicitly say that ``README.md`` is markdown (PyPi is conservative)
-   
+
 ## [0.0.1-alpha] - 2021-06-22
 
-Basic version, supporting Genetic Algorithm optimization, but with various 
+Basic version, supporting Genetic Algorithm optimization, but with various
 problems.
 
 ### Added
+
 - ``CODE_OF_CONDUCT.md`` to help community.
 - ``LICENSE`` MIT License.
 - ``MANIFEST.in`` to include more files.
@@ -228,7 +230,7 @@ problems.
 - ``leggedsnake/utility.py`` contain some useful evaluation function (``step``
   and ``stride``) and a broken GeoGebra interface.
 - ``walker.py`` defines the ``Walker`` object.
-- ``pyproject.toml``. 
+- ``pyproject.toml``.
 - ``setup.cfg``.
 - ``setup.py`` empty, for compatibility purposes only.
-- ``tox.ini`` tox with Python 3.7 and 3.8
+- ``tox.ini`` tox with Python 3.7 and 3.8.
