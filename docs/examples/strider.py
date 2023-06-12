@@ -241,7 +241,6 @@ def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
         ls.video_debug(linkage)
     else:
         ls.video(linkage, duration, save)
-    plt.show()
 
 
 # Ugly way to save (position + cost) history

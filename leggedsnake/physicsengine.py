@@ -417,9 +417,6 @@ def video_debug(linkage):
         plt.pause(.2)
 
 
-ani = []
-
-
 def video(linkage, duration=30, save=False):
     """
     Give the rigidbody a dynamic model and launch simulation with video.
@@ -444,18 +441,19 @@ def video(linkage, duration=30, save=False):
     n = int(params["camera"]["fps"] * duration
             / params["simul"]["time_coef"])
 
-    ani.append(
-        anim.FuncAnimation(
-            world.fig, world.update, frames=range(1, n),
-            interval=int(1000 / params["camera"]["fps"]),
-            repeat=False, blit=False
-        )
+    animation = anim.FuncAnimation(
+        world.fig, world.update, frames=range(1, n),
+        interval=int(1000 / params["camera"]["fps"]),
+        repeat=False, blit=False
     )
     if save:
         writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
-        ani[-1].save(f"Dynamic {linkage.name}.mp4", writer=writer)
+        animation.save(f"Dynamic {linkage.name}.mp4", writer=writer)
     else:
         world.fig.show()
+        plt.show()
+        if animation:
+            pass
 
 
 if __name__ == "__main__":

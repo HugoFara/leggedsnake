@@ -11,12 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - PyCharm configuration files.
 
+### Changed
+
+- Animations are now all stored in local variables, and no longer in an "ani"
+global list of animations.
+
 ### Fixed
 
 - ``evolutionary_optimization_builtin`` was during the last evaluation of linkages.
 - ``data_descriptors`` were not save for the first line of data only in
   ``geneticoptimizer``.
 - Multiple grammar corrections.
+- The ``video`` method now effectively launches the video (no call to plt.show required).
 
 ## [0.3.0-beta] - 2021-07-21
 
