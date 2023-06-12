@@ -311,9 +311,6 @@ def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
     return lines
 
 
-ani = []
-
-
 def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                     iters=400, *args, **kwargs):
     """
@@ -376,7 +373,6 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             fargs=(fig, lines, t), blit=True,
             interval=10, repeat=True,
             save_count=(iters - 1) * bool(save_each))
-        ani.append(animation)
         plt.show()
         if save_each:
             writer = anim.FFMpegWriter(
@@ -389,7 +385,9 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                     " set for Strider legged mechanism"
                 }
             )
-            ani[-1].save(r"PSO.mp4", writer=writer)
+            animation.save(r"PSO.mp4", writer=writer)
+        if animation:
+            pass
         return out
     elif show == 2:
         # Tiled representation of swarm
@@ -413,7 +411,6 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
             formatted_history, fargs=(fig, axes, param2dimensions), blit=False,
             interval=40, repeat=False, save_count=(iters - 1) * bool(save_each)
         )
-        ani.append(animation)
         plt.show(block=not save_each)
         if save_each:
             writer = anim.FFMpegWriter(
@@ -427,7 +424,10 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                 }
             )
 
-            ani[-1].save("Particle swarm optimization.mp4", writer=writer)
+            animation.save("Particle swarm optimization.mp4", writer=writer)
+        # Don't let the animation be garbage-collected!
+        if animation:
+            pass
         return out
 
     elif save_each:
