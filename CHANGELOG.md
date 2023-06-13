@@ -29,24 +29,24 @@ This file is now considered an executable.
 
 ## [0.3.0-beta] - 2021-07-21
 
-### Added
+### Added in 0.3.0
 
 - Multiprocessing is here! The genetic optimization can now be run in parallel!
   Performances got improved by 65 % using 4 processes only.
 
-### Changed
+### Changed in 0.3.0
 
 - We now save data using JSON! Slow computer users, you can relax and stop
   computing when you want.
 - The sidebar in the documentation is a bit more useful.
 - Not having tqdm will cause an exception.
 
-### Fixed
+### Fixed in 0.3.0
 
 - Corrected the example, the genetic optimization is now properly fixed but
 slower.
 
-### Removed
+### Removed in 0.3.0
 
 - Native support for PyGAD is no longer present.
 - ``evolutionnary_optimization`` (replaced by ``evolutionary_optimization``).
@@ -54,7 +54,7 @@ slower.
 
 ## [0.2.0-alpha] - 2021-07-14
 
-### Added
+### Added in 0.2.0
 
 - Dependency to [tqdm](https://tqdm.github.io/) and matplotlib.
 - The ``evolutionary_optimization`` replaces ``evolutionnary_optimization``.
@@ -63,25 +63,25 @@ slower.
     information on optimization state, or nothing.
 - The best solution can be displayed with PyGAD as well.
 
-### Changed
+### Changed in 0.2.0
 
 - Typos and cleans-up in ``docs/examples/strider.py``.
 - ``evolutionnary_optimization_legacy`` renamed to
   ``evolutionary_optimization_builtin``.
 
-### Deprecated
+### Deprecated in 0.2.0
 
 - ``evolutionnary_optimization`` is now deprecated. Please use
   ``evolutionary_optimization``.
 
-### Removed
+### Removed in 0.2.0
 
 - Explicit dependency to PyGAD. There is no longer an annoying message when
   PyGAD is not installed.
 
 ## [0.1.4-alpha] - 2021-07-12
 
-### Added
+### Added in 0.1.4
 
 - It is now possible and advised to import class and functions using quick
   paths, for instance ``from leggedsnake import Walker`` instead of
@@ -94,12 +94,12 @@ slower.
 - This is fixed by the ``road_y`` parameter in ``World`` let you define a
   custom height for the base ground.
 
-### Changed
+### Changed in 0.1.4
 
 - ``docs/examples/strider.py`` has been updated to the latest version of
   leggedsnake 0.1.4.
 
-### Fixed
+### Fixed in 0.1.4
 
 - The full swarm representation in polar graph has been repaired in
   ``docs/examples/strider.py``.
@@ -112,14 +112,14 @@ slower.
 
 This package was lacking real documentation, it is fixed in this version.
 
-### Added
+### Added in 0.1.3
 
 - Sphinx documentation!
 - Website hosted on GitHub pages, check
   [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
 - Expanded README with the quick links section.
 
-### Changed
+### Changed in 0.1.3
 
 - Tests moved from ``leggedsnake/tests`` to ``tests/``.
 - Examples moved from ``leggedsnake/examples/`` to ``docs/examples/``.
@@ -127,14 +127,18 @@ This package was lacking real documentation, it is fixed in this version.
   that's why it was a big mess. I cleaned up that all. Sorry for the
   inconvenience!
 
-### Fixed
+### Fixed in 0.1.3
 
 - A lot of outdated code in the ``leggedsnake/examples/strider.py``
 - Changelog URL was broken in ``setup.cfg``.
 
 ## [0.1.2-alpha] - 2021-07-07
 
-### Changed
+### Added in 0.1.2
+
+- Security: tests with ``tox.ini`` now include Python 3.9 and Flake 8.
+
+### Changed in 0.1.2
 
 - The ``step`` function execution speed has been increased by 25% when
   ``return_res`` is ``True``! Small performance improvement when ``return_res``
@@ -142,7 +146,7 @@ This package was lacking real documentation, it is fixed in this version.
 - The ``size`` argument of ``step`` function is now known as ``witdh``.
 - We now require pylinkage>=0.4.0.
 
-### Fixed
+### Fixed in 0.1.2
 
 - Files in ``leggedsnake/examples/`` were not included in the PyPi package.
 - The example was incompatible with pylinkage 0.4.0.
@@ -150,49 +154,45 @@ This package was lacking real documentation, it is fixed in this version.
 - Tests fixed.
 - Incompatible argument between PyGAD init_pop and built-in GA.
 
-### Security
-
-- Tests with ``tox.ini`` now include Python 3.9 and Flake 8.
-
 ## [0.1.1-alpha] - 2021-06-26
 
-### Added
+### Added in 0.1.1
 
 - The example file ``examples/strider.py`` is now shipped with the Python
   package.
 - ``leggedsnake/geneticoptimizer.py`` can now automatically switch to the
   built-in GA algorithm if PyGAD is not installed.
 
-### Changed
+### Changed in 0.1.1
 
 - ``setup.cfg`` metadata
 
 ## [0.1.0-alpha] - 2021-06-25
 
-### Added
+### Added in 0.1.0
 
 - Code vulnerabilities automatic checks
 - Example videos in ``examples/images/``
 
-### Changed
+### Changed in 0.1.0
 
 - Many reforms in code style in order to make the dynamic part of naming conventions
   consistent with Pymunk.
 - Images in the ``README.md``!
 
-### Fixed
+### Fixed in 0.1.0
 
 - You can now define linkages with an enormous number of legs. Systems with
   many should no longer break physics but your CPU instead :)
 
 ## [0.0.3-alpha] - 2021-06-23
 
-### Added
+### Added in 0.0.3
 
 - Started walkthrough demo in ``README.md``
 - Automatic release to PyPi
 
-### Fixed
+### Fixed in 0.0.3
 
 - Pymunk version should be at least 6.0.0 in requirement files.
 - Some URLs typos in ``README.md``
@@ -200,11 +200,11 @@ This package was lacking real documentation, it is fixed in this version.
 
 ## [0.0.2-alpha] - 2021-06-22
 
-### Added
+### Added in 0.0.2
 
 - ``requirement.txt`` was absent due to ``.gitignore`` misconfiguration.
 
-### Changed
+### Changed in 0.0.2
 
 - ``.gitignore`` now ignores .txt files only in the leggedsnake folder.
 - ``environment.yml`` more flexible (versions can be superior to the selected).
@@ -212,7 +212,7 @@ This package was lacking real documentation, it is fixed in this version.
 - ``leggedsnake/utility.py`` not having zipfile or xml modules error
   encapsulation.
 
-### Fixed
+### Fixed in 0.0.2
 
 - ``setup.cfg`` was not PyPi compatible. Removed mail (use GitHub!), we now
   explicitly say that ``README.md`` is markdown (PyPi is conservative)
@@ -222,7 +222,7 @@ This package was lacking real documentation, it is fixed in this version.
 Basic version, supporting Genetic Algorithm optimization, but with various
 problems.
 
-### Added
+### Added in 0.0.1
 
 - ``CODE_OF_CONDUCT.md`` to help community.
 - ``LICENSE`` MIT License.
