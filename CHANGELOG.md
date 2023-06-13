@@ -18,6 +18,8 @@ global list of animations.
 
 ### Fixed
 
+- The main example file ``strider.py`` was launching animations for each subprocess. 
+This file is now considered an executable.
 - ``evolutionary_optimization_builtin`` was during the last evaluation of linkages.
 - ``data_descriptors`` were not save for the first line of data only in
   ``geneticoptimizer``.

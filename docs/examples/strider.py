@@ -636,5 +636,6 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider.set_num_constraints(optimized_striders[0][1], flat=False)
         show_physics(strider, debug=False, duration=40, save=False)
 
-
-main(trials_and_errors=False, particle_swarm=False, genetic=True)
+# The file will be imported as a module if using multiprocessing
+if __name__ == "__main__":
+    main(trials_and_errors=False, particle_swarm=False, genetic=True)
