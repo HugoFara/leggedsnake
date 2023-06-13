@@ -165,13 +165,13 @@ def evaluate_population(pop, fitness, fitness_args, verbose=True, processes=1):
     """
     # For multiprocessing, we load the processes
     if processes > 1:
-        res = [None] * len(pop)
         with mp.Pool(processes=processes) as pool:
             # Load the processes
-            for i, dna in enumerate(pop):
-                res[i] = pool.apply_async(
+            res = [
+                pool.apply_async(
                     evaluate_individual, (dna, fitness, fitness_args)
-                )
+                ) for dna in pop
+            ]
             # Then get data
             for result, dna in zip(res, pop):
                 dna[0], dna[2] = result.get()

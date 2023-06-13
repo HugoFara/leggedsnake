@@ -389,9 +389,9 @@ def im_debug(world, linkage):
     world.ax.scatter([i.x for i in linkage.joints],
                      [i.y for i in linkage.joints], c='r')
     for j in linkage.joints:
-        for shape in j.a.shapes:
-            begin = j.a.local_to_world(shape.a)
-            end = j.a.local_to_world(shape.b)
+        for shape in j._a.shapes:
+            begin = j._a.local_to_world(shape.a)
+            end = j._a.local_to_world(shape.b)
             world.ax.plot([begin[0], end[0]], [begin[1], end[1]])
     options = pymunk.matplotlib_util.DrawOptions(world.ax)
     options.constraint_color = (.1, .1, .1, .0)
@@ -450,7 +450,6 @@ def video(linkage, duration=30, save=False):
         writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
         animation.save(f"Dynamic {linkage.name}.mp4", writer=writer)
     else:
-        world.fig.show()
         plt.show()
         if animation:
             pass
