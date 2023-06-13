@@ -516,8 +516,16 @@ def fitness(dna, linkage_hollow):
         return tot / dur, pos
 
 
-def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
-                        init_pop=None, startnstop=False):
+def evolutive_optimizer(
+        linkage, 
+        dims=param, 
+        prev=None, 
+        pop=10, 
+        iters=10,
+        init_pop=None, 
+        startnstop=False,
+        gui=False
+    ):
     """
     Optimization of the linkage by genetic algorithm.
 
@@ -549,8 +557,9 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
     linkage.rebuild(prev)
     linkage.step()
     dna = 0, list(dims), list(linkage.get_coords())
-    out = ls.evolutionary_optimization(
-        dna=dna, prob=.07,
+    optimizer = ls.genetic_optimization(
+        dna=dna, 
+        prob=.07,
         fitness=fitness,
         iters=iters,
         max_pop=pop,
@@ -559,7 +568,7 @@ def evolutive_optimizer(linkage, dims=param, prev=None, pop=10, iters=10,
         fitness_args=(linkage,),
         processes=4
     )
-    return out
+    return optimizer.run(iters, gui)
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
@@ -613,11 +622,11 @@ def main(trials_and_errors, particle_swarm, genetic):
         )
 
     if genetic:
-        ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
+        # ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
         # Add legs more legs to avoid falling
         strider.add_legs(3)
         init_coords = strider.get_coords()
-        show_physics(strider, debug=False, duration=40, save=False)
+        # show_physics(strider, debug=False, duration=40, save=False)
         # Reload the position: the show_optimized
         optimized_striders = evolutive_optimizer(
             strider,
@@ -625,7 +634,8 @@ def main(trials_and_errors, particle_swarm, genetic):
             prev=init_coords,
             pop=15,
             iters=20,
-            startnstop=False
+            startnstop=False,
+            gui=False
         )
         print(
             "Fitness after genetic optimization: {}".format(

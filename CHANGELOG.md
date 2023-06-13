@@ -7,16 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+## Added
+
+- ``genetic_optimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+
+## [0.3.1] - 2023-06-
+
+### Added in 0.3.1
 
 - PyCharm configuration files.
 
-### Changed
+### Changed in 0.3.1
 
 - Animations are now all stored in local variables, and no longer in an "ani"
 global list of animations.
 
-### Fixed
+### Fixed in 0.3.1
 
 - The main example file ``strider.py`` was launching animations for each subprocess.
 This file is now considered an executable.
