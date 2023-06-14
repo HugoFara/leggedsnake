@@ -54,6 +54,10 @@ cd leggedsnake
 pip install -r requirements-dev.txt
 ```
 
+### Testing
+
+We use unittest. Just run ``python3 -m unittest discover .`` from the main folder.
+
 ### Release
 
 This section is mainly intended for maintainers. 
