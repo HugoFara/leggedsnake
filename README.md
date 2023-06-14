@@ -4,7 +4,9 @@
 [![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)](https://pepy.tech/project/leggedsnake)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/master/LICENSE.rst)
 
-LeggedSnake is a project intended to make the simulation of walking linkages fast and easy. We believe that building walking linkages is fun and could be useful. Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.
+LeggedSnake is a project intended to make the simulation of walking linkages fast and easy. 
+We believe that building walking linkages is fun and could be useful.
+Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.
 
 We handle planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism) in three main parts:
 
@@ -33,24 +35,36 @@ pip install leggedsnake
 
 ### Setting up Virtual Environment
 
-We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/master/environment.yml) file for conda. Use ``conda env update --file environment.yml --name leggedsnake-env`` to install the requirements in a separate environment.
+We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/master/environment.yml) file for conda. 
+Use ``conda env update --file environment.yml --name leggedsnake-env`` to install the requirements in a separate environment.
 
-If you are looking for a development version, check the GitHub repo under [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake).
+If you are looking for a development version, check the GitHub repo under 
+[HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake).
 
-## Requirements
 
-Python 3, numpy for calculation, matplotlib for drawing, and standard libraries.
+## Contribute
 
-For kinematic optimization, you can either use the built-in algorithm, or
-[PySwarms](https://pyswarms.readthedocs.io/en/latest/), under MIT license. PySwarms is a much more complex package
-which provides quick calculations, however, with modern laptops the built-in swarm optimization should be quick enough
-to fit your needs.
+Download the latest GitHub version, then install the dev requirements in ``requirements-dev.txt``.
 
-Dynamic optimization relies on multiple packages. First of all, it uses
-[Pymunk](http://www.pymunk.org/en/latest/index.html), made by Victor Blomqvist, as its physics engine. Then you can
-either use the built-in algorithm, or the GA module from [PyGAD](https://pygad.readthedocs.io/en/latest/). PyGAD is a
-complete library providing much more than genetic algorithms, so it might be heavy. PyGAD is more complete than the
-built-in, so I haven't totally dropped support for PyGAD.
+In a nutshell
+
+```bash
+git clone https://github.com/HugoFara/leggedsnake.git
+cd leggedsnake
+pip install -r requirements-dev.txt
+```
+
+### Testing
+
+We use unittest. Just run ``python3 -m unittest discover .`` from the main folder.
+
+### Release
+
+This section is mainly intended for maintainers. 
+Fell free to use the tools described here, but they are not necessary in any way.
+
+* To publish a new version, use ``bump2version``. For instance ``bump2version minor``.
+* Regenerate the documentation with ``make html`` (uses Sphinx).
 
 ## Usage
 
@@ -81,7 +95,8 @@ my_walker = ls.Walker(
 
 ### Kinematic optimization using Particle Swarm Optimization (PSO)
 
-No change compared to a classic linkage optimization. You should use the ``step`` and ``stride`` method from the [utility module](https://github.com/HugoFara/leggedsnake/blob/master/leggedsnake/utility.py) as fitness functions.
+No change compared to a classic linkage optimization. You should use the ``step`` and ``stride`` method from the 
+[utility module](https://github.com/HugoFara/leggedsnake/blob/master/leggedsnake/utility.py) as fitness functions.
 This set of rules should work well for a stride **maximisation** problem:
 
 1. Rebuild the Walker with the provided set of dimensions, and do a complete turn.
@@ -141,8 +156,8 @@ And now, relax while your computer creates a civilization of walking machines!
 
 ### Visualization
 
-For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html), an example
-file is provided at ``docs/examples/strider.py``.
+For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html), 
+an example file is provided at ``docs/examples/strider.py``.
 
 The linkage looks like this:
 ![A Kinematic representation of Strider linkage](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20unoptimized%20Strider.gif)
@@ -183,5 +198,22 @@ the optimization.
 
 Try to minimize the number of elements in the optimizations! You can often use some linkage properties to reduce the
 number of simulation parameters. For instance, the Strider linkage has axial symmetry. While it is irrelevant to use
-this property in dynamic simulation, you can use "half" your Strider in a kinematic optimization, which is much faster:
+this property in dynamic simulation, you can use "half" your Strider in a kinematic optimization, which is much faster.
+
 ![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20half-Strider.gif)
+
+## Requirements
+
+Python 3, numpy for calculation, matplotlib for drawing, and standard libraries.
+
+For kinematic optimization, you can either use the built-in algorithm, or
+[PySwarms](https://pyswarms.readthedocs.io/en/latest/), under MIT license. 
+PySwarms is a much more complex package which provides quick calculations, 
+however, with modern laptops the built-in swarm optimization should be quick enough
+to fit your needs.
+
+Dynamic optimization relies on multiple packages.
+First of all, it uses [Pymunk](http://www.pymunk.org/en/latest/index.html),
+made by Victor Blomqvist, as its physics engine. 
+The genetic algorithm optimizer is home-made, 
+but feel free to use any external tool suiting your needs!

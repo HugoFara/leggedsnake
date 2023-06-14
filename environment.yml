@@ -12,5 +12,4 @@ dependencies:
   - tqdm>=4.40.0
   - pip
   - pip:
-    - pygad>=2.10.0
     - pylinkage>=0.5.0

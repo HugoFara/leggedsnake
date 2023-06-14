@@ -583,6 +583,7 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
             linkage, prev=begin, title=str(datum[0]), duration=duration
         )
 
+
 def main(trials_and_errors, particle_swarm, genetic):
     """
     Optimize a strider with different settings.
@@ -594,7 +595,7 @@ def main(trials_and_errors, particle_swarm, genetic):
     """
     strider = complete_strider(param2dimensions(param), begin)
     print(
-        "Initial score:",
+        "Initial striding score:",
         sym_stride_evaluator(strider, param, begin)
     )
     if trials_and_errors:
@@ -603,7 +604,7 @@ def main(trials_and_errors, particle_swarm, genetic):
             sym_stride_evaluator, strider, param, divisions=4, verbose=True
         )
         print(
-            "Score after trials and errors optimization:",
+            "Striding score after trials and errors optimization:",
             optimized_striders[0][0]
         )
 
@@ -613,7 +614,7 @@ def main(trials_and_errors, particle_swarm, genetic):
             strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
         )
         print(
-            "Score after particle swarm optimization:",
+            "Striding score after particle swarm optimization:",
             optimized_striders[0][0]
         )
 
@@ -623,6 +624,10 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider.add_legs(3)
         init_coords = strider.get_coords()
         show_physics(strider, debug=False, duration=40, save=False)
+        print(
+            "Efficiency score before genetic optimization",
+            fitness([0, strider.get_num_constraints(), strider.get_coords()], strider)[0]
+        )
         # Reload the position: the show_optimized
         optimized_striders = evolutive_optimizer(
             strider,
@@ -634,12 +639,14 @@ def main(trials_and_errors, particle_swarm, genetic):
             gui=True
         )
         print(
-            "Fitness after genetic optimization:", 
+            "Efficiency score after genetic optimization:", 
             optimized_striders[0][0]
         )
         strider.set_coords(optimized_striders[0][2])
         strider.set_num_constraints(optimized_striders[0][1], flat=False)
+        input("Press enter to show result ")
         show_physics(strider, debug=False, duration=40, save=False)
+
 
 # The file will be imported as a module if using multiprocessing
 if __name__ == "__main__":

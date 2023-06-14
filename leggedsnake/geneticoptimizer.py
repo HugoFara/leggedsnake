@@ -14,7 +14,7 @@ import os.path
 import json
 import multiprocessing as mp
 import numpy as np
-from numpy.random import rand, normal, randint
+import numpy.random as nprand
 # Progress bar
 import tqdm
 from pylinkage.geometry import dist
@@ -53,8 +53,11 @@ def save_population(file_path, population, verbose=False, data_descriptors=None)
     Parameters
     ----------
     file_path : str
-    population : list of dna
+        Path of the file to write to.
+    population : list
+        Sequence of dna
     verbose : bool
+        Enable or not verbosity (outputs success).
     data_descriptors : dict
         Any additional value you want to save for the current generation.
     """
@@ -103,9 +106,9 @@ def birth(par1, par2, prob):
     """
     child = [0, [], []]
     for gene1, gene2 in zip(par1[1], par2[1]):
-        child[1].append(normal((gene1 if rand() < .5 else gene2), prob))
+        child[1].append(nprand.normal((gene1 if nprand.rand() < .5 else gene2), prob))
     for pos1, pos2 in zip(par1[2], par2[2]):
-        child[2].append(pos1 if rand() < .5 else pos2)
+        child[2].append(pos1 if nprand.rand() < .5 else pos2)
     return child
 
 
@@ -200,10 +203,10 @@ def select_parents(pop, verbose=True):
         # Individuals with the best fitness are more likely to be selected
         if (
                 .5 * (individual[0] - best_dna[0]) / (best_dna[0] - median)
-        ) + 1 > max(rand(), .5):
+        ) + 1 > max(nprand.rand(), .5):
             parents.append(individual)
             indexes.append(j)
-    # Add best individual if needed
+    # Add the best individual if needed
     if best_index not in indexes:
         parents.insert(0, best_dna)
         indexes.append(best_index)
@@ -223,9 +226,9 @@ def make_children(parents, prob, max_genetic_dist=float('inf')):
     children = []
     j = 0
     while len(parents) > 1 and j < 100:
-        par1 = parents.pop(randint(len(parents) - 1))
+        par1 = parents.pop(nprand.randint(len(parents) - 1))
         if len(parents) > 1:
-            par2 = parents.pop(randint(len(parents) - 1))
+            par2 = parents.pop(nprand.randint(len(parents) - 1))
         else:
             par2 = parents.pop()
         if dist(par1[1], par2[1]) < max_genetic_dist:
@@ -314,8 +317,8 @@ def evolutionary_optimization_builtin(
     for _ in range(len(pop), init_pop):
         pop.append(
             birth(
-                pop[randint(len(pop) - 1)],
-                pop[randint(len(pop) - 1)],
+                pop[nprand.randint(len(pop) - 1)],
+                pop[nprand.randint(len(pop) - 1)],
                 prob
             )
         )

@@ -21,10 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique ``physics_period`` set to 0.02 (s).
 
-## [0.3.1] - 2023-06-
+## [0.3.1] - 2023-06-14
+
+Starting from 0.3.1, we won't include "-alpha" or "-beta" in the naming scheme,
+as it is considered irrelevant.
 
 ### Added in 0.3.1
 
+- ``requirements-dev.txt`` that contain dev requirements. It makes contribution easier.
 - PyCharm configuration files.
 
 ### Changed in 0.3.1
