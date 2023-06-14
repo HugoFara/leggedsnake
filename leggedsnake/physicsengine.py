@@ -143,11 +143,11 @@ class World:
 
     def __update_linkage__(self, linkage, power):
         """Update a specific linkage."""
-        crank = next(j for j in linkage.joints if isinstance(j, Crank))
+        linkage_crank = next(j for j in linkage.joints if isinstance(j, Crank))
         if (
-                crank.actuator.max_force == 0
+                linkage_crank.actuator.max_force == 0
                 and norm(linkage.body.velocity) < .1):
-            crank.actuator.max_force = params["linkage"]["torque"]
+            linkage_crank.actuator.max_force = params["linkage"]["torque"]
             linkage.height = linkage.body.position.y
             linkage.mechanical_energy = (.5 * linkage.mass
                                          * norm(linkage.body.velocity) ** 2)

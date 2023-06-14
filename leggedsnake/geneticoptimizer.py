@@ -203,7 +203,7 @@ def select_parents(pop, verbose=True):
         ) + 1 > max(rand(), .5):
             parents.append(individual)
             indexes.append(j)
-    # Add best individual if needed
+    # Add the best individual if needed
     if best_index not in indexes:
         parents.insert(0, best_dna)
         indexes.append(best_index)

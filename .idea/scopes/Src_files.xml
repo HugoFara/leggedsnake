@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Src files" pattern="(file[leggedsnake]:leggedsnake/*||file:.gitignore||file:CHANGELOG.md||file:CODE_OF_CONDUCT.md||file:environment.yml||file:LICENSE.rst||file:make.bat||file:Makefile||file:MANIFEST.in||file:pyproject.toml||file:README.md||file:requirements.txt||file:setup.cfg||file:setup.py||file:tox.ini)&amp;&amp;!file[leggedsnake]:docs/examples//*" />
+</component>
