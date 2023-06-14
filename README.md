@@ -41,6 +41,21 @@ Use ``conda env update --file environment.yml --name leggedsnake-env`` to instal
 If you are looking for a development version, check the GitHub repo under 
 [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake).
 
+
+## Contribute
+
+Download the latest GitHub version, then install the dev requirements in ``requirements-dev.txt``.
+
+In a nutshell
+
+```bash
+git clone https://github.com/HugoFara/leggedsnake.git
+cd leggedsnake
+pip install -r requirements-dev.txt
+```
+
+
+
 ## Usage
 
 The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/master/docs/examples/strider.py), which
