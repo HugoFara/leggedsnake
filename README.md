@@ -54,7 +54,13 @@ cd leggedsnake
 pip install -r requirements-dev.txt
 ```
 
+### Release
 
+This section is mainly intended for maintainers. 
+Fell free to use the tools described here, but they are not necessary in any way.
+
+* To publish a new version, use ``bump2version``. For instance ``bump2version minor``.
+* Regenerate the documentation with ``make html`` (uses Sphinx).
 
 ## Usage
 
