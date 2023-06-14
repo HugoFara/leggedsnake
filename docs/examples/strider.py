@@ -503,12 +503,14 @@ def fitness(dna, linkage_hollow, gui=False):
         # Motor turned on duration
         dur = 0
         steps = int(duration / ls.params["simul"]["physics_period"])
-        for j in range(steps):
+        for _ in range(steps):
             efficiency, energy = world.update()
             tot += efficiency
             dur += energy
         if dur == 0:
-            return -float('inf'), list()
+            return -1, list()
+        if world.linkages[0].body.position.x > -5:
+            return 0, pos
         if gui:
             ls.video(linkage_hollow, duration)
         # Return 100 times average yield, and initial positions
@@ -565,7 +567,7 @@ def evolutive_optimizer(
         init_pop=init_pop,
         startnstop=startnstop,
         fitness_args=(linkage, gui),
-        processes=4
+        processes=6
     )
     return optimizer.run(iters)
 
@@ -582,6 +584,7 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
         ls.show_linkage(
             linkage, prev=begin, title=str(datum[0]), duration=duration
         )
+
 
 def main(trials_and_errors, particle_swarm, genetic):
     """
@@ -628,10 +631,10 @@ def main(trials_and_errors, particle_swarm, genetic):
             strider,
             dims=strider.get_num_constraints(),
             prev=init_coords,
-            pop=15,
-            iters=20,
+            pop=30,
+            iters=30,
             startnstop=False,
-            gui=True
+            gui=False
         )
         print(
             "Fitness after genetic optimization:", 
@@ -640,6 +643,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider.set_coords(optimized_striders[0][2])
         strider.set_num_constraints(optimized_striders[0][1], flat=False)
         show_physics(strider, debug=False, duration=40, save=False)
+
 
 # The file will be imported as a module if using multiprocessing
 if __name__ == "__main__":

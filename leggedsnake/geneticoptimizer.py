@@ -198,9 +198,11 @@ def select_parents(pop, verbose=True):
     for j, individual in enumerate(pop):
         # Parents whose score is above median.
         # Individuals with the best fitness are more likely to be selected
-        if (
-                .5 * (individual[0] - best_dna[0]) / (best_dna[0] - median)
-        ) + 1 > max(rand(), .5):
+        if best_dna[0] == median:
+            score = 1
+        else:
+            score = .5 * (individual[0] - best_dna[0]) / (best_dna[0] - median)
+        if score + 1 > max(rand(), .5):
             parents.append(individual)
             indexes.append(j)
     # Add best individual if needed
