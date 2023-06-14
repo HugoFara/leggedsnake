@@ -596,7 +596,7 @@ def main(trials_and_errors, particle_swarm, genetic):
             sym_stride_evaluator, strider, param, divisions=4, verbose=True
         )
         print(
-            "Score after trials and errors optimization: {}".format(
+            "Striding score after trials and errors optimization: {}".format(
                 optimized_striders[0][0]
             )
         )
@@ -607,7 +607,7 @@ def main(trials_and_errors, particle_swarm, genetic):
             strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
         )
         print(
-            "Score after particle swarm optimization: {}".format(
+            "Striding score after Particle Swarm Optimization: {}".format(
                 optimized_striders[0][0]
             )
         )
@@ -618,6 +618,10 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider.add_legs(3)
         init_coords = strider.get_coords()
         show_physics(strider, debug=False, duration=40, save=False)
+        print(
+            "Efficiency score before genetic optimization",
+            fitness([0, strider.get_num_constraints(), strider.get_coords()], strider)[0]
+        )
         # Reload the position: the show_optimized
         optimized_striders = evolutive_optimizer(
             strider,
@@ -628,12 +632,13 @@ def main(trials_and_errors, particle_swarm, genetic):
             startnstop=False
         )
         print(
-            "Fitness after genetic optimization: {}".format(
+            "Efficiency score after genetic optimization: {}".format(
                 optimized_striders[0][0]
             )
         )
         strider.set_coords(optimized_striders[0][2])
         strider.set_num_constraints(optimized_striders[0][1], flat=False)
+        input("Press enter to show result ")
         show_physics(strider, debug=False, duration=40, save=False)
 
 # The file will be imported as a module if using multiprocessing
