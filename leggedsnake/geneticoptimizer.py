@@ -450,3 +450,30 @@ def evolutionary_optimization(
         iters=iters,
         **kwargs
     )
+
+
+class genetic_optimization():
+    def __init__(
+            self, 
+            dna,
+            fitness,
+            iters,
+            prob=.07,
+            **kwargs
+        ) -> None:
+        self.dna = dna
+        self.fitness = fitness
+        self.iters = iters
+        self.prob = prob
+        self.kwargs = kwargs
+
+    def run(self, iters, gui=False):
+        if gui:
+            raise NotImplementedError("Using gui=True not supported yet!")
+        else:
+            return evolutionary_optimization_builtin(
+                self.dna, self.prob, self.fitness,
+                iters=iters,
+                **self.kwargs
+            )
+
