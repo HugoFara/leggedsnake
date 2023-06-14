@@ -575,6 +575,7 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
             linkage, prev=begin, title=str(datum[0]), duration=duration
         )
 
+
 def main(trials_and_errors, particle_swarm, genetic):
     """
     Optimize a strider with different settings.
@@ -586,7 +587,7 @@ def main(trials_and_errors, particle_swarm, genetic):
     """
     strider = complete_strider(param2dimensions(param), begin)
     print(
-        "Initial score: {}".format(
+        "Initial striding score: {}".format(
             sym_stride_evaluator(strider, param, begin)
         )
     )
@@ -640,6 +641,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider.set_num_constraints(optimized_striders[0][1], flat=False)
         input("Press enter to show result ")
         show_physics(strider, debug=False, duration=40, save=False)
+
 
 # The file will be imported as a module if using multiprocessing
 if __name__ == "__main__":
