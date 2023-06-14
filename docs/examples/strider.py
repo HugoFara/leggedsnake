@@ -346,7 +346,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         List of best fit linkages.
 
     """
-    print("Initial dimensions: ", dims)
+    print("Initial dimensions:", dims)
 
     if show == 1:
         out = ls.particle_swarm_optimization(
@@ -467,7 +467,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         return out
 
 
-def fitness(dna, linkage_hollow):
+def fitness(dna, linkage_hollow, gui=False):
     """
     Individual yield, return average efficiency and initial coordinates.
 
@@ -502,16 +502,15 @@ def fitness(dna, linkage_hollow):
         tot = 0
         # Motor turned on duration
         dur = 0
-        steps = int(
-            duration * ls.params["camera"]["fps"] /
-            ls.params["simul"]["time_coef"]
-        )
+        steps = int(duration / ls.params["simul"]["physics_period"])
         for j in range(steps):
-            efficiency, energy = world.update(j)
+            efficiency, energy = world.update()
             tot += efficiency
             dur += energy
         if dur == 0:
             return -float('inf'), list()
+        if gui:
+            ls.video(linkage_hollow, duration)
         # Return 100 times average yield, and initial positions
         return tot / dur, pos
 
@@ -565,10 +564,10 @@ def evolutive_optimizer(
         max_pop=pop,
         init_pop=init_pop,
         startnstop=startnstop,
-        fitness_args=(linkage,),
+        fitness_args=(linkage, gui),
         processes=4
     )
-    return optimizer.run(iters, gui)
+    return optimizer.run(iters)
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
@@ -595,9 +594,8 @@ def main(trials_and_errors, particle_swarm, genetic):
     """
     strider = complete_strider(param2dimensions(param), begin)
     print(
-        "Initial score: {}".format(
-            sym_stride_evaluator(strider, param, begin)
-        )
+        "Initial score:",
+        sym_stride_evaluator(strider, param, begin)
     )
     if trials_and_errors:
         # Trials and errors optimization as comparison
@@ -605,9 +603,8 @@ def main(trials_and_errors, particle_swarm, genetic):
             sym_stride_evaluator, strider, param, divisions=4, verbose=True
         )
         print(
-            "Score after trials and errors optimization: {}".format(
-                optimized_striders[0][0]
-            )
+            "Score after trials and errors optimization:",
+            optimized_striders[0][0]
         )
 
     # Particle swarm optimization
@@ -616,9 +613,8 @@ def main(trials_and_errors, particle_swarm, genetic):
             strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
         )
         print(
-            "Score after particle swarm optimization: {}".format(
-                optimized_striders[0][0]
-            )
+            "Score after particle swarm optimization:",
+            optimized_striders[0][0]
         )
 
     if genetic:
@@ -626,7 +622,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         # Add legs more legs to avoid falling
         strider.add_legs(3)
         init_coords = strider.get_coords()
-        # show_physics(strider, debug=False, duration=40, save=False)
+        show_physics(strider, debug=False, duration=40, save=False)
         # Reload the position: the show_optimized
         optimized_striders = evolutive_optimizer(
             strider,
@@ -635,12 +631,11 @@ def main(trials_and_errors, particle_swarm, genetic):
             pop=15,
             iters=20,
             startnstop=False,
-            gui=False
+            gui=True
         )
         print(
-            "Fitness after genetic optimization: {}".format(
-                optimized_striders[0][0]
-            )
+            "Fitness after genetic optimization:", 
+            optimized_striders[0][0]
         )
         strider.set_coords(optimized_striders[0][2])
         strider.set_num_constraints(optimized_striders[0][1], flat=False)

@@ -7,9 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Added
+### Added
 
 - ``genetic_optimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+- ``VisualWorld`` has a new method called ``reload_visuals``.
+
+### Changed
+
+- ``update`` method of ``VisualWorld`` renammed to ``visual_update`` for clarity.
+- Frame rate and physics speed are now independent parameters.
+
+### Removed
+
+- ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique ``physics_period`` set to 0.02 (s).
 
 ## [0.3.1] - 2023-06-
 

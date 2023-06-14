@@ -58,12 +58,8 @@ params = {
     },
     # Study hypothesis
     "simul": {
-        # Multiply time by this coefficient
-        "time_coef": 1,
-        # Number of calculations for each frame
-        "calc_rate": 300,
-        # Maximal number of subcalculations
-        "max_sub": 50,
+        # Time between two physics compuation
+        "physics_period": 0.02,
     },
     # Display parameters
     "camera": {
@@ -153,7 +149,7 @@ class World:
                                          * norm(linkage.body.velocity) ** 2)
 
         # Energy from the motor in this step
-        energy = power * params["simul"]["time_coef"] / params["camera"]["fps"]
+        energy = power * params["simul"]["physics_period"]
         if hasattr(linkage, 'height') and energy != 0.:
             v = norm(linkage.body.velocity)
             g = norm(params["physics"]["gravity"])
@@ -169,26 +165,34 @@ class World:
             return energy, efficiency
         return 0, 0
 
-    def update(self, t):
-        """Update simulation."""
+    def update(self, dt=None):
+        """
+        Update simulation.
+        
+        Parameters
+        ----------
+        dt : float | None
+            Time of the step (delta-time). Uses params["simul"]["physics_period"] if None.
+        """
         # Simulation step
-        dt = (params["simul"]["time_coef"] / params["simul"]["calc_rate"]
-              / params["camera"]["fps"])
+        if dt is None:
+            dt = params["simul"]["physics_period"]
         # Motor power in this simulation step
-        powers = [[0 for j in lin.joints
-                   if isinstance(j, Crank)] for lin in self.linkages]
-        for _ in range(params["simul"]["calc_rate"]):
-            self.space.step(dt)
-            for i, linkage in enumerate(self.linkages):
-                index = -1
-                for crank in linkage.joints:
-                    if not isinstance(crank, Crank):
-                        continue
-                    index += 1
-                    # Get offset for crank rotation speed
-                    w = crank._b.angular_velocity
-                    w -= linkage.body.angular_velocity
-                    powers[i][index] += abs(w) * crank.actuator.impulse / dt
+        powers = [
+            [0 for j in lin.joints if isinstance(j, Crank)] 
+            for lin in self.linkages
+        ]
+        self.space.step(dt)
+        for i, linkage in enumerate(self.linkages):
+            index = -1
+            for crank in linkage.joints:
+                if not isinstance(crank, Crank):
+                    continue
+                index += 1
+                # Get offset for crank rotation speed
+                w = crank._b.angular_velocity
+                w -= linkage.body.angular_velocity
+                powers[i][index] += abs(w) * crank.actuator.impulse / dt
 
         bounds = (0, 0)
         energies = [0] * len(self.linkages)
@@ -325,36 +329,55 @@ class VisualWorld(World):
         a = 0
         for j in joints:
             if hasattr(j, 'joint0') and j.joint0 is not None:
-                self.linkage_im[a].set_data([j.x, j.joint0.x],
-                                            [j.y, j.joint0.y])
+                self.linkage_im[a].set_data(
+                    [j.x, j.joint0.x], [j.y, j.joint0.y]
+                )
                 a += 1
             if hasattr(j, 'joint1') and j.joint1 is not None:
-                self.linkage_im[a].set_data([j.x, j.joint1.x],
-                                            [j.y, j.joint1.y])
+                self.linkage_im[a].set_data(
+                    [j.x, j.joint1.x], [j.y, j.joint1.y]
+                )
                 a += 1
         return self.linkage_im
-
-    def update(self, t):
-        """Update simulation and draw it."""
-        super().update(t)
+    
+    def reload_visuals(self):
+        """Reload the visual components only."""
         center = self.linkages[0].joints[0].coord()
-        self.fig.suptitle("Position: {}".format(tuple(map(int, center))))
+        self.fig.suptitle(f"Position: {tuple(map(int, center))}")
 
-        self.road_im[0].set_data([i[0] for i in self.road],
-                                 [i[1] for i in self.road])
+        self.road_im[0].set_data(
+            [i[0] for i in self.road],
+            [i[1] for i in self.road]
+        )
         ax = self.ax
         for linkage in self.linkages:
             if params["camera"]["dynamic_camera"]:
                 ax.set_xlim(center[0] - 10, center[0] + 10)
                 ax.set_ylim(center[1] - 10, center[1] + 10)
             else:
-                ax.set_ylim(min([0] + [i.y for i in linkage.joints]) - 5,
-                            max([0] + [i.y for i in linkage.joints]) + 5)
+                ax.set_ylim(
+                    min([0] + [i.y for i in linkage.joints]) - 5,
+                    max([0] + [i.y for i in linkage.joints]) + 5
+                )
 
         # Return modified objects for animation optimisation
         return (
             [self.draw_linkage(linkage.joints) for linkage in self.linkages]
-            + self.road_im)
+            + self.road_im
+        )
+
+    def visual_update(self, dt=None):
+        """
+        Update simulation and draw it.
+        
+        Parameters
+        ----------
+        dt : float | None
+            Time of the step (delta-time).
+        """
+        update_ret = self.update(dt)
+        self.reload_visuals()
+        return update_ret
 
 
 def recalc_linkage(linkage):
@@ -408,10 +431,8 @@ def video_debug(linkage):
     world.add_linkage(linkage)
     dynamiclinkage = world.linkages[-1]
     for _ in range(1, int(1e3)):
-        dt = (params["simul"]["time_coef"] / params["simul"]["calc_rate"]
-              / params["camera"]["fps"])
-        for i in range(params["simul"]["calc_rate"]):
-            world.space.step(dt)
+        dt = params["simul"]["physics_period"]
+        world.space.step(dt)
         recalc_linkage(dynamiclinkage)
         im_debug(world, dynamiclinkage)
         plt.pause(.2)
@@ -438,11 +459,10 @@ def video(linkage, duration=30, save=False):
         world = VisualWorld(road_y=road_y)
     world.add_linkage(linkage)
     # Number of frames for the selected duration
-    n = int(params["camera"]["fps"] * duration
-            / params["simul"]["time_coef"])
+    n_frames = int(params["camera"]["fps"] * duration)
 
     animation = anim.FuncAnimation(
-        world.fig, world.update, frames=range(1, n),
+        world.fig, world.visual_update, frames=[None] * (n_frames - 1),
         interval=int(1000 / params["camera"]["fps"]),
         repeat=False, blit=False
     )
