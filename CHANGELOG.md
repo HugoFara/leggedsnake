@@ -5,19 +5,22 @@ All notable changes to the LeggedSnake will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.1] - 2023-06-14
 
-### Added
+Starting from 0.3.1, we won't include "-alpha" or "-beta" in the naming scheme,
+as it is considered irrelevant.
+
+### Added in 0.3.1
 
 - ``requirements-dev.txt`` that contain dev requirements. It makes contribution easier.
 - PyCharm configuration files.
 
-### Changed
+### Changed in 0.3.1
 
 - Animations are now all stored in local variables, and no longer in an "ani"
 global list of animations.
 
-### Fixed
+### Fixed in 0.3.1
 
 - The main example file ``strider.py`` was launching animations for each subprocess.
 This file is now considered an executable.
