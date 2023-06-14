@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utility &mdash; LeggedSnake 0.3.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="dynamiclinkage" href="dynamiclinkage.html" />
+    <link rel="prev" title="walker" href="walker.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">utility</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.utility">Utility functions for Walkers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility.ggb_extractor"><code class="docutils literal notranslate"><span class="pre">ggb_extractor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility.step"><code class="docutils literal notranslate"><span class="pre">step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility.stride"><code class="docutils literal notranslate"><span class="pre">stride()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dynamiclinkage.html">dynamiclinkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="physicsengine.html">physicsengine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geneticoptimizer.html">geneticoptimizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">utility</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/utility.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="utility">
+<h1>utility<a class="headerlink" href="#utility" title="Permalink to this heading"></a></h1>
+<section id="module-leggedsnake.utility">
+<span id="utility-functions-for-walkers"></span><h2>Utility functions for Walkers<a class="headerlink" href="#module-leggedsnake.utility" title="Permalink to this heading"></a></h2>
+<p>Also known as WalkerUtility.</p>
+<p>This module aims to standardize and simplify the study of walking mechanisms.</p>
+<p>It contains useful functions that make study of planar mechanisms easy.</p>
+<p>Created on Sat Nov 17 2018 20:35:39.</p>
+<p>&#64;author: HugoFara</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.utility.ggb_extractor">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">ggb_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.utility.ggb_extractor" title="Permalink to this definition"></a></dt>
+<dd><p>Take data from GeoGebra file, and return them as a dictionary.</p>
+<p>Each element of the dictionary is a slider in the file. Name and value of
+items are the same as in the GeoGebra file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.utility.step">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.utility.step" title="Permalink to this definition"></a></dt>
+<dd><p>Return if a step can cross an obstacle during locus.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>points</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) – locus as a list of point coordinates.</p></li>
+<li><p><strong>height</strong> (<em>float</em>) – obstacle’s height</p></li>
+<li><p><strong>width</strong> (<em>float</em>) – obstacle’s width</p></li>
+<li><p><strong>return_res</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True: return the set of points that pass obstacle (slower).
+If False: return if the obstacle can be passed.
+The default is False.</p></li>
+<li><p><strong>y_min</strong> (<em>float</em><em>, </em><em>optional</em>) – Lowest ordinate in the locus (faster if provided).</p></li>
+<li><p><strong>acc</strong> (<em>list</em><em>, </em><em>optional</em>) – A subset of this locus that is able to cross. For internal use only.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>If <cite>return_res</cite> is False, return True if the locus can cross, False
+otherwise.
+If <cite>return_res</cite> is True, return the subset of point that is able to cross,
+and False if we can’t cross.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Union[bool, list[list[float]]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.utility.stride">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">stride</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.utility.stride" title="Permalink to this definition"></a></dt>
+<dd><p>Return length of higher “step” in the locus.</p>
+<p>A step is a set of points of the locus, adjacents, with limited height
+difference, and containing the lowest point of the locus.</p>
+<p>Please not that a step cannot be inclined. The result can be irrelevant
+for locus containing Diracs.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="walker.html" class="btn btn-neutral float-left" title="walker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dynamiclinkage.html" class="btn btn-neutral float-right" title="dynamiclinkage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
