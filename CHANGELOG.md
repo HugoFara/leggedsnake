@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- ``update`` method of ``VisualWorld`` renammed to ``visual_update`` for clarity.
+- ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
 - Frame rate and physics speed are now independent parameters.
 
 ### Fixed

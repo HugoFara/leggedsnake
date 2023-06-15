@@ -366,16 +366,39 @@ class VisualWorld(World):
             + self.road_im
         )
 
-    def visual_update(self, dt=None):
+    def visual_update(self, time=None):
         """
         Update simulation and draw it.
         
         Parameters
         ----------
-        dt : float | None
-            Time of the step (delta-time).
+        time : list | float | None
+            When a list, delta-time for physics and display (respectively) 
+            Using a float, only delta-time for physics, fps is set with params["camera"]["fps"]
+            Setting to None set physics dt to params["simul"]["physics_period"] and fps to params["camera"]["fps"]
         """
-        update_ret = self.update(dt)
+        if time is None:
+            dt = params["simul"]["physics_period"]
+            fps = params["camera"]["fps"]
+        elif isinstance(time, int) or isinstance(time, float):
+            dt = time
+            fps = params["camera"]["fps"]
+        else:
+            dt, fps = time
+        div = 1 // (dt * fps)
+        if div >= 1:
+            update_ret = [0, 0]
+            for _ in range(int(div)):
+                for i, step_update in enumerate(self.update(dt)):
+                    update_ret[i] += step_update
+            for i, step_update in enumerate(self.update(1 / fps - dt * div)):
+                update_ret[i] += step_update
+        else:
+            print(
+                f"Warning: Physics is computed every {dt}s ({1 / dt} times/s)",
+                f"but display is {fps} times/s."
+            )
+            update_ret = self.update(dt)
         self.reload_visuals()
         return update_ret
 
