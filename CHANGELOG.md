@@ -28,7 +28,10 @@ but (fitness, position, dimensions) was indicated.
 
 ### Removed
 
-- ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique ``physics_period`` set to 0.02 (s).
+- ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique 
+``physics_period`` set to 0.02 (s).
+- ``leggedsnake/Population evolution.json`` removed. 
+It contained data about an evolution run and is not relevant for users.
 
 ## [0.3.1] - 2023-06-14
 
