@@ -254,11 +254,12 @@ def evolutionary_optimization_builtin(
 
     Parameters
     ----------
-    dna : list[float, tuple of float, tuple of tuple of float]
+    dna : list[float, tuple[float], tuple[tuple[float]]]
         DNA of individuals.
-    prob : list of float
-        List of probabilities of the good transmission of one
-        characteristics.
+    prob : list[float] | float
+        Standard deviation from a perfect transmission of a gene.
+        * float: standard deviation for all genes
+        * list[float]: standard deviation for each gene
     fitness : callable
         Evaluation function.
         Return float.
@@ -279,23 +280,23 @@ def evolutionary_optimization_builtin(
         startnstop : bool, default=False
             Ability to close program without loosing population.
             If True, we verify at initialization the existence of a data file.
-            Population is save every int(250 / max_pop) iterations.
+            Population is saved every int(250 / max_pop) iterations.
             The default is False.
         fitness_args : tuple
             Keyword arguments to send to the fitness function.
             The default is None (no argument sent).
         verbose : int
             Level of verbosity.
-            0 : no verbose, do not print anything.
-            1 : show a progress bar.
-            2 : complete report for each turn.
+            0: no verbose, do not print anything.
+            1: show a progress bar.
+            2: complete report for each turn.
             The default is 1.
         processes : int, default=1
             Number of processes that will evaluate the linkages.
 
     Returns
     -------
-    list[float, tuple of float, tuple of tuple of float]
+    list[float, tuple[float], tuple[tuple[float]]]
         List of 3-tuples: best score, best dimensions and initial positions.
         The list is sorted by score order.
     """
@@ -376,7 +377,7 @@ def evolutionary_optimization_builtin(
 
     out = []
     for dna in pop:
-        # Return (fitness, dimensions, intial positions)
+        # Return (fitness, dimensions, initial positions)
         out.append(dna)
     out.sort(key=lambda x: x[0], reverse=True)
     return out
@@ -430,9 +431,9 @@ def evolutionary_optimization(
             The default is None (no argument sent).
         verbose : int, optional
             Level of verbosity.
-            0 : no verbose, do not print anything.
-            1 : show a progress bar.
-            2 : complete report for each turn.
+            0: no verbose, do not print anything.
+            1: show a progress bar.
+            2: complete report for each turn.
             The default is 1.
         processes : int, default=1
             Number of processes that will evaluate the linkages.
@@ -456,7 +457,7 @@ def evolutionary_optimization(
     )
 
 
-class genetic_optimization():
+class GeneticOptimization:
     def __init__(
             self, 
             dna,
@@ -464,7 +465,7 @@ class genetic_optimization():
             iters,
             prob=.07,
             **kwargs
-        ) -> None:
+    ) -> None:
         self.dna = dna
         self.fitness = fitness
         self.iters = iters

@@ -563,7 +563,7 @@ def evolutive_optimizer(
     linkage.rebuild(prev)
     linkage.step()
     dna = 0, list(dims), list(linkage.get_coords())
-    optimizer = ls.genetic_optimization(
+    optimizer = ls.GeneticOptimization(
         dna=dna, 
         prob=.07,
         fitness=fitness,
