@@ -11,11 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - ``genetic_optimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
 - ``VisualWorld`` has a new method called ``reload_visuals``.
+- ``show_evolution.py`` is a new script plotting various data about the Walkers population's evolution during 
+genetic optimization. 
 
 ### Changed
 
 - ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
 - Frame rate and physics speed are now independent parameters.
+- ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
 
 ### Fixed
 

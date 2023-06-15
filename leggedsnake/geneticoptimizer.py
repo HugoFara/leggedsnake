@@ -299,10 +299,9 @@ def evolutionary_optimization_builtin(
         List of 3-tuples: best score, best dimensions and initial positions.
         The list is sorted by score order.
     """
-    file_path = 'Population evolution.json'
     startnstop = kwargs_switcher('startnstop', kwargs, False)
-    if startnstop and os.path.exists(file_path):
-        pop = load_population(file_path)
+    if startnstop and os.path.exists(startnstop):
+        pop = load_population(startnstop)
     else:
         # At least two parents to begin with
         pop = [[dna[0], list(dna[1]), list(dna[2])] for _ in range(2)]
@@ -358,7 +357,7 @@ def evolutionary_optimization_builtin(
         postfix[3] = parents[best_id][1]
         if startnstop:
             save_population(
-                file_path, pop, verbose > 1,
+                startnstop, pop, verbose > 1,
                 {
                     'best_score': parents[best_id][0],
                     'best_individual_id': best_id

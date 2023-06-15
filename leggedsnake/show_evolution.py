@@ -23,19 +23,19 @@ def draw_any_func(axis, scores, func):
 def draw_median_score(axis, scores):
     """Compute a median vector from a score matrix and draw it."""
     median = tuple(map(np.nanmedian, scores))
-    axis.plot(median, c='g', label="Median score")
+    axis.plot(median, label="Median score")
 
 
 def draw_best_score(axis, scores):
     """Compute the best score vector form a score matrix and draw it."""
     best = tuple(map(np.nanmax, scores))
-    axis.plot(best, c='r', label="Best score")
+    axis.plot(best, label="Best score")
 
 
 def draw_standard_deviation(axis, scores):
     """Draw the standard deviation of scores from a score matrix."""
     std = tuple(map(np.nanstd, scores))
-    axis.plot(std, c='b', label="Standard deviation")
+    axis.plot(std, label="Standard deviation")
 
 
 def draw_population(axis, populations):
@@ -50,6 +50,13 @@ def draw_diversity(axis, dimensions):
     """Draw the standard deviation in the dimensions."""
     diversity_vector = tuple(map(np.nanstd, dimensions))
     axis.plot(diversity_vector, label="Genetic diversity")
+
+
+def load_data(json_file):
+    """Load the population from a JSON file, and return it."""
+    with open(json_file) as file:
+        data = json.load(file)
+        return data
 
 
 def show_genetic_optimization(data=DATA):
@@ -94,7 +101,5 @@ def show_genetic_optimization(data=DATA):
 
 
 if __name__ == "__main__":
-    with open("Population evolution.json") as file:
-        DATA.extend(json.load(file))
-
-    show_genetic_optimization()
+    data = load_data("Population evolution.json")
+    show_genetic_optimization(data)

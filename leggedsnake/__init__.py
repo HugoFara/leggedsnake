@@ -37,5 +37,6 @@ from .physicsengine import (
     params,
     World, VisualWorld
 )
+from .show_evolution import load_data, show_genetic_optimization
 
 __version__ = "0.3.1"
