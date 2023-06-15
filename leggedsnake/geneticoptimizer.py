@@ -296,7 +296,7 @@ def evolutionary_optimization_builtin(
     Returns
     -------
     list[float, tuple of float, tuple of tuple of float]
-        List of 3-tuples: best dimensions, best score and initial positions.
+        List of 3-tuples: best score, best dimensions and initial positions.
         The list is sorted by score order.
     """
     file_path = 'Population evolution.json'
@@ -335,15 +335,15 @@ def evolutionary_optimization_builtin(
         desc='Evolutionary optimization',
         postfix=postfix
     )
+    # Individuals evaluation
+    evaluate_population(
+        pop, fitness, fitness_args,
+        verbose=verbose > 1,
+        processes=processes
+    )
     for i in iterations:
         if verbose > 1:
             print(f"Turn: {i}, {len(pop)} individuals.")
-        # Individuals evaluation
-        evaluate_population(
-            pop, fitness, fitness_args,
-            verbose=verbose > 1,
-            processes=processes
-        )
         # Population selection
         # Minimal score before death
         death_score = np.quantile([j[0] for j in pop], 1 - max_pop / len(pop))
@@ -352,7 +352,7 @@ def evolutionary_optimization_builtin(
         # We only keep max_pop individuals
         pop = list(filter(lambda x: x[0] >= death_score, pop))
         parents = select_parents(pop, verbose=verbose > 1)
-        # We select the best fit individual to show off, we now he is a parent
+        # We select the best fit individual to show off, we know he is a parent
         best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
         postfix[1] = parents[best_id][0]
         postfix[3] = parents[best_id][1]
@@ -368,14 +368,17 @@ def evolutionary_optimization_builtin(
         children = make_children(parents, prob, max_genetic_dist)
         # Add to population
         pop.extend(children)
+        # Individuals evaluation
+        evaluate_population(
+            pop, fitness, fitness_args,
+            verbose=verbose > 1,
+            processes=processes
+        )
 
     out = []
     for dna in pop:
-        fit = evaluate_individual(dna, fitness, fitness_args)
-        if isinstance(fit, tuple):
-            out.append((fit[0], fit[1], dna[2]))
-        else:
-            out.append((fit, dna[1], dna[2]))
+        # Return (fitness, dimensions, intial positions)
+        out.append(dna)
     out.sort(key=lambda x: x[0], reverse=True)
     return out
 
