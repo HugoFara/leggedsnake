@@ -492,29 +492,28 @@ def fitness(dna, linkage_hollow, gui=False):
         # Save initial coordinates
         pos = tuple(linkage_hollow.step())[-1]
     except ls.UnbuildableError:
-        return - float('inf'), list()
-    else:
-        world = ls.World()
-        world.add_linkage(linkage_hollow)
-        # Simulation duration (in seconds)
-        duration = 30
-        # Somme of yields
-        tot = 0
-        # Motor turned on duration
-        dur = 0
-        steps = int(duration / ls.params["simul"]["physics_period"])
-        for _ in range(steps):
-            efficiency, energy = world.update()
-            tot += efficiency
-            dur += energy
-        if dur == 0:
-            return -1, list()
-        if world.linkages[0].body.position.x > -5:
-            return 0, pos
-        if gui:
-            ls.video(linkage_hollow, duration)
-        # Return 100 times average yield, and initial positions
-        return tot / dur, pos
+        return -2, list()
+    world = ls.World()
+    world.add_linkage(linkage_hollow)
+    # Simulation duration (in seconds)
+    duration = 30
+    # Somme of yields
+    tot = 0
+    # Motor turned on duration
+    dur = 0
+    steps = int(duration / ls.params["simul"]["physics_period"])
+    for _ in range(steps):
+        efficiency, energy = world.update()
+        tot += efficiency
+        dur += energy
+    if dur == 0:
+        return -1, list()
+    if world.linkages[0].body.position.x > -5:
+        return 0, pos
+    if gui:
+        ls.video(linkage_hollow, duration)
+    # Return 100 times average yield, and initial positions
+    return tot / dur, pos
 
 
 def evolutive_optimizer(
@@ -567,7 +566,7 @@ def evolutive_optimizer(
         init_pop=init_pop,
         startnstop=startnstop,
         fitness_args=(linkage, gui),
-        processes=6
+        processes=4
     )
     return optimizer.run(iters)
 
