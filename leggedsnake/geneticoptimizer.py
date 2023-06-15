@@ -205,7 +205,7 @@ def select_parents(pop, verbose=True):
             score = 1
         else:
             score = .5 * (individual[0] - best_dna[0]) / (best_dna[0] - median)
-        if score + 1 > max(rand(), .5):
+        if score + 1 > max(nprand.rand(), .5):
             parents.append(individual)
             indexes.append(j)
     # Add the best individual if needed
