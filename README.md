@@ -4,7 +4,7 @@
 [![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)](https://pepy.tech/project/leggedsnake)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/master/LICENSE.rst)
 
-LeggedSnake is a project intended to make the simulation of walking linkages fast and easy. 
+LeggedSnake is a project intended to make the simulation of walking linkages fast and easy.
 We believe that building walking linkages is fun and could be useful.
 Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.
 
@@ -35,36 +35,11 @@ pip install leggedsnake
 
 ### Setting up Virtual Environment
 
-We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/master/environment.yml) file for conda. 
+We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/master/environment.yml) file for conda.
 Use ``conda env update --file environment.yml --name leggedsnake-env`` to install the requirements in a separate environment.
 
-If you are looking for a development version, check the GitHub repo under 
+If you are looking for a development version, check the GitHub repo under
 [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake).
-
-
-## Contribute
-
-Download the latest GitHub version, then install the dev requirements in ``requirements-dev.txt``.
-
-In a nutshell
-
-```bash
-git clone https://github.com/HugoFara/leggedsnake.git
-cd leggedsnake
-pip install -r requirements-dev.txt
-```
-
-### Testing
-
-We use unittest. Just run ``python3 -m unittest discover .`` from the main folder.
-
-### Release
-
-This section is mainly intended for maintainers. 
-Fell free to use the tools described here, but they are not necessary in any way.
-
-* To publish a new version, use ``bump2version``. For instance ``bump2version minor``.
-* Regenerate the documentation with ``make html`` (uses Sphinx).
 
 ## Usage
 
@@ -95,7 +70,7 @@ my_walker = ls.Walker(
 
 ### Kinematic optimization using Particle Swarm Optimization (PSO)
 
-No change compared to a classic linkage optimization. You should use the ``step`` and ``stride`` method from the 
+No change compared to a classic linkage optimization. You should use the ``step`` and ``stride`` method from the
 [utility module](https://github.com/HugoFara/leggedsnake/blob/master/leggedsnake/utility.py) as fitness functions.
 This set of rules should work well for a stride **maximisation** problem:
 
@@ -156,7 +131,7 @@ And now, relax while your computer creates a civilization of walking machines!
 
 ### Visualization
 
-For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html), 
+For this part we will focus on the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html),
 an example file is provided at ``docs/examples/strider.py``.
 
 The linkage looks like this:
@@ -202,18 +177,34 @@ this property in dynamic simulation, you can use "half" your Strider in a kinema
 
 ![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20half-Strider.gif)
 
+## Contribute
+
+This project is open to contribution and actively looking for contributors.
+You can help making it better!
+
+### For everyone
+
+You can [drop a star](https://github.com/HugoFara/leggedsnake/stargazers),
+[fork this project](https://github.com/HugoFara/leggedsnake/forks) or simply share the link to your best media.
+
+The more people get engaged into this project, the better it will develop!
+
+### For developpers
+
+You can follow the guide at [CONTRIBUTING.md](CONTRIBUTING.md). Feel free to me any pull request.
+
 ## Requirements
 
 Python 3, numpy for calculation, matplotlib for drawing, and standard libraries.
 
 For kinematic optimization, you can either use the built-in algorithm, or
-[PySwarms](https://pyswarms.readthedocs.io/en/latest/), under MIT license. 
-PySwarms is a much more complex package which provides quick calculations, 
+[PySwarms](https://pyswarms.readthedocs.io/en/latest/), under MIT license.
+PySwarms is a much more complex package which provides quick calculations,
 however, with modern laptops the built-in swarm optimization should be quick enough
 to fit your needs.
 
 Dynamic optimization relies on multiple packages.
 First of all, it uses [Pymunk](http://www.pymunk.org/en/latest/index.html),
-made by Victor Blomqvist, as its physics engine. 
-The genetic algorithm optimizer is home-made, 
+made by Victor Blomqvist, as its physics engine.
+The genetic algorithm optimizer is home-made,
 but feel free to use any external tool suiting your needs!
