@@ -344,6 +344,8 @@ def evolutionary_optimization_builtin(
     for i in iterations:
         if verbose > 1:
             print(f"Turn: {i}, {len(pop)} individuals.")
+        if kwargs_switcher('gui', kwargs, False):
+            kwargs_switcher('gui', kwargs, False)(pop)
         # Population selection
         # Minimal score before death
         death_score = np.quantile([j[0] for j in pop], 1 - max_pop / len(pop))
@@ -352,7 +354,7 @@ def evolutionary_optimization_builtin(
         # We only keep max_pop individuals
         pop = list(filter(lambda x: x[0] >= death_score, pop))
         parents = select_parents(pop, verbose=verbose > 1)
-        # We select the best fit individual to show off, we know he is a parent
+        # We select the best fit individual to show off, we know it is a parent
         best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
         postfix[1] = parents[best_id][0]
         postfix[3] = parents[best_id][1]
@@ -424,7 +426,7 @@ def evolutionary_optimization(
         startnstop : bool, optional
             Ability to close program without loosing population.
             If True, we verify at initialization the existence of a data file.
-            Population is save every int(250 / max_pop) iterations.
+            Population is saved every int(250 / max_pop) iterations.
             The default is False.
         fitness_args : tuple
             Positional arguments to send to the fitness function.
@@ -440,8 +442,8 @@ def evolutionary_optimization(
 
     Returns
     -------
-    list[dna]
-        An iterable of the best fit individuals, in format
+    list[float, tuple of float, tuple of tuple of float]
+        An iterable of the fittest individuals, in format
         (score, dimensions, initial coordinates).
 
     See Also
@@ -473,12 +475,8 @@ class GeneticOptimization:
         self.kwargs = kwargs
 
     def run(self, iters, gui=False):
-        if gui:
-            raise NotImplementedError("Using gui=True not supported yet!")
-        else:
-            return evolutionary_optimization_builtin(
-                self.dna, self.prob, self.fitness,
-                iters=iters,
-                **self.kwargs
-            )
-
+        return evolutionary_optimization_builtin(
+            self.dna, self.prob, self.fitness,
+            iters=iters, gui=gui,
+            **self.kwargs
+        )

@@ -350,21 +350,21 @@ class VisualWorld(World):
             [i[1] for i in self.road]
         )
         ax = self.ax
-        for linkage in self.linkages:
-            if params["camera"]["dynamic_camera"]:
-                ax.set_xlim(center[0] - 10, center[0] + 10)
-                ax.set_ylim(center[1] - 10, center[1] + 10)
-            else:
-                ax.set_ylim(
-                    min([0] + [i.y for i in linkage.joints]) - 5,
-                    max([0] + [i.y for i in linkage.joints]) + 5
-                )
+        if params["camera"]["dynamic_camera"]:
+            ax.set_xlim(center[0] - 10, center[0] + 10)
+            ax.set_ylim(center[1] - 10, center[1] + 10)
+        else:
+            ax.set_ylim(
+                min([0] + [min(i.y for i in linkage.joints) for linkage in self.linkages]) - 5,
+                max([0] + [max(i.y for i in linkage.joints) for linkage in self.linkages]) + 5
+            )
 
-        # Return modified objects for animation optimisation
-        return (
-            [self.draw_linkage(linkage.joints) for linkage in self.linkages]
-            + self.road_im
-        )
+        # Return modified objects for animation optimization
+        visual_objects = []
+        for linkage in self.linkages:
+            visual_objects += self.draw_linkage(linkage.joints)
+        visual_objects += self.road_im
+        return visual_objects
 
     def visual_update(self, time=None):
         """
@@ -492,6 +492,46 @@ def video(linkage, duration=30, save=False):
     if save:
         writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
         animation.save(f"Dynamic {linkage.name}.mp4", writer=writer)
+    else:
+        plt.show()
+        if animation:
+            pass
+
+
+def all_linkages_video(linkages, duration=30, save=False):
+    """
+    Give the rigidbody a dynamic model and launch simulation with video.
+
+    Parameters
+    ----------
+    linkages : Union[
+        list of pylinkage.linkage.Linkage,
+        list of leggedsnake.dynamiclinkage.DynamicLinkage
+    ]
+        The Linkage you want to simulate.
+    duration : float, optional
+        Duration (in seconds) of the simulation. The default is 40.
+    save : bool, optional
+        If you want to save it as a .mp4 file.
+    """
+    road_y = linkage_bb(linkages[0])[0] - 1
+    if isinstance(linkages[0], dlink.DynamicLinkage):
+        world = VisualWorld(linkages[0].space, road_y=road_y)
+    else:
+        world = VisualWorld(road_y=road_y)
+    for linkage in linkages:
+        world.add_linkage(linkage)
+    # Number of frames for the selected duration
+    n_frames = int(params["camera"]["fps"] * duration)
+
+    animation = anim.FuncAnimation(
+        world.fig, world.visual_update, frames=[None] * (n_frames - 1),
+        interval=int(1000 / params["camera"]["fps"]),
+        repeat=False, blit=False
+    )
+    if save:
+        writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
+        animation.save(f"Dynamic {linkage[0].name}.mp4", writer=writer)
     else:
         plt.show()
         if animation:

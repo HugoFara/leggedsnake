@@ -223,6 +223,11 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
     return strider
 
 
+def show_all_walkers(dnas, duration=30, save=False):
+    linkages = [complete_strider(param2dimensions(dna[1]), dna[2]) for dna in dnas]
+    ls.all_linkages_video(linkages, duration, save)
+
+
 def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
     """
     Give mechanism a dynamic model and launch video.
@@ -473,7 +478,23 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         return out
 
 
-def fitness(dna, linkage_hollow, gui=False):
+def dna_interpreter(dna, linkage_hollow):
+    linkage_hollow.set_num_constraints(dna[1])
+    linkage_hollow.rebuild(dna[2])
+    return linkage_hollow
+
+
+def dna_checker(linkage_hollow):
+    # Check if the mechanism is buildable
+    try:
+        # Save initial coordinates
+        pos = tuple(linkage_hollow.step())[-1]
+        return pos
+    except ls.UnbuildableError:
+        return False
+
+
+def fitness(dna, linkage_hollow):
     """
     Individual yield, return average efficiency and initial coordinates.
 
@@ -491,13 +512,10 @@ def fitness(dna, linkage_hollow, gui=False):
         List of two elements: score (a float), and initial positions.
         Score is -float('inf') when mechanism building is impossible.
     """
-    linkage_hollow.set_num_constraints(dna[1])
-    linkage_hollow.rebuild(dna[2])
-    # Check if the mechanism is buildable
-    try:
-        # Save initial coordinates
-        pos = tuple(linkage_hollow.step())[-1]
-    except ls.UnbuildableError:
+    linkage_hollow = dna_interpreter(dna, linkage_hollow)
+    # Save initial coordinates, or error report
+    pos = dna_checker(linkage_hollow)
+    if not pos:
         return -2, list()
     world = ls.World()
     world.add_linkage(linkage_hollow)
@@ -571,10 +589,10 @@ def evolutive_optimizer(
         max_pop=pop,
         init_pop=init_pop,
         startnstop=startnstop,
-        fitness_args=(linkage, gui),
+        fitness_args=(linkage,),
         processes=4
     )
-    return optimizer.run(iters)
+    return optimizer.run(iters, gui=gui)
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
@@ -636,14 +654,16 @@ def main(trials_and_errors, particle_swarm, genetic):
             fitness([0, strider.get_num_constraints(), strider.get_coords()], strider)[0]
         )
         # Reload the position: the show_optimized
+        file = "Population evolutio.json"
+        file = False
         optimized_striders = evolutive_optimizer(
             strider,
             dims=strider.get_num_constraints(),
             prev=init_coords,
             pop=30,
             iters=30,
-            startnstop=False,
-            gui=False
+            startnstop=file,
+            gui=show_all_walkers
         )
         print(
             "Efficiency score after genetic optimization:", 

@@ -33,9 +33,12 @@ from .dynamiclinkage import (
     convert_to_dynamic_linkage,
 )
 from .physicsengine import (
-    video, video_debug,
+    video,
+    video_debug,
+    all_linkages_video,
     params,
-    World, VisualWorld
+    World,
+    VisualWorld
 )
 from .show_evolution import load_data, show_genetic_optimization
 
