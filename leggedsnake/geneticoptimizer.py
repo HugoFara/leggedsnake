@@ -34,7 +34,7 @@ def kwargs_switcher(arg_name, kwargs, default=None):
     """Simple function to return the good element from a kwargs dict."""
     out = default
     if arg_name in kwargs:
-        out = kwargs.pop(arg_name) or out
+        out = kwargs[arg_name] or out
     return out
 
 

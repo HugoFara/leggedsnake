@@ -25,6 +25,7 @@ genetic optimization.
 - Documentation of ``evolutionary_optimization_builtin`` was wrong: returned data were in order (fitness, dimensions, position),
 but (fitness, position, dimensions) was indicated.
 - After a genetic optimization, the example script was assigning wrong data to the demo walker.
+- ``kwargs_switcher`` from ``geneticoptimizer.py`` do no longer pop (destroy) argument from the input dictionary.
 
 ### Removed
 
