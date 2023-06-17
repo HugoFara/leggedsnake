@@ -58,7 +58,7 @@ params = {
     },
     # Study hypothesis
     "simul": {
-        # Time between two physics compuation
+        # Time between two physics computation
         "physics_period": 0.02,
     },
     # Display parameters
@@ -126,13 +126,13 @@ class World:
     def add_linkage(self, linkage):
         """Add a DynamicLinkage to the simulation."""
         if isinstance(linkage, dlink.DynamicLinkage):
-            dynamiclinkage = linkage
+            dynamic_linkage = linkage
         else:
-            dynamiclinkage = dlink.convert_to_dynamic_linkage(
+            dynamic_linkage = dlink.convert_to_dynamic_linkage(
                 linkage, self.space)
-        for crank in dynamiclinkage._cranks:
-            crank.actuator.max_force = 0
-        self.linkages.append(dynamiclinkage)
+        for cur_crank in dynamic_linkage._cranks:
+            cur_crank.actuator.max_force = 0
+        self.linkages.append(dynamic_linkage)
         for s in self.space.shapes:
             s.friction = params["ground"]["friction"]
         # set_space_constraints(self.space)
@@ -154,13 +154,12 @@ class World:
             v = norm(linkage.body.velocity)
             g = norm(params["physics"]["gravity"])
             m = linkage.mass
-            new_mechanical_energy = (m
-                                     * (.5 * v ** 2
-                                        + g * (linkage.body.position.y
-                                               - linkage.height))
-                                     )
-            efficiency = (new_mechanical_energy
-                          - linkage.mechanical_energy) / energy
+            new_mechanical_energy = m * (
+                .5 * v ** 2 + g * (linkage.body.position.y - linkage.height)
+            )
+            efficiency = (
+                new_mechanical_energy - linkage.mechanical_energy
+            ) / energy
             linkage.mechanical_energy = new_mechanical_energy
             return energy, efficiency
         return 0, 0
@@ -198,12 +197,16 @@ class World:
         energies = [0] * len(self.linkages)
         efficiencies = [0] * len(self.linkages)
         for i, linkage, power in zip(
-                range(len(self.linkages)), self.linkages, powers):
+                range(len(self.linkages)), self.linkages, powers
+        ):
             recalc_linkage(linkage)
-            energies[i], efficiencies[i] = self.__update_linkage__(linkage,
-                                                                   power[0])
-            bounds = (min(bounds[0], *(i.x for i in linkage.joints)),
-                      max(bounds[1], *(i.x for i in linkage.joints)))
+            energies[i], efficiencies[i] = self.__update_linkage__(
+                linkage, power[0]
+            )
+            bounds = (
+                min(bounds[0], *(i.x for i in linkage.joints)),
+                max(bounds[1], *(i.x for i in linkage.joints))
+            )
         while self.road[-1][0] < bounds[1] + 10:
             self.build_road(True)
         while self.road[0][0] > bounds[0] - 10:
@@ -212,15 +215,18 @@ class World:
         # Without animation, we return 100 times motor yield
         # with a duration step
         for linkage, energy, efficiency in zip(
-                self.linkages, energies, efficiencies):
+                self.linkages, energies, efficiencies
+        ):
             return efficiency, energy * dt
 
     def __build_road_step__(self, ground, index):
         """Add a step (two points)."""
         high = np.random.rand() * ground["max_step"]
         a = self.road[index][0], self.road[index][1] + high
-        b = (self.road[index][0] + ground["section_len"] * (1 - index),
-             self.road[index][1] + high)
+        b = (
+            self.road[index][0] + ground["section_len"] * (1 - index),
+            self.road[index][1] + high
+        )
 
         s = pm.Segment(self.space.static_body, a, b, .1)
         s.friction = ground["friction"]
@@ -235,9 +241,10 @@ class World:
     def __build_road_segment__(self, ground, index):
         """Add a segment (one point)."""
         # Add noise for more chaotic terrain."""
-        angle = np.random.normal(ground["slope"] / 2,
-                                 ground["noise"] * ground["slope"] / 2)
-        # Adding a point to the left is increasing angle by pi/2
+        angle = np.random.normal(
+            ground["slope"] / 2, ground["noise"] * ground["slope"] / 2
+        )
+        # Adding a point to the left increases angle by pi/2
         if not index:
             angle = np.pi - angle
         a = pm.Vec2d(*cyl_to_cart(ground["section_len"], angle,
@@ -307,7 +314,8 @@ class VisualWorld(World):
             if (
                     isinstance(j, Static)
                     and hasattr(j, 'joint0')
-                    and j.joint0 is not None):
+                    and j.joint0 is not None
+            ):
                 linkage_im.append(ax.plot([], [], 'k-', animated=False)[0])
                 if hasattr(j, 'joint1') and j.joint1 is not None:
                     linkage_im.append(ax.plot([], [], 'k-', animated=False)[0])
@@ -393,10 +401,6 @@ class VisualWorld(World):
             for i, step_update in enumerate(self.update(1 / fps - dt * div)):
                 update_ret[i] += step_update
         else:
-            print(
-                f"Warning: Physics is computed every {dt}s ({1 / dt} times/s)",
-                f"but display is {fps} times/s."
-            )
             update_ret = self.update(dt)
         self.reload_visuals()
         return update_ret
@@ -463,44 +467,6 @@ def video_debug(linkage):
         plt.pause(.2)
 
 
-def video(linkage, duration=30, save=False):
-    """
-    Give the rigidbody a dynamic model and launch simulation with video.
-
-    Parameters
-    ----------
-    linkage : Union[pylinkage.linkage.Linkage,
-    leggedsnake.dynamiclinkage.DynamicLinkage]
-        The Linkage you want to simulate.
-    duration : float, optional
-        Duration (in seconds) of the simulation. The default is 40.
-    save : bool, optional
-        If you want to save it as a .mp4 file.
-    """
-    road_y = linkage_bb(linkage)[0] - 1
-    if isinstance(linkage, dlink.DynamicLinkage):
-        world = VisualWorld(linkage.space, road_y=road_y)
-    else:
-        world = VisualWorld(road_y=road_y)
-    world.add_linkage(linkage)
-    # Number of frames for the selected duration
-    n_frames = int(params["camera"]["fps"] * duration)
-
-    animation = anim.FuncAnimation(
-        world.fig, world.visual_update,
-        frames=[None] * (n_frames - 1),
-        interval=int(1000 / params["camera"]["fps"]),
-        repeat=False, blit=False
-    )
-    if save:
-        writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
-        animation.save(f"Dynamic {linkage.name}.mp4", writer=writer)
-    else:
-        plt.show()
-        if animation:
-            pass
-
-
 def all_linkages_video(linkages, duration=30, save=False):
     """
     Give the rigidbody a dynamic model and launch simulation with video.
@@ -517,7 +483,7 @@ def all_linkages_video(linkages, duration=30, save=False):
     save : bool, optional
         If you want to save it as a .mp4 file.
     """
-    road_y = linkage_bb(linkages[0])[0] - 1
+    road_y = min(linkage_bb(linkage)[0] for linkage in linkages) - 1
     if isinstance(linkages[0], dlink.DynamicLinkage):
         world = VisualWorld(linkages[0].space, road_y=road_y)
     else:
@@ -526,6 +492,14 @@ def all_linkages_video(linkages, duration=30, save=False):
         world.add_linkage(linkage)
     # Number of frames for the selected duration
     n_frames = int(params["camera"]["fps"] * duration)
+
+    dt = params["simul"]["physics_period"]
+    fps = params["camera"]["fps"]
+    if dt * fps > 1:
+        print(
+            f"Warning: Physics is computed every {dt}s ({1 / dt} times/s)",
+            f"but display is {fps} times/s."
+        )
 
     animation = anim.FuncAnimation(
         world.fig, world.visual_update,
@@ -540,6 +514,23 @@ def all_linkages_video(linkages, duration=30, save=False):
         plt.show()
         if animation:
             pass
+
+
+def video(linkage, duration=30, save=False):
+    """
+    Give the rigidbody a dynamic model and launch simulation with video.
+
+    Parameters
+    ----------
+    linkage : Union[pylinkage.linkage.Linkage,
+    leggedsnake.dynamiclinkage.DynamicLinkage]
+        The Linkage you want to simulate.
+    duration : float, optional
+        Duration (in seconds) of the simulation. The default is 40.
+    save : bool, optional
+        If you want to save it as a .mp4 file.
+    """
+    all_linkages_video([linkage], duration, save)
 
 
 if __name__ == "__main__":
