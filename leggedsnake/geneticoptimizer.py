@@ -276,6 +276,12 @@ class GeneticOptimization:
             j += 1
         return children
 
+    def reduce_population(self, quantile=.25):
+        # We only keep max_pop individuals
+        target_pop = int(self.max_pop * quantile)
+        sorted_pop = sorted(self.pop, key=lambda x: x[0], reverse=True)
+        return sorted_pop[:target_pop]
+
     def run(self, iters, processes=1):
         """
         Optimization by genetic algorithm (GA).
@@ -319,15 +325,11 @@ class GeneticOptimization:
         for i in iterations:
             if self.verbosity > 1:
                 print(f"Turn: {i}, {len(self.pop)} individuals.")
+            # Population selection
+            self.pop = self.reduce_population()
+            # Display
             if kwargs_switcher('gui', self.kwargs, False):
                 kwargs_switcher('gui', self.kwargs, False)(self.pop)
-            # Population selection
-            # Minimal score before death
-            death_score = np.quantile([j[0] for j in self.pop], 1 - self.max_pop / len(self.pop))
-            if np.isnan(death_score):
-                death_score = - float('inf')
-            # We only keep max_pop individuals
-            pop = list(filter(lambda x: x[0] >= death_score, self.pop))
             parents = self.select_parents(verbose=self.verbosity > 1)
             # We select the best fit individual to show off, we know it is a parent
             best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
@@ -336,7 +338,7 @@ class GeneticOptimization:
             iterations.set_postfix(postfix)
             if self.startnstop:
                 save_population(
-                    self.startnstop, pop, self.verbosity > 1,
+                    self.startnstop, self.pop, self.verbosity > 1,
                     {
                         'best_score': parents[best_id][0],
                         'best_individual_id': best_id
@@ -345,7 +347,7 @@ class GeneticOptimization:
             # Children generation
             children = self.make_children(parents, self.prob, max_genetic_dist)
             # Add to population
-            pop.extend(children)
+            self.pop.extend(children)
             # Individuals evaluation
             self.evaluate_population(
                 fitness_args,

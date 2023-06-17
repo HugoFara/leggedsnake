@@ -17,10 +17,13 @@ genetic optimization.
 
 ### Changed
 
-- ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
-- Frame rate and physics speed are now independent parameters.
+- Genetic optimization:
+  - During genetic optimization, population is now stable at max_pop (it used to fluctuate a lot).
+  - Genetic optimization do no longer display all dimensions in the progress bar.
+- Visuals:
+  - ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
+  - Frame rate and physics speed are now independent parameters.
 - ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
-- Genetic optimization do no longer display all dimensions in the progress bar.
 - ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
 
 ### Fixed
