@@ -75,7 +75,7 @@ def set_space_constraints(space):
     """Set the solver if they are many constraints."""
     constraints = space.constraints
     len_c = len(space.constraints)
-    # Number of iteration can be adapted
+    # Number of iterations can be adapted
     space.iterations = int(10 * np.exp(len_c / 60))
     for constraint in constraints:
         if not isinstance(constraint, pm.SimpleMotor) and False:
@@ -135,7 +135,7 @@ class World:
         self.linkages.append(dynamiclinkage)
         for s in self.space.shapes:
             s.friction = params["ground"]["friction"]
-        set_space_constraints(self.space)
+        # set_space_constraints(self.space)
 
     def __update_linkage__(self, linkage, power):
         """Update a specific linkage."""
@@ -210,13 +210,10 @@ class World:
             self.build_road(False)
 
         # Without animation, we return 100 times motor yield
-        # with duration step
-        for linkage, energy, efficiency in zip(self.linkages, energies,
-                                               efficiencies):
+        # with a duration step
+        for linkage, energy, efficiency in zip(
+                self.linkages, energies, efficiencies):
             return efficiency, energy * dt
-            #if hasattr(linkage, 'height') and energy != 0:
-            #    return (1e2 * efficiency,
-            #            params["simul"]["time_coef"] /params["camera"]["fps"])
 
     def __build_road_step__(self, ground, index):
         """Add a step (two points)."""
@@ -285,7 +282,7 @@ class VisualWorld(World):
         self.fig, self.ax = plt.subplots()
         self.ax.set_aspect('equal')
         self.linkage_im = []
-        # Same for road
+        # Same for the road
         self.road_im = self.ax.plot([], [], 'k-', animated=False)
 
     def add_linkage(self, linkage):
@@ -434,8 +431,11 @@ def im_debug(world, linkage):
     world.ax.clear()
     world.ax.set_xlim(int(bbox[3]) - 5, int(bbox[1]) + 5)
     world.ax.set_ylim(int(bbox[2]) - 5, int(bbox[0]) + 5)
-    world.ax.scatter([i.x for i in linkage.joints],
-                     [i.y for i in linkage.joints], c='r')
+    world.ax.scatter(
+        [i.x for i in linkage.joints],
+        [i.y for i in linkage.joints],
+        c='r'
+    )
     for j in linkage.joints:
         for shape in j._a.shapes:
             begin = j._a.local_to_world(shape.a)
@@ -454,12 +454,12 @@ def video_debug(linkage):
     else:
         world = VisualWorld(road_y=road_y)
     world.add_linkage(linkage)
-    dynamiclinkage = world.linkages[-1]
+    dynamic_linkage = world.linkages[-1]
     for _ in range(1, int(1e3)):
         dt = params["simul"]["physics_period"]
         world.space.step(dt)
-        recalc_linkage(dynamiclinkage)
-        im_debug(world, dynamiclinkage)
+        recalc_linkage(dynamic_linkage)
+        im_debug(world, dynamic_linkage)
         plt.pause(.2)
 
 
@@ -487,7 +487,8 @@ def video(linkage, duration=30, save=False):
     n_frames = int(params["camera"]["fps"] * duration)
 
     animation = anim.FuncAnimation(
-        world.fig, world.visual_update, frames=[None] * (n_frames - 1),
+        world.fig, world.visual_update,
+        frames=[None] * (n_frames - 1),
         interval=int(1000 / params["camera"]["fps"]),
         repeat=False, blit=False
     )
@@ -527,7 +528,8 @@ def all_linkages_video(linkages, duration=30, save=False):
     n_frames = int(params["camera"]["fps"] * duration)
 
     animation = anim.FuncAnimation(
-        world.fig, world.visual_update, frames=[None] * (n_frames - 1),
+        world.fig, world.visual_update,
+        frames=[None] * (n_frames - 1),
         interval=int(1000 / params["camera"]["fps"]),
         repeat=False, blit=False
     )
