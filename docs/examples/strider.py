@@ -275,38 +275,41 @@ history = []
 
 
 def sym_stride_evaluator(linkage, dims, pos):
-    """Give score to each dimension set for symmetric strider."""
+    """
+    Give score to each dimension set for symmetric strider.
+
+    Parameters
+    ----------
+    linkage : Linkage
+    dims : tuple
+    pos : tuple
+
+    Returns
+    -------
+
+    """
     linkage.set_num_constraints(param2dimensions(dims), flat=False)
     linkage.set_coords(pos)
+    points = 12
     try:
-        points = 12
         # Complete revolution with 12 points
-        tuple(
-            tuple(i) for i in linkage.step(
-                iterations=points + 1, dt=LAP_POINTS / points
-            )
-        )
-        # Again with n points, and at least 12 iterations
-        # L = tuple(tuple(i) for i in linkage.step(iterations=n))
-        factor = int(points / LAP_POINTS) + 1
         loci = tuple(
             tuple(i) for i in linkage.step(
-                iterations=LAP_POINTS * factor, dt=LAP_POINTS / LAP_POINTS / factor
+                iterations=points, dt=LAP_POINTS / points
             )
         )
-        history.append(list(dims) + [0])
     except ls.UnbuildableError:
         return 0
-    else:
-        foot_locus = tuple(x[-2] for x in loci)
-        # Constraints check
-        if not ls.step(foot_locus, .5, .2):
-            return 0
-        # Performances evaluation
-        locus = ls.stride(foot_locus, .2)
-        score = max(k[0] for k in locus) - min(k[0] for k in locus)
-        history[-1][-1] = score
-        return score
+    history.append(list(dims) + [0])
+    foot_locus = tuple(x[-2] for x in loci)
+    # Constraints check
+    if not ls.step(foot_locus, .5, .2):
+        return 0
+    # Performances evaluation
+    locus = ls.stride(foot_locus, .2)
+    score = max(k[0] for k in locus) - min(k[0] for k in locus)
+    history[-1][-1] = score
+    return score
 
 
 def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
@@ -660,7 +663,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         )
 
     if genetic:
-        # ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
+        # ls.show_linkage(strider, save=False, duration=10, iteration_factor=LAP_POINTS)
         # Add legs more legs to avoid falling
         strider.add_legs(LEGS_NUMBER - 1)
         init_coords = strider.get_coords()
