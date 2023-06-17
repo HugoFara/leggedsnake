@@ -12,6 +12,7 @@ Created on Sat May 25 2019 14:56:01.
 
 @author: HugoFara
 """
+from functools import partial
 import numpy as np
 import pymunk as pm
 import pymunk.matplotlib_util
@@ -329,7 +330,7 @@ class VisualWorld(World):
                 linkage_im.append(ax.plot([], [], 'b-', animated=False)[0])
         self.linkage_im.append(linkage_im)
 
-    def draw_linkage(self, linkage_im, joints, opacity=None):
+    def draw_linkage(self, linkage_im, joints):
         """Draw the linkage at his current state."""
         a = 0
         for j in joints:
@@ -337,43 +338,44 @@ class VisualWorld(World):
                 linkage_im[a].set_data(
                     [j.x, j.joint0.x], [j.y, j.joint0.y]
                 )
-                if opacity is not None:
-                    linkage_im[a].set_alpha(opacity)
                 a += 1
             if hasattr(j, 'joint1') and j.joint1 is not None:
                 linkage_im[a].set_data(
                     [j.x, j.joint1.x], [j.y, j.joint1.y]
                 )
-                if opacity is not None:
-                    linkage_im[a].set_alpha(opacity)
                 a += 1
         return linkage_im
+
+    def init_visuals(self, opacities=None):
+        if opacities is not None:
+            for im, alpha in zip(self.linkage_im, opacities):
+                for line in im:
+                    line.set_alpha(alpha)
+
+        return self.road_im + [im for im in self.linkage_im]
     
     def reload_visuals(self, opacities=None):
         """Reload the visual components only."""
-        center = self.linkages[0].joints[0].coord()
+        center = np.mean([linkage.joints[0].coord() for linkage in self.linkages], axis=0)
         self.fig.suptitle(f"Position: {tuple(map(int, center))}")
 
         self.road_im[0].set_data(
             [i[0] for i in self.road],
             [i[1] for i in self.road]
         )
-        ax = self.ax
         if params["camera"]["dynamic_camera"]:
-            ax.set_xlim(center[0] - 10, center[0] + 10)
-            ax.set_ylim(center[1] - 10, center[1] + 10)
+            self.ax.set_xlim(center[0] - 10, center[0] + 10)
+            self.ax.set_ylim(center[1] - 10, center[1] + 10)
         else:
-            ax.set_ylim(
+            self.ax.set_ylim(
                 min([0] + [min(i.y for i in linkage.joints) for linkage in self.linkages]) - 5,
                 max([0] + [max(i.y for i in linkage.joints) for linkage in self.linkages]) + 5
             )
 
         # Return modified objects for animation optimization
         visual_objects = []
-        if opacities is None:
-            opacities = [1] * len(self.linkages)
-        for linkage, im, opa in zip(self.linkages, self.linkage_im, opacities):
-            visual_objects += self.draw_linkage(im, linkage.joints, opa)
+        for linkage, im in zip(self.linkages, self.linkage_im):
+            visual_objects += self.draw_linkage(im, linkage.joints)
         visual_objects += self.road_im
         return visual_objects
 
@@ -473,7 +475,7 @@ def video_debug(linkage):
         plt.pause(.2)
 
 
-def all_linkages_video(linkages, duration=30, save=False):
+def all_linkages_video(linkages, duration=30, save=False, opacities=None):
     """
     Give the rigidbody a dynamic model and launch simulation with video.
 
@@ -507,9 +509,12 @@ def all_linkages_video(linkages, duration=30, save=False):
             f"but display is {fps} times/s."
         )
 
+    if opacities is None:
+        opacities = np.logspace(0, -1, num=len(linkages))
     animation = anim.FuncAnimation(
         world.fig, world.visual_update,
         frames=[None] * (n_frames - 1),
+        init_func=partial(world.init_visuals, opacities),
         interval=int(1000 / params["camera"]["fps"]),
         repeat=False, blit=False
     )
