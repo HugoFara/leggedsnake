@@ -117,6 +117,13 @@ class GeneticOptimization:
         self.kwargs = kwargs
         self.pop = None
         self.max_pop = kwargs_switcher('max_pop', self.kwargs, 11)
+        self.verbosity = kwargs_switcher('verbose', self.kwargs, 1)
+        self.startnstop = kwargs_switcher('startnstop', self.kwargs, False)
+        if self.startnstop and os.path.exists(self.startnstop):
+            self.pop = load_population(self.startnstop)
+        else:
+            # At least two parents to begin with
+            self.pop = [[self.dna[0], list(self.dna[1]), list(self.dna[2])]]
 
     def birth(self, par1, par2, prob):
         """
@@ -133,7 +140,7 @@ class GeneticOptimization:
             Dna of first parent.
         par2 : list[float, tuple of float, tuple of tuple of float]
             Dna of second parent.
-        prob : list[float]
+        prob : list[float] or float
             Probability for each gene to mutate, width of a normal law.
 
         Returns
@@ -286,39 +293,31 @@ class GeneticOptimization:
             List of 3-tuples: best score, best dimensions and initial positions.
             The list is sorted by score order.
         """
-        startnstop = kwargs_switcher('startnstop', self.kwargs, False)
-        if startnstop and os.path.exists(startnstop):
-            self.pop = load_population(startnstop)
-        else:
-            # At least two parents to begin with
-            self.pop = [[self.dna[0], list(self.dna[1]), list(self.dna[2])] for _ in range(2)]
 
         max_genetic_dist = kwargs_switcher('max_genetic_dist', self.kwargs, .7)
-        verbose = kwargs_switcher('verbose', self.kwargs, 1)
         fitness_args = kwargs_switcher('fitness_args', self.kwargs, None)
-        # "Garden of Eden" phase, add enough children to get as many individuals as
-        # required
-        for _ in range(len(self.pop), self.max_pop):
+        # Random children to get as many individuals as required
+        for _ in range(self.max_pop - len(self.pop)):
             self.pop.append(
                 self.birth(
-                    self.pop[nprand.randint(len(self.pop) - 1)],
-                    self.pop[nprand.randint(len(self.pop) - 1)],
+                    self.pop[int(nprand.rand() * len(self.pop))],
+                    self.pop[int(nprand.rand() * len(self.pop))],
                     self.prob
                 )
             )
         # Individuals evaluation
         self.evaluate_population(
             fitness_args,
-            verbose=verbose > 1,
+            verbose=self.verbosity > 1,
             processes=processes
         )
         postfix = {"best score": max(x[0] for x in self.pop)}
         iterations = tqdm.trange(
             iters, desc='Evolutionary optimization',
-            disable=verbose != 1, postfix=postfix
+            disable=self.verbosity != 1, postfix=postfix
         )
         for i in iterations:
-            if verbose > 1:
+            if self.verbosity > 1:
                 print(f"Turn: {i}, {len(self.pop)} individuals.")
             if kwargs_switcher('gui', self.kwargs, False):
                 kwargs_switcher('gui', self.kwargs, False)(self.pop)
@@ -329,15 +328,15 @@ class GeneticOptimization:
                 death_score = - float('inf')
             # We only keep max_pop individuals
             pop = list(filter(lambda x: x[0] >= death_score, self.pop))
-            parents = self.select_parents(verbose=verbose > 1)
+            parents = self.select_parents(verbose=self.verbosity > 1)
             # We select the best fit individual to show off, we know it is a parent
             best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
             # Update progress bar
             postfix["best score"] = parents[best_id][0]
             iterations.set_postfix(postfix)
-            if startnstop:
+            if self.startnstop:
                 save_population(
-                    startnstop, pop, verbose > 1,
+                    self.startnstop, pop, self.verbosity > 1,
                     {
                         'best_score': parents[best_id][0],
                         'best_individual_id': best_id
@@ -350,7 +349,7 @@ class GeneticOptimization:
             # Individuals evaluation
             self.evaluate_population(
                 fitness_args,
-                verbose=verbose > 1,
+                verbose=self.verbosity > 1,
                 processes=processes
             )
 
