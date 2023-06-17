@@ -613,9 +613,10 @@ def evolutive_optimizer(
         init_pop=init_pop,
         startnstop=startnstop,
         fitness_args=(linkage,),
-        processes=4
+        processes=4,
+        gui=show_all_walkers
     )
-    return optimizer.run(iters, gui=gui)
+    return optimizer.run(iters)
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
@@ -696,7 +697,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider.set_num_constraints(optimized_striders[0][1], flat=True)
         input("Press enter to show result ")
         show_physics(strider, debug=False, duration=40, save=False)
-        if file is not None:
+        if file:
             data = ls.load_data(file)
             ls.show_genetic_optimization(data)
 

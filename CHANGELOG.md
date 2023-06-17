@@ -36,6 +36,7 @@ but (fitness, position, dimensions) was indicated.
 
 ### Removed
 
+- ``evolutionary_optimization`` function is removed. Use  ``GeneticOptimization`` class instead.
 - ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique 
 ``physics_period`` set to 0.02 (s).
 - ``leggedsnake/Population evolution.json`` removed. 
