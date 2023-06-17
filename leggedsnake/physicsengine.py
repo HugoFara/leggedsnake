@@ -361,8 +361,10 @@ class VisualWorld(World):
 
         # Return modified objects for animation optimization
         visual_objects = []
+        joints = []
         for linkage in self.linkages:
-            visual_objects += self.draw_linkage(linkage.joints)
+            joints.extend(linkage.joints)
+        visual_objects += self.draw_linkage(joints)
         visual_objects += self.road_im
         return visual_objects
 

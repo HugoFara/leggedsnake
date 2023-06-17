@@ -224,6 +224,20 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
 
 
 def show_all_walkers(dnas, duration=30, save=False):
+    """
+    Parameters
+    ----------
+    dnas : iterable of dna
+
+    duration : float, default is 30
+        Animation duration
+    save : bool, default is False
+
+
+    Returns
+    -------
+
+    """
     linkages = [complete_strider(param2dimensions(dna[1]), dna[2]) for dna in dnas]
     ls.all_linkages_video(linkages, duration, save)
 
@@ -673,6 +687,9 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider.set_num_constraints(optimized_striders[0][1], flat=True)
         input("Press enter to show result ")
         show_physics(strider, debug=False, duration=40, save=False)
+        if file is not None:
+            data = ls.load_data(file)
+            ls.show_genetic_optimization(data)
 
 
 # The file will be imported as a module if using multiprocessing
