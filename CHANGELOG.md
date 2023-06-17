@@ -9,23 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- ``genetic_optimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+- ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all walkers in one simulation!
+- ``GeneticOptimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
 - ``VisualWorld`` has a new method called ``reload_visuals``.
+- ``show_evolution.py`` is a new script plotting various data about the Walkers population's evolution during 
+genetic optimization.
 
 ### Changed
 
-- ``update`` method of ``VisualWorld`` renammed to ``visual_update`` for clarity.
+- ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
 - Frame rate and physics speed are now independent parameters.
+- ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
 
 ### Fixed
 
 - Documentation of ``evolutionary_optimization_builtin`` was wrong: returned data were in order (fitness, dimensions, position),
 but (fitness, position, dimensions) was indicated.
 - After a genetic optimization, the example script was assigning wrong data to the demo walker.
+- ``kwargs_switcher`` from ``geneticoptimizer.py`` do no longer pop (destroy) argument from the input dictionary.
 
 ### Removed
 
-- ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique ``physics_period`` set to 0.02 (s).
+- ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique 
+``physics_period`` set to 0.02 (s).
+- ``leggedsnake/Population evolution.json`` removed. 
+It contained data about an evolution run and is not relevant for users.
 
 ## [0.3.1] - 2023-06-14
 

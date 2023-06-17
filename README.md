@@ -8,6 +8,8 @@ LeggedSnake is a project intended to make the simulation of walking linkages fas
 We believe that building walking linkages is fun and could be useful.
 Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.
 
+![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
+
 We handle planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism) in three main parts:
 
 * Linkage conception in simple Python relying on [pylinkage](https://github.com/HugoFara/pylinkage).
