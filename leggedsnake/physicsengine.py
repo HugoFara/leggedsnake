@@ -310,24 +310,23 @@ class VisualWorld(World):
         super().add_linkage(linkage)
         # Objects that will allow display
         linkage_im = []
-        ax = self.ax
         for j in self.linkages[-1].joints:
             if (
                     isinstance(j, Static)
                     and hasattr(j, 'joint0')
                     and j.joint0 is not None
             ):
-                linkage_im.append(ax.plot([], [], 'k-', animated=False)[0])
+                linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
                 if hasattr(j, 'joint1') and j.joint1 is not None:
-                    linkage_im.append(ax.plot([], [], 'k-', animated=False)[0])
+                    linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
             elif isinstance(j, Crank):
-                linkage_im.append(ax.plot([], [], 'g-', animated=False)[0])
+                linkage_im.append(self.ax.plot([], [], 'g-', animated=False)[0])
             elif isinstance(j, Fixed):
-                linkage_im.append(ax.plot([], [], 'r-', animated=False)[0])
-                linkage_im.append(ax.plot([], [], 'r-', animated=False)[0])
+                linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
+                linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
             elif isinstance(j, Pivot):
-                linkage_im.append(ax.plot([], [], 'b-', animated=False)[0])
-                linkage_im.append(ax.plot([], [], 'b-', animated=False)[0])
+                linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
+                linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
         self.linkage_im.append(linkage_im)
 
     def draw_linkage(self, linkage_im, joints):
@@ -346,11 +345,14 @@ class VisualWorld(World):
                 a += 1
         return linkage_im
 
-    def init_visuals(self, opacities=None):
-        if opacities is not None:
-            for im, alpha in zip(self.linkage_im, opacities):
+    def init_visuals(self, colors=None):
+        if colors is not None:
+            for im, color in zip(self.linkage_im, colors):
                 for line in im:
-                    line.set_alpha(alpha)
+                    if np.isscalar(color):
+                        line.set_alpha(color)
+                    else:
+                        line.set_color(color)
 
         return self.road_im + [im for im in self.linkage_im]
     
@@ -475,7 +477,7 @@ def video_debug(linkage):
         plt.pause(.2)
 
 
-def all_linkages_video(linkages, duration=30, save=False, opacities=None):
+def all_linkages_video(linkages, duration=30, save=False, colors=None):
     """
     Give the rigidbody a dynamic model and launch simulation with video.
 
@@ -509,12 +511,12 @@ def all_linkages_video(linkages, duration=30, save=False, opacities=None):
             f"but display is {fps} times/s."
         )
 
-    if opacities is None:
-        opacities = np.logspace(0, -1, num=len(linkages))
+    if colors is None:
+        colors = np.logspace(0, -1, num=len(linkages))
     animation = anim.FuncAnimation(
         world.fig, world.visual_update,
         frames=[None] * (n_frames - 1),
-        init_func=partial(world.init_visuals, opacities),
+        init_func=partial(world.init_visuals, colors),
         interval=int(1000 / params["camera"]["fps"]),
         repeat=False, blit=False
     )

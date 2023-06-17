@@ -247,7 +247,13 @@ def show_all_walkers(dnas, duration=30, save=False):
         dummy_strider.set_num_constraints(dna[1])
         dummy_strider.set_coords(dna[2])
         linkages.append(dummy_strider)
-    ls.all_linkages_video(linkages, duration, save)
+    max_score = max(dna[0] for dna in dnas)
+    min_score = min(dna[0] for dna in dnas)
+    ls.all_linkages_video(
+        linkages, duration, save,
+        np.random.rand(len(dnas), 3) # random color
+        #np.interp([dna[0] for dna in dnas], [min_score, max_score], [0, 1]) # fitness-based opacity
+    )
 
 
 def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
