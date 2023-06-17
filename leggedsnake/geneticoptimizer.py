@@ -20,16 +20,6 @@ import tqdm
 from pylinkage.geometry import dist
 
 
-def tqdm_verbosity(iterable, verbose=True, *args, **kwargs):
-    """Wrapper for tqdm, that let you specify if you want verbosity."""
-    if verbose:
-        for i in tqdm.tqdm(iterable, *args, **kwargs):
-            yield i
-    else:
-        for i in iterable:
-            yield i
-
-
 def kwargs_switcher(arg_name, kwargs, default=None):
     """Simple function to return the good element from a kwargs dict."""
     out = default
@@ -89,12 +79,44 @@ class GeneticOptimization:
             prob=.07,
             **kwargs
     ) -> None:
+        """
+
+        Parameters
+        ----------
+        dna : list
+        fitness : callable
+        iters : int
+        prob : float or tuple[float]
+        kwargs : dict
+            Other useful parameters for the optimization.
+
+            max_pop : int, default=11
+                Maximum number of individuals. The default is 11.
+            max_genetic_dist : float, default=.7
+                Maximum genetic distance, before individuals
+                cannot reproduce (separated species). The default is .7.
+            startnstop : bool, default=False
+                Ability to close program without loosing population.
+                If True, we verify at initialization the existence of a data file.
+                Population is saved every int(250 / max_pop) iterations.
+                The default is False.
+            fitness_args : tuple
+                Keyword arguments to send to the fitness function.
+                The default is None (no argument sent).
+            verbose : int
+                Level of verbosity.
+                0: no verbose, do not print anything.
+                1: show a progress bar.
+                2: complete report for each turn.
+                The default is 1.
+        """
         self.dna = dna
         self.fitness = fitness
         self.iters = iters
         self.prob = prob
         self.kwargs = kwargs
         self.pop = None
+        self.max_pop = kwargs_switcher('max_pop', self.kwargs, 11)
 
     def birth(self, par1, par2, prob):
         """
@@ -247,51 +269,16 @@ class GeneticOptimization:
             j += 1
         return children
 
-    def run(self, iters):
+    def run(self, iters, processes=1):
         """
         Optimization by genetic algorithm (GA).
 
         Parameters
         ----------
-        dna : list[float, tuple[float], tuple[tuple[float]]]
-            DNA of individuals.
-        prob : list[float] | float
-            Standard deviation from a perfect transmission of a gene.
-            * float: standard deviation for all genes
-            * list[float]: standard deviation for each gene
-        fitness : callable
-            Evaluation function.
-            Return float.
-            The
         iters : int
             Number of iterations.
-        **kwargs : dict
-            Other useful parameters for the optimization.
-
-            max_pop : int, default=11
-                Maximum number of individuals. The default is 11.
-            init_pop : sequence of objects, default=None
-                Initial population, for wider INITIAL genetic diversity.
-                The default is None.
-            max_genetic_dist : float, default=.7
-                Maximum genetic distance, before individuals
-                cannot reproduce (separated species). The default is .7.
-            startnstop : bool, default=False
-                Ability to close program without loosing population.
-                If True, we verify at initialization the existence of a data file.
-                Population is saved every int(250 / max_pop) iterations.
-                The default is False.
-            fitness_args : tuple
-                Keyword arguments to send to the fitness function.
-                The default is None (no argument sent).
-            verbose : int
-                Level of verbosity.
-                0: no verbose, do not print anything.
-                1: show a progress bar.
-                2: complete report for each turn.
-                The default is 1.
-            processes : int, default=1
-                Number of processes that will evaluate the linkages.
+        processes : int, default=1
+            Number of processes that will evaluate the linkages.
 
         Returns
         -------
@@ -306,16 +293,12 @@ class GeneticOptimization:
             # At least two parents to begin with
             self.pop = [[self.dna[0], list(self.dna[1]), list(self.dna[2])] for _ in range(2)]
 
-        max_pop = kwargs_switcher('max_pop', self.kwargs, 11)
         max_genetic_dist = kwargs_switcher('max_genetic_dist', self.kwargs, .7)
         verbose = kwargs_switcher('verbose', self.kwargs, 1)
         fitness_args = kwargs_switcher('fitness_args', self.kwargs, None)
-        # Number of evaluations to run in parallel
-        processes = kwargs_switcher('processes', self.kwargs, default=1)
         # "Garden of Eden" phase, add enough children to get as many individuals as
         # required
-        init_pop = kwargs_switcher('init_pop', self.kwargs, default=max_pop)
-        for _ in range(len(self.pop), init_pop):
+        for _ in range(len(self.pop), self.max_pop):
             self.pop.append(
                 self.birth(
                     self.pop[nprand.randint(len(self.pop) - 1)],
@@ -323,16 +306,16 @@ class GeneticOptimization:
                     self.prob
                 )
             )
-        postfix = {"best score": max(x[0] for x in self.pop)}
-        iterations = tqdm.trange(
-            iters, desc='Evolutionary optimization',
-            disable=verbose > 0, postfix=postfix
-        )
         # Individuals evaluation
         self.evaluate_population(
             fitness_args,
             verbose=verbose > 1,
             processes=processes
+        )
+        postfix = {"best score": max(x[0] for x in self.pop)}
+        iterations = tqdm.trange(
+            iters, desc='Evolutionary optimization',
+            disable=verbose != 1, postfix=postfix
         )
         for i in iterations:
             if verbose > 1:
@@ -341,7 +324,7 @@ class GeneticOptimization:
                 kwargs_switcher('gui', self.kwargs, False)(self.pop)
             # Population selection
             # Minimal score before death
-            death_score = np.quantile([j[0] for j in self.pop], 1 - max_pop / len(self.pop))
+            death_score = np.quantile([j[0] for j in self.pop], 1 - self.max_pop / len(self.pop))
             if np.isnan(death_score):
                 death_score = - float('inf')
             # We only keep max_pop individuals

@@ -37,6 +37,8 @@ but (fitness, position, dimensions) was indicated.
 ### Removed
 
 - ``evolutionary_optimization`` function is removed. Use  ``GeneticOptimization`` class instead.
+  - You can no longer use the argument "init_pop" to change the size of the initial population. 
+  It now always set to max_pop.
 - ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique 
 ``physics_period`` set to 0.02 (s).
 - ``leggedsnake/Population evolution.json`` removed. 

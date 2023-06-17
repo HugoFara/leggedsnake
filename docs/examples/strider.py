@@ -569,7 +569,6 @@ def evolutive_optimizer(
         prev=None, 
         pop=10, 
         iters=10,
-        init_pop=None, 
         startnstop=False,
         gui=False
     ):
@@ -610,13 +609,11 @@ def evolutive_optimizer(
         fitness=fitness,
         iters=iters,
         max_pop=pop,
-        init_pop=init_pop,
         startnstop=startnstop,
         fitness_args=(linkage,),
-        processes=4,
-        gui=show_all_walkers
+        gui=gui
     )
-    return optimizer.run(iters)
+    return optimizer.run(iters, processes=4)
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
