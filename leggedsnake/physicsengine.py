@@ -327,25 +327,29 @@ class VisualWorld(World):
             elif isinstance(j, Pivot):
                 linkage_im.append(ax.plot([], [], 'b-', animated=False)[0])
                 linkage_im.append(ax.plot([], [], 'b-', animated=False)[0])
-        self.linkage_im.extend(linkage_im)
+        self.linkage_im.append(linkage_im)
 
-    def draw_linkage(self, joints):
+    def draw_linkage(self, linkage_im, joints, opacity=None):
         """Draw the linkage at his current state."""
         a = 0
         for j in joints:
             if hasattr(j, 'joint0') and j.joint0 is not None:
-                self.linkage_im[a].set_data(
+                linkage_im[a].set_data(
                     [j.x, j.joint0.x], [j.y, j.joint0.y]
                 )
+                if opacity is not None:
+                    linkage_im[a].set_alpha(opacity)
                 a += 1
             if hasattr(j, 'joint1') and j.joint1 is not None:
-                self.linkage_im[a].set_data(
+                linkage_im[a].set_data(
                     [j.x, j.joint1.x], [j.y, j.joint1.y]
                 )
+                if opacity is not None:
+                    linkage_im[a].set_alpha(opacity)
                 a += 1
-        return self.linkage_im
+        return linkage_im
     
-    def reload_visuals(self):
+    def reload_visuals(self, opacities=None):
         """Reload the visual components only."""
         center = self.linkages[0].joints[0].coord()
         self.fig.suptitle(f"Position: {tuple(map(int, center))}")
@@ -366,14 +370,14 @@ class VisualWorld(World):
 
         # Return modified objects for animation optimization
         visual_objects = []
-        joints = []
-        for linkage in self.linkages:
-            joints.extend(linkage.joints)
-        visual_objects += self.draw_linkage(joints)
+        if opacities is None:
+            opacities = [1] * len(self.linkages)
+        for linkage, im, opa in zip(self.linkages, self.linkage_im, opacities):
+            visual_objects += self.draw_linkage(im, linkage.joints, opa)
         visual_objects += self.road_im
         return visual_objects
 
-    def visual_update(self, time=None):
+    def visual_update(self, time=None, opacities=None):
         """
         Update simulation and draw it.
         
@@ -383,6 +387,8 @@ class VisualWorld(World):
             When a list, delta-time for physics and display (respectively) 
             Using a float, only delta-time for physics, fps is set with params["camera"]["fps"]
             Setting to None set physics dt to params["simul"]["physics_period"] and fps to params["camera"]["fps"]
+        opacities : list of float or None
+            Opacity for the drawing of each linkage.
         """
         if time is None:
             dt = params["simul"]["physics_period"]
@@ -402,7 +408,7 @@ class VisualWorld(World):
                 update_ret[i] += step_update
         else:
             update_ret = self.update(dt)
-        self.reload_visuals()
+        self.reload_visuals(opacities)
         return update_ret
 
 
