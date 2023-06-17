@@ -1,3 +1,46 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "leggedsnake"
+authors = [
+    {name = "Hugo Farajallah", email = "leggedsnake@hugofara.net"},
+]
+description = "Simulate and optimize planar leg mechanisms using PSO and GA"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = [
+    "linkage", "leg mechanism", "optimization",
+    "leggedsnake", "walking linkage"
+]
+license = {text = "MIT License"}
+classifiers = [
+    "Programming Language :: Python :: 3 - Alpha",
+	"Topic :: Scientific/Engineering",
+	"Topic :: Scientific/Engineering :: Artificial Life",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3.7",
+	"Programming Language :: Python :: 3.8",
+	"Programming Language :: Python :: 3.9",
+	"Programming Language :: Python :: 3.10",
+	"Programming Language :: Python :: 3.11",
+	"Environment :: Console",
+	"Intended Audience :: Science/Research",
+	"Intended Audience :: Legal Industry",
+	"Intended Audience :: End Users/Desktop",
+	"Operating System :: OS Independent"
+]
+dependencies = [
+	"numpy",
+	"tqdm",
+	"matplotlib",
+	"pylinkage"
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://hugofara.net/leggedsnake-retro-ingeneering-evolution/"
+Documentation = "https://github.com/HugoFara/leggedsnake/blob/main/CHANGELOG.md"
+Repository = "https://github.com/HugoFara/leggedsnake"
+Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"

@@ -21,6 +21,7 @@ genetic optimization.
 - Frame rate and physics speed are now independent parameters.
 - ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
 - Genetic optimization do no longer display all dimensions in the progress bar.
+- ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
 
 ### Fixed
 
@@ -28,6 +29,10 @@ genetic optimization.
 but (fitness, position, dimensions) was indicated.
 - After a genetic optimization, the example script was assigning wrong data to the demo walker.
 - ``kwargs_switcher`` from ``geneticoptimizer.py`` do no longer pop (destroy) argument from the input dictionary.
+
+### Deprecated
+
+- ``setup.cfg`` should no longer be used, as it is replaced by ``pyproject.toml``. 
 
 ### Removed
 
