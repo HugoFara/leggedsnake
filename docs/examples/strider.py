@@ -559,8 +559,6 @@ def fitness(dna, linkage_hollow):
         return -1, list()
     if world.linkages[0].body.position.x > -5:
         return 0, pos
-    if gui:
-        ls.video(linkage_hollow, duration)
     # Return 100 times average yield, and initial positions
     return tot / dur, pos
 
