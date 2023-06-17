@@ -19,9 +19,11 @@ import leggedsnake as ls
 
 # Simulation parameters
 # Number of points for crank complete turn
-n = 10
+LAP_POINTS = 10
 # Time (in seconds) for a crank revolution
-speed = 100
+LAP_PER_SECOND = 100
+# NUmber of pairs of legs for the dynamic simulation
+LEGS_NUMBER = 4
 
 """
 Parameters that can change without changing joints between objects.
@@ -29,16 +31,16 @@ Parameters that can change without changing joints between objects.
 Can be distance between joints, or an angle.
 Units are given relative to crank length, which is normalized to 1.
 """
-param_names = (
+DIM_NAMES = (
     "triangle", "ape", "femur", "rockerL", "rockerS", "f", "tibia", "phi"
 )
 
-param = (
+DIMENSIONS = (
     # AB distance (=AB_p) "triangle":
     2,
     # "ape":
     np.pi / 4,
-    # femur = 3 for higher steps, 2 for the standard size but 1.8 is good enough
+    # femur = 3 for higher steps, 2 for the standard size, but 1.8 is good enough
     1.8,
     # "rockerL":
     2.6,
@@ -55,19 +57,19 @@ param = (
 # param = (2.62484195, 1.8450077, 2.41535873, 2.83669735, 2.75235715,
 #         4.60386788, 3.49814371, 3.51517851)
 # Limits for parameters, will be used in optimizers
-bounds = (
+BOUNDS = (
     (0, 0, 0, 0, 0, 0, 0, 0),
     (8, 2 * np.pi, 7.2, 10.4, 5.6, 2 * np.pi, 10, 7.6)
 )
 
 # Initial coordinates according to previous dimensions
-begin = (
+INIT_COORD = (
     (0, 0), (0, 1), (1.41, 1.41), (-1.41, 1.41), (0, -1), (-2.25, 0),
     (2.25, 0), (-1.4, -1.2), (1.4, -1.2), (-2.7, -2.7), (2.7, -2.7)
 )
 
 
-def param2dimensions(param=param, flat=False):
+def param2dimensions(param=DIMENSIONS, flat=False):
     """
     Parameters are written in short form due to symmetry.
 
@@ -124,7 +126,7 @@ def complete_strider(constraints, prev):
         "B_p": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame left (B_p)"),
         # Pivot joints, explicitly defined to be modified later
         # Joint linked to crank. Coordinates are chosen in each frame
-        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / n, name="Crank link (C)")
+        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
         "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
@@ -186,7 +188,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
         "B_p": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame left (B_p)"),
         # Pivot joints, explicitly defined to be modified later
         # Joint linked to crank. Coordinates are chosen in each frame
-        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / n, name="Crank link (C)")
+        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
         "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
@@ -281,15 +283,15 @@ def sym_stride_evaluator(linkage, dims, pos):
         # Complete revolution with 12 points
         tuple(
             tuple(i) for i in linkage.step(
-                iterations=points + 1, dt=n / points
+                iterations=points + 1, dt=LAP_POINTS / points
             )
         )
         # Again with n points, and at least 12 iterations
         # L = tuple(tuple(i) for i in linkage.step(iterations=n))
-        factor = int(points / n) + 1
+        factor = int(points / LAP_POINTS) + 1
         loci = tuple(
             tuple(i) for i in linkage.step(
-                iterations=n * factor, dt=n / n / factor
+                iterations=LAP_POINTS * factor, dt=LAP_POINTS / LAP_POINTS / factor
             )
         )
         history.append(list(dims) + [0])
@@ -335,7 +337,7 @@ def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
     return lines
 
 
-def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
+def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
                     iters=400, *args, **kwargs):
     """
     Optimize linkage geometrically using PSO.
@@ -377,7 +379,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         out = ls.particle_swarm_optimization(
             sym_stride_evaluator, linkage,
             center=dims, n_particles=age, iters=iters,
-            bounds=bounds, dimensions=len(dims), *args,
+            bounds=BOUNDS, dimensions=len(dims), *args,
         )
 
         fig = plt.figure("Swarm in polar graph")
@@ -386,7 +388,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         t = np.linspace(0, 2 * np.pi, len(dims) + 2)[:-1]
         ax.set_xticks(t)
         ax.set_rmax(7)
-        ax.set_xticklabels(param_names + ("score",))
+        ax.set_xticklabels(DIM_NAMES + ("score",))
         formatted_history = [
             history[i:i + age] for i in range(0, len(history), age)
         ]
@@ -418,7 +420,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
         out = ls.particle_swarm_optimization(
             sym_stride_evaluator, linkage,
             center=dims, n_particles=age, iters=iters,
-            bounds=bounds, dimensions=len(dims),
+            bounds=BOUNDS, dimensions=len(dims),
             *args
         )
 
@@ -461,7 +463,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                 dims,
                 age,
                 iters=iters,
-                bounds=bounds,
+                bounds=BOUNDS,
                 dimensions=len(dims),
                 # *args
         ):
@@ -472,7 +474,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                 for j in range(min(10, len(dim))):
                     par = {}
                     for k in range(len(dim[j][0])):
-                        par[param_names[k]] = dim[j][0][k]
+                        par[DIM_NAMES[k]] = dim[j][0][k]
                     f.write('{}\n{}\n{}\n'.format(par, dim[j][1], dim[j][2]))
                     f.write('----\n')
                 f.close()
@@ -483,7 +485,7 @@ def swarm_optimizer(linkage, dims=param, show=False, save_each=0, age=300,
                 linkage,
                 dims,
                 n_particles=age,
-                bounds=bounds,
+                bounds=BOUNDS,
                 dimensions=len(dims),
                 iters=iters,
                 *args
@@ -556,7 +558,7 @@ def fitness(dna, linkage_hollow):
 
 def evolutive_optimizer(
         linkage, 
-        dims=param, 
+        dims=DIMENSIONS,
         prev=None, 
         pop=10, 
         iters=10,
@@ -619,7 +621,7 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
         else:
             linkage.set_num_constraints(datum[1], flat=False)
         ls.show_linkage(
-            linkage, prev=begin, title=str(datum[0]), duration=duration
+            linkage, prev=INIT_COORD, title=str(datum[0]), duration=duration
         )
 
 
@@ -632,15 +634,15 @@ def main(trials_and_errors, particle_swarm, genetic):
     :param particle_swarm: True to use a particle swarm optimization
     :type particle_swarm: bool
     """
-    strider = complete_strider(param2dimensions(param), begin)
+    strider = complete_strider(param2dimensions(DIMENSIONS), INIT_COORD)
     print(
         "Initial striding score:",
-        sym_stride_evaluator(strider, param, begin)
+        sym_stride_evaluator(strider, DIMENSIONS, INIT_COORD)
     )
     if trials_and_errors:
         # Trials and errors optimization as comparison
         optimized_striders = ls.trials_and_errors_optimization(
-            sym_stride_evaluator, strider, param, divisions=4, verbose=True
+            sym_stride_evaluator, strider, DIMENSIONS, divisions=4, verbose=True
         )
         print(
             "Striding score after trials and errors optimization:",
@@ -650,7 +652,7 @@ def main(trials_and_errors, particle_swarm, genetic):
     # Particle swarm optimization
     if particle_swarm:
         optimized_striders = swarm_optimizer(
-            strider, show=1, save_each=0, age=40, iters=40, bounds=bounds,
+            strider, show=1, save_each=0, age=40, iters=40, bounds=BOUNDS,
         )
         print(
             "Striding score after particle swarm optimization:",
@@ -660,7 +662,7 @@ def main(trials_and_errors, particle_swarm, genetic):
     if genetic:
         # ls.show_linkage(strider, save=False, duration=10, iteration_factor=n)
         # Add legs more legs to avoid falling
-        strider.add_legs(3)
+        strider.add_legs(LEGS_NUMBER - 1)
         init_coords = strider.get_coords()
         show_physics(strider, debug=False, duration=40, save=False)
         print(
