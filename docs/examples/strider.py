@@ -240,7 +240,13 @@ def show_all_walkers(dnas, duration=30, save=False):
     -------
 
     """
-    linkages = [complete_strider(param2dimensions(dna[1]), dna[2]) for dna in dnas]
+    linkages = []
+    for dna in dnas:
+        dummy_strider = complete_strider(param2dimensions(DIMENSIONS), INIT_COORD)
+        dummy_strider.add_legs(LEGS_NUMBER - 1)
+        dummy_strider.set_num_constraints(dna[1])
+        dummy_strider.set_coords(dna[2])
+        linkages.append(dummy_strider)
     ls.all_linkages_video(linkages, duration, save)
 
 
@@ -334,7 +340,7 @@ def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
 
     """
     best_cost = max(x[-1] for x in current_swarm)
-    fig.suptitle("Best cost: {}".format(best_cost))
+    fig.suptitle(f"Best cost: {best_cost}")
     for line, dimension_set in zip(lines, current_swarm):
         line.set_data(t, dimension_set)
     return lines
