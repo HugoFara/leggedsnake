@@ -20,6 +20,7 @@ genetic optimization.
 - ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
 - Frame rate and physics speed are now independent parameters.
 - ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
+- Genetic optimization do no longer display all dimensions in the progress bar.
 
 ### Fixed
 

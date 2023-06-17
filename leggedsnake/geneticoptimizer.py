@@ -324,16 +324,10 @@ def evolutionary_optimization_builtin(
                 prob
             )
         )
-    postfix = [
-        "best_score", max(x[0] for x in pop),
-        "best_dimensions", max(pop, key=lambda x: x[0])[1]
-    ]
-    iterations = tqdm_verbosity(
-        range(iters),
-        verbose=verbose == 1,
-        total=iters,
-        desc='Evolutionary optimization',
-        postfix=postfix
+    postfix = {"best score": max(x[0] for x in pop)}
+    iterations = tqdm.trange(
+        iters, desc='Evolutionary optimization',
+        disable=verbose > 0, postfix=postfix
     )
     # Individuals evaluation
     evaluate_population(
@@ -356,8 +350,9 @@ def evolutionary_optimization_builtin(
         parents = select_parents(pop, verbose=verbose > 1)
         # We select the best fit individual to show off, we know it is a parent
         best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
-        postfix[1] = parents[best_id][0]
-        postfix[3] = parents[best_id][1]
+        # Update progress bar
+        postfix["best score"] = parents[best_id][0]
+        iterations.set_postfix(postfix)
         if startnstop:
             save_population(
                 startnstop, pop, verbose > 1,
