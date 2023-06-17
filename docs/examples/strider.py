@@ -503,13 +503,15 @@ def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
         return out
 
 
-def dna_interpreter(dna, linkage_hollow):
+def dna_interpreter(dna):
+    linkage_hollow = complete_strider(param2dimensions(DIMENSIONS), INIT_COORD)
+    linkage_hollow.add_legs(LEGS_NUMBER - 1)
     linkage_hollow.set_num_constraints(dna[1])
     linkage_hollow.rebuild(dna[2])
     return linkage_hollow
 
 
-def dna_checker(linkage_hollow):
+def move_linkage(linkage_hollow):
     # Check if the mechanism is buildable
     try:
         # Save initial coordinates
@@ -519,7 +521,7 @@ def dna_checker(linkage_hollow):
         return False
 
 
-def fitness(dna, linkage_hollow):
+def fitness(dna):
     """
     Individual yield, return average efficiency and initial coordinates.
 
@@ -537,9 +539,9 @@ def fitness(dna, linkage_hollow):
         List of two elements: score (a float), and initial positions.
         Score is -float('inf') when mechanism building is impossible.
     """
-    linkage_hollow = dna_interpreter(dna, linkage_hollow)
+    linkage_hollow = dna_interpreter(dna)
     # Save initial coordinates, or error report
-    pos = dna_checker(linkage_hollow)
+    pos = move_linkage(linkage_hollow)
     if not pos:
         return -2, list()
     world = ls.World()
@@ -610,7 +612,6 @@ def evolutive_optimizer(
         iters=iters,
         max_pop=pop,
         startnstop=startnstop,
-        fitness_args=(linkage,),
         gui=gui
     )
     return optimizer.run(iters, processes=4)
@@ -672,7 +673,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         show_physics(strider, debug=False, duration=40, save=False)
         print(
             "Efficiency score before genetic optimization",
-            fitness([0, strider.get_num_constraints(), strider.get_coords()], strider)[0]
+            fitness([0, strider.get_num_constraints(), strider.get_coords()])[0]
         )
         # Reload the position: the show_optimized
         file = "Population evolutio.json"
@@ -690,8 +691,7 @@ def main(trials_and_errors, particle_swarm, genetic):
             "Efficiency score after genetic optimization:", 
             optimized_striders[0][0]
         )
-        strider.set_coords(optimized_striders[0][2])
-        strider.set_num_constraints(optimized_striders[0][1], flat=True)
+        strider = dna_interpreter(optimized_striders[0])
         input("Press enter to show result ")
         show_physics(strider, debug=False, duration=40, save=False)
         if file:
