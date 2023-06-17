@@ -2,13 +2,13 @@
 
 [![PyPI version fury.io](https://badge.fury.io/py/leggedsnake.svg)](https://pypi.python.org/pypi/leggedsnake/)
 [![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)](https://pepy.tech/project/leggedsnake)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/master/LICENSE.rst)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE.rst)
 
 LeggedSnake is a project intended to make the simulation of walking linkages fast and easy.
 We believe that building walking linkages is fun and could be useful.
 Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.
 
-![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
+![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
 
 We handle planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism) in three main parts:
 
@@ -37,7 +37,7 @@ pip install leggedsnake
 
 ### Setting up Virtual Environment
 
-We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/master/environment.yml) file for conda.
+We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/main/environment.yml) file for conda.
 Use ``conda env update --file environment.yml --name leggedsnake-env`` to install the requirements in a separate environment.
 
 If you are looking for a development version, check the GitHub repo under
@@ -45,7 +45,7 @@ If you are looking for a development version, check the GitHub repo under
 
 ## Usage
 
-The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/master/docs/examples/strider.py), which
+The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/docs/examples/strider.py), which
 demonstrates all the techniques about the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
 
 ### Defining a ``Walker``
@@ -73,7 +73,7 @@ my_walker = ls.Walker(
 ### Kinematic optimization using Particle Swarm Optimization (PSO)
 
 No change compared to a classic linkage optimization. You should use the ``step`` and ``stride`` method from the
-[utility module](https://github.com/HugoFara/leggedsnake/blob/master/leggedsnake/utility.py) as fitness functions.
+[utility module](https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/utility.py) as fitness functions.
 This set of rules should work well for a stride **maximisation** problem:
 
 1. Rebuild the Walker with the provided set of dimensions, and do a complete turn.
@@ -137,11 +137,11 @@ For this part we will focus on the [Strider linkage](https://www.diywalkers.com/
 an example file is provided at ``docs/examples/strider.py``.
 
 The linkage looks like this:
-![A Kinematic representation of Strider linkage](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20unoptimized%20Strider.gif)
+![A Kinematic representation of Strider linkage](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Kinematic%20unoptimized%20Strider.gif)
 
 Looks cool? Let's simulate it dynamically!
 
-![Dynamic one-leg-pair Strider being tested](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20one-legged%20Strider.gif)
+![Dynamic one-leg-pair Strider being tested](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20one-legged%20Strider.gif)
 
 Oops! Here is what you get when you forget to add more legs! There is **real danger here**, because your walker crawls
 well, you will be able to optimize efficiently the "crawler", *which may be not your goal*.
@@ -161,7 +161,7 @@ my_linkage.add_legs(3) # Replace "my_linkage" with your Walker object
 
 Let's have a look at the artist:
 
-![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
+![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
 
 ## Advice
 
@@ -177,7 +177,7 @@ Try to minimize the number of elements in the optimizations! You can often use s
 number of simulation parameters. For instance, the Strider linkage has axial symmetry. While it is irrelevant to use
 this property in dynamic simulation, you can use "half" your Strider in a kinematic optimization, which is much faster.
 
-![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20half-Strider.gif)
+![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Kinematic%20half-Strider.gif)
 
 ## Contribute
 
