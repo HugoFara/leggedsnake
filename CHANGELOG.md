@@ -26,6 +26,7 @@ genetic optimization.
   - Frame rate and physics speed are now independent parameters.
   - Visuals go to a new file ``worldvisualizer.py``.
   - Camera parameters should now be accessed from ``CAMERA`` instead of ``params["camera"]``.
+  - The camera feels more cinematic.
 - ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
 - ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
 

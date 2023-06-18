@@ -20,6 +20,44 @@ CAMERA = {
 }
 
 
+def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
+    """
+    Create a smooth transition between a camera view (prev_view) and a target view.
+
+    Parameters
+    ----------
+    target : tuple of tuple of float
+        Target camera bounds.
+    prev_view : tuple of tuple of float
+        Current camera bounds
+    dampers : tuple of tuple of float
+        Absolute values to stay in
+
+    Returns
+    -------
+        New bounds : tuple of tuple of float
+    """
+    new_bounds = [list(target[0]), list(target[1])]
+    for i in range(2):
+        for j in range(2):
+            operator = max if j else min
+            if operator(target[i][j], prev_view[i][j]) == prev_view[i][j]:
+                # We are in-bounds
+                # do not change anything
+                if operator(target[i][j] - dampers[i][j], prev_view[i][j]) == prev_view[i][j]:
+                    reactivity = 0.5
+                else:
+                    reactivity = 0
+            elif operator(target[i][j] + dampers[i][j], prev_view[i][j]) == prev_view[i][j]:
+                # Damper zone, initiate a smooth transition
+                reactivity = 0.5
+            else:
+                # Out-of-bounds, move a quick as possible
+                reactivity = 1
+            new_bounds[i][j] = target[i][j] * reactivity + prev_view[i][j] * (1 - reactivity)
+    return new_bounds
+
+
 class VisualWorld(pe.World):
     """Same as parent class World, but with matplotlib objects."""
 
@@ -114,19 +152,20 @@ class VisualWorld(pe.World):
             [i[0] for i in self.road],
             [i[1] for i in self.road]
         )
+        prev_view = self.ax.get_xlim(), self.ax.get_ylim()
         if CAMERA["dynamic_camera"]:
-            self.ax.set_xlim(center[0] - 10, center[0] + 10)
-            self.ax.set_ylim(center[1] - 10, center[1] + 10)
+            target = (center[0] - 10, center[0] + 10), (center[1] - 10, center[1] + 10)
         else:
-            self.ax.set_xlim(
+            target = (
                 min([0] + [min(i.x for i in linkage.joints) for linkage in self.linkages]) - 10,
                 max([0] + [max(i.x for i in linkage.joints) for linkage in self.linkages]) + 10
-            )
-            self.ax.set_ylim(
+            ), (
                 min([0] + [min(i.y for i in linkage.joints) for linkage in self.linkages]) - 5,
                 max([0] + [max(i.y for i in linkage.joints) for linkage in self.linkages]) + 5
             )
-
+        target = smooth_transition(target, prev_view)
+        self.ax.set_xlim(*target[0])
+        self.ax.set_ylim(*target[1])
         # Return modified objects for animation optimization
         visual_objects = []
         for linkage, im in zip(self.linkages, self.linkage_im):
