@@ -126,7 +126,7 @@ def complete_strider(constraints, prev):
         "B_p": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame left (B_p)"),
         # Pivot joints, explicitly defined to be modified later
         # Joint linked to crank. Coordinates are chosen in each frame
-        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / LAP_POINTS, name="Crank link (C)")
+        "C": ls.Crank(joint0=linka["A"], angle=-2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
         "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
@@ -188,7 +188,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
         "B_p": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame left (B_p)"),
         # Pivot joints, explicitly defined to be modified later
         # Joint linked to crank. Coordinates are chosen in each frame
-        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / LAP_POINTS, name="Crank link (C)")
+        "C": ls.Crank(joint0=linka["A"], angle=-2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
         "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
@@ -518,10 +518,21 @@ def dna_interpreter(dna):
 
 
 def move_linkage(linkage_hollow):
+    """
+    Make the linkage do a movement and return it, False if impossible.
+
+    Parameters
+    ----------
+    linkage_hollow : pylinkage.Linkage
+
+    Returns
+    -------
+
+    """
     # Check if the mechanism is buildable
     try:
         # Save initial coordinates
-        pos = tuple(linkage_hollow.step())[-1]
+        pos = tuple(linkage_hollow.step(iterations=LAP_POINTS))[-1]
         return pos
     except ls.UnbuildableError:
         return False
@@ -565,9 +576,9 @@ def fitness(dna):
         dur += energy
     if dur == 0:
         return -1, list()
-    if world.linkages[0].body.position.x > -5:
+    return world.linkages[0].body.position.x, pos
+    if world.linkages[0].body.position.x < 5:
         return 0, pos
-    # Return 100 times average yield, and initial positions
     return tot / dur, pos
 
 
@@ -639,12 +650,22 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
 
 def main(trials_and_errors, particle_swarm, genetic):
     """
-    Optimize a strider with different settings.
 
-    :param trials_and_errors: True to use trial and errors optimization.
-    :type trials_and_errors: bool
-    :param particle_swarm: True to use a particle swarm optimization
-    :type particle_swarm: bool
+    Parameters
+    ----------
+    trials_and_errors : bool, optional
+        True to use grid search (trial and errors) optimization.
+        The default is False.
+    particle_swarm : bool, optional
+        True to use a particle swarm optimization.
+        The default is False.
+    genetic : bool, optional
+        True to use genetic optimization.
+        The default is False.
+
+    Returns
+    -------
+
     """
     strider = complete_strider(param2dimensions(DIMENSIONS), INIT_COORD)
     print(
@@ -682,7 +703,7 @@ def main(trials_and_errors, particle_swarm, genetic):
             fitness([0, strider.get_num_constraints(), strider.get_coords()])[0]
         )
         # Reload the position: the show_optimized
-        file = "Population evolutio.json"
+        file = "Population evolution.json"
         file = False
         optimized_striders = evolutive_optimizer(
             strider,
