@@ -38,7 +38,8 @@ from .worldvisualizer import (
     all_linkages_video,
     video,
     video_debug,
-    VisualWorld
+    VisualWorld,
+    CAMERA
 )
 from .show_evolution import load_data, show_genetic_optimization
 

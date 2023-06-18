@@ -12,7 +12,7 @@ from . import physicsengine as pe
 from . import dynamiclinkage
 
 # Display settings
-CAMERA_SETTINGS = {
+CAMERA = {
     # Do you want to follow a system of view whole scene?
     "dynamic_camera": False,
     # Required frames per second
@@ -114,7 +114,7 @@ class VisualWorld(pe.World):
             [i[0] for i in self.road],
             [i[1] for i in self.road]
         )
-        if CAMERA_SETTINGS["dynamic_camera"]:
+        if CAMERA["dynamic_camera"]:
             self.ax.set_xlim(center[0] - 10, center[0] + 10)
             self.ax.set_ylim(center[1] - 10, center[1] + 10)
         else:
@@ -147,10 +147,10 @@ class VisualWorld(pe.World):
         """
         if time is None:
             dt = pe.params["simul"]["physics_period"]
-            fps = CAMERA_SETTINGS["fps"]
+            fps = CAMERA["fps"]
         elif isinstance(time, int) or isinstance(time, float):
             dt = time
-            fps = CAMERA_SETTINGS["fps"]
+            fps = CAMERA["fps"]
         else:
             dt, fps = time
         div = 1 // (dt * fps)
@@ -236,10 +236,10 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
     for linkage in linkages:
         world.add_linkage(linkage)
     # Number of frames for the selected duration
-    n_frames = int(CAMERA_SETTINGS["fps"] * duration)
+    n_frames = int(CAMERA["fps"] * duration)
 
     dt = pe.params["simul"]["physics_period"]
-    fps = CAMERA_SETTINGS["fps"]
+    fps = CAMERA["fps"]
     if dt * fps > 1:
         print(
             f"Warning: Physics is computed every {dt}s ({1 / dt} times/s)",
@@ -248,23 +248,23 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
 
     if colors is None:
         colors = np.logspace(0, -1, num=len(linkages))
-    previous_camera = CAMERA_SETTINGS["dynamic_camera"]
-    CAMERA_SETTINGS["dynamic_camera"] = dynamic_camera
+    previous_camera = CAMERA["dynamic_camera"]
+    CAMERA["dynamic_camera"] = dynamic_camera
     animation = anim.FuncAnimation(
         world.fig, world.visual_update,
         frames=[None] * (n_frames - 1),
         init_func=partial(world.init_visuals, colors),
-        interval=int(1000 / CAMERA_SETTINGS["fps"]),
+        interval=int(1000 / CAMERA["fps"]),
         repeat=False, blit=False
     )
     if save:
-        writer = anim.FFMpegWriter(fps=CAMERA_SETTINGS["fps"], bitrate=2500)
+        writer = anim.FFMpegWriter(fps=CAMERA["fps"], bitrate=2500)
         animation.save(f"Dynamic {linkages[0].name}.mp4", writer=writer)
     else:
         plt.show()
         if animation:
             pass
-    CAMERA_SETTINGS["dynamic_camera"] = previous_camera
+    CAMERA["dynamic_camera"] = previous_camera
 
 
 def video(linkage, duration=30, save=False, dynamic_camera=True):
