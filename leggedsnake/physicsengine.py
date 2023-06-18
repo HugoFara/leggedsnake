@@ -65,7 +65,7 @@ params = {
     # Display parameters
     "camera": {
         # Do you want to follow a system of view whole scene?
-        "dynamic_camera": True,
+        "dynamic_camera": False,
         # Required frames per second
         "fps": 20,
     },
@@ -374,6 +374,10 @@ class VisualWorld(World):
             self.ax.set_xlim(center[0] - 10, center[0] + 10)
             self.ax.set_ylim(center[1] - 10, center[1] + 10)
         else:
+            self.ax.set_xlim(
+                min([0] + [min(i.x for i in linkage.joints) for linkage in self.linkages]) - 10,
+                max([0] + [max(i.x for i in linkage.joints) for linkage in self.linkages]) + 10
+            )
             self.ax.set_ylim(
                 min([0] + [min(i.y for i in linkage.joints) for linkage in self.linkages]) - 5,
                 max([0] + [max(i.y for i in linkage.joints) for linkage in self.linkages]) + 5
@@ -480,7 +484,7 @@ def video_debug(linkage):
         plt.pause(.2)
 
 
-def all_linkages_video(linkages, duration=30, save=False, colors=None):
+def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_camera=False):
     """
     Give the rigidbody a dynamic model and launch simulation with video.
 
@@ -520,6 +524,8 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None):
 
     if colors is None:
         colors = np.logspace(0, -1, num=len(linkages))
+    previous_camera = params["camera"]["dynamic_camera"]
+    params["camera"]["dynamic_camera"] = dynamic_camera
     animation = anim.FuncAnimation(
         world.fig, world.visual_update,
         frames=[None] * (n_frames - 1),
@@ -529,14 +535,15 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None):
     )
     if save:
         writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
-        animation.save(f"Dynamic {linkage[0].name}.mp4", writer=writer)
+        animation.save(f"Dynamic {linkages[0].name}.mp4", writer=writer)
     else:
         plt.show()
         if animation:
             pass
+    params["camera"]["dynamic_camera"] = previous_camera
 
 
-def video(linkage, duration=30, save=False):
+def video(linkage, duration=30, save=False, dynamic_camera=True):
     """
     Give the rigidbody a dynamic model and launch simulation with video.
 
@@ -550,7 +557,7 @@ def video(linkage, duration=30, save=False):
     save : bool, optional
         If you want to save it as a .mp4 file.
     """
-    all_linkages_video([linkage], duration, save)
+    all_linkages_video([linkage], duration, save, dynamic_camera=dynamic_camera)
 
 
 if __name__ == "__main__":
