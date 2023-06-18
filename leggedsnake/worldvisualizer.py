@@ -38,6 +38,9 @@ def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
         New bounds : tuple of tuple of float
     """
     new_bounds = [list(target[0]), list(target[1])]
+    # Below the reactivity we won't resize the window
+    reactivity_threshold = 0.5
+    reactivity = [[0, 0], [0, 0]]
     for i in range(2):
         for j in range(2):
             operator = max if j else min
@@ -45,16 +48,27 @@ def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
                 # We are in-bounds
                 # do not change anything
                 if operator(target[i][j] - dampers[i][j], prev_view[i][j]) == prev_view[i][j]:
-                    reactivity = 0.5
+                    reactivity[i][j] = np.interp(
+                        target[i][j],
+                        (prev_view[i][j], prev_view[i][j] + dampers[i][j]),
+                        [0, 1]
+                    )
                 else:
-                    reactivity = 0
+                    reactivity[i][j] = 0
             elif operator(target[i][j] + dampers[i][j], prev_view[i][j]) == prev_view[i][j]:
                 # Damper zone, initiate a smooth transition
-                reactivity = 0.5
+                reactivity[i][j] = np.interp(
+                    target[i][j],
+                    (prev_view[i][j], prev_view[i][j] - dampers[i][j]),
+                    [0, 1]
+                )
             else:
                 # Out-of-bounds, move a quick as possible
-                reactivity = 1
-            new_bounds[i][j] = target[i][j] * reactivity + prev_view[i][j] * (1 - reactivity)
+                reactivity[i][j] = 1
+    if any(reac[0] > reactivity_threshold or reac[1] > reactivity_threshold for reac in reactivity):
+        for i in range(2):
+            for j in range(2):
+                new_bounds[i][j] = target[i][j] * reactivity[i][j] + prev_view[i][j] * (1 - reactivity[i][j])
     return new_bounds
 
 
