@@ -24,13 +24,14 @@ genetic optimization.
 - Genetic optimization:
   - During genetic optimization, population is now stable at max_pop (it used to fluctuate a lot).
   - Genetic optimization do no longer display all dimensions in the progress bar.
+  - ``startnstop`` argument may now be the name of the file to use (a string).
 - Visuals:
   - ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
   - Frame rate and physics speed are now independent parameters.
   - Visuals go to a new file ``worldvisualizer.py``.
   - Camera parameters should now be accessed from ``CAMERA`` instead of ``params["camera"]``.
   - The camera feels more cinematic.
-- ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
+- You can define a custom load when using ``World.add_linkage`` or ``VisualWorld.add_linkage``. The default is 0.
 - ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
 
 ### Fixed

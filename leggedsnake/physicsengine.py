@@ -116,13 +116,28 @@ class World:
         self.space.add(seg)
         self.linkages = []
 
-    def add_linkage(self, linkage):
-        """Add a DynamicLinkage to the simulation."""
+    def add_linkage(self, linkage, load=0):
+        """
+        Add a DynamicLinkage to the simulation.
+
+        Parameters
+        ----------
+        linkage : pylinkage.Linkage or leggedsnake.DynamicLinkage
+            Linkage to add.
+            We use the linkage's space if it is a DynamicLinkage.
+        load : float, optional
+            Load to add the center of the linkage.
+            Has no effect when using a DynamicLinkage.
+            The default is 0.
+        Returns
+        -------
+
+        """
         if isinstance(linkage, dynamiclinkage.DynamicLinkage):
             dynamic_linkage = linkage
         else:
             dynamic_linkage = dynamiclinkage.convert_to_dynamic_linkage(
-                linkage, self.space
+                linkage, self.space, load=load
             )
         for cur_crank in dynamic_linkage._cranks:
             cur_crank.actuator.max_force = 0

@@ -94,21 +94,25 @@ class VisualWorld(pe.World):
         # Same for the road
         self.road_im = self.ax.plot([], [], 'k-', animated=False)
 
-    def add_linkage(self, linkage):
+    def add_linkage(self, linkage, load=0):
         """
-        Add a linkage to the world, and create the appropriate Artist objects.
+        Add a linkage to the simulation, and create the appropriate Artist objects.
 
         Parameters
         ----------
-        linkage : pylinkage.linkage.Linkage
-            The linkage you want to add, can be a Walker.
-
+        linkage : pylinkage.Linkage or leggedsnake.DynamicLinkage
+            Linkage to add.
+            We use the linkage's space if it is a DynamicLinkage.
+        load : float, optional
+            Load to add the center of the linkage.
+            Has no effect when using a DynamicLinkage.
+            The default is 0.
         Returns
         -------
         None.
 
         """
-        super().add_linkage(linkage)
+        super().add_linkage(linkage, load)
         # Objects that will allow display
         linkage_im = []
         for j in self.linkages[-1].joints:
