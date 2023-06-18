@@ -324,7 +324,10 @@ class GeneticOptimization:
             verbose=self.verbosity > 1,
             processes=processes
         )
-        postfix = {"best score": max(x[0] for x in self.pop)}
+        postfix = {
+            "best score": max(x[0] for x in self.pop),
+            "average score": np.mean([x[0] for x in self.pop])
+        }
         iterations = tqdm.trange(
             iters, desc='Evolutionary optimization',
             disable=self.verbosity != 1, postfix=postfix
@@ -341,7 +344,10 @@ class GeneticOptimization:
             # We select the best fit individual to show off, we know it is a parent
             best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
             # Update progress bar
-            postfix["best score"] = parents[best_id][0]
+            postfix.update({
+                "best score": parents[best_id][0],
+                "average score": np.mean([x[0] for x in self.pop])
+            })
             iterations.set_postfix(postfix)
             if self.startnstop:
                 save_population(

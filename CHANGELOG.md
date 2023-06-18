@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all walkers in one simulation!
-- You can set the color of walkers during display.
-- ``GeneticOptimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+- View all walkers!
+  - ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all walkers in one simulation!
+  - You can set the color of walkers during display.
+- Genetic optimization:
+  - ``GeneticOptimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+  - The average score is now displayed.
 - ``VisualWorld`` has a new method called ``reload_visuals``.
 - ``show_evolution.py`` is a new script plotting various data about the Walkers population's evolution during 
 genetic optimization.
