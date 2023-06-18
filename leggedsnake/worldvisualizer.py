@@ -11,6 +11,14 @@ from pymunk import Space
 from . import physicsengine as pe
 from . import dynamiclinkage
 
+# Display settings
+CAMERA_SETTINGS = {
+    # Do you want to follow a system of view whole scene?
+    "dynamic_camera": False,
+    # Required frames per second
+    "fps": 20,
+}
+
 
 class VisualWorld(pe.World):
     """Same as parent class World, but with matplotlib objects."""
@@ -106,7 +114,7 @@ class VisualWorld(pe.World):
             [i[0] for i in self.road],
             [i[1] for i in self.road]
         )
-        if pe.params["camera"]["dynamic_camera"]:
+        if CAMERA_SETTINGS["dynamic_camera"]:
             self.ax.set_xlim(center[0] - 10, center[0] + 10)
             self.ax.set_ylim(center[1] - 10, center[1] + 10)
         else:
@@ -134,15 +142,15 @@ class VisualWorld(pe.World):
         ----------
         time : list | float | None
             When a list, delta-time for physics and display (respectively)
-            Using a float, only delta-time for physics, fps is set with pe.params["camera"]["fps"]
-            Setting to None set physics dt to pe.params["simul"]["physics_period"] and fps to pe.params["camera"]["fps"]
+            Using a float, only delta-time for physics, fps is set with CAMERA_SETTINGS["fps"]
+            Setting to None set physics dt to pe.params["simul"]["physics_period"] and fps to CAMERA_SETTINGS["fps"]
         """
         if time is None:
             dt = pe.params["simul"]["physics_period"]
-            fps = pe.params["camera"]["fps"]
+            fps = CAMERA_SETTINGS["fps"]
         elif isinstance(time, int) or isinstance(time, float):
             dt = time
-            fps = pe.params["camera"]["fps"]
+            fps = CAMERA_SETTINGS["fps"]
         else:
             dt, fps = time
         div = 1 // (dt * fps)
@@ -217,7 +225,7 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
         * If a list of list of float, it is the list of colors
         * If None, opacities are set randomly
     dynamic_camera : bool, optional
-        Type of visualisation. True follows one strider, False gives a larger view.
+        Type of visualization. True follows one strider, False gives a larger view.
         The default is False.
     """
     road_y = min(pe.linkage_bb(linkage)[0] for linkage in linkages) - 1
@@ -228,10 +236,10 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
     for linkage in linkages:
         world.add_linkage(linkage)
     # Number of frames for the selected duration
-    n_frames = int(pe.params["camera"]["fps"] * duration)
+    n_frames = int(CAMERA_SETTINGS["fps"] * duration)
 
     dt = pe.params["simul"]["physics_period"]
-    fps = pe.params["camera"]["fps"]
+    fps = CAMERA_SETTINGS["fps"]
     if dt * fps > 1:
         print(
             f"Warning: Physics is computed every {dt}s ({1 / dt} times/s)",
@@ -240,23 +248,23 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
 
     if colors is None:
         colors = np.logspace(0, -1, num=len(linkages))
-    previous_camera = pe.params["camera"]["dynamic_camera"]
-    pe.params["camera"]["dynamic_camera"] = dynamic_camera
+    previous_camera = CAMERA_SETTINGS["dynamic_camera"]
+    CAMERA_SETTINGS["dynamic_camera"] = dynamic_camera
     animation = anim.FuncAnimation(
         world.fig, world.visual_update,
         frames=[None] * (n_frames - 1),
         init_func=partial(world.init_visuals, colors),
-        interval=int(1000 / pe.params["camera"]["fps"]),
+        interval=int(1000 / CAMERA_SETTINGS["fps"]),
         repeat=False, blit=False
     )
     if save:
-        writer = anim.FFMpegWriter(fps=pe.params["camera"]["fps"], bitrate=2500)
+        writer = anim.FFMpegWriter(fps=CAMERA_SETTINGS["fps"], bitrate=2500)
         animation.save(f"Dynamic {linkages[0].name}.mp4", writer=writer)
     else:
         plt.show()
         if animation:
             pass
-    pe.params["camera"]["dynamic_camera"] = previous_camera
+    CAMERA_SETTINGS["dynamic_camera"] = previous_camera
 
 
 def video(linkage, duration=30, save=False, dynamic_camera=True):
@@ -273,7 +281,7 @@ def video(linkage, duration=30, save=False, dynamic_camera=True):
     save : bool, optional
         If you want to save it as a .mp4 file.
     dynamic_camera : bool, optional
-        Type of visualisation. True follows one strider, False gives a larger view.
+        Type of visualization. True follows one strider, False gives a larger view.
         The default is True.
     """
     all_linkages_video([linkage], duration, save, dynamic_camera=dynamic_camera)
@@ -286,7 +294,7 @@ if __name__ == "__main__":
         0, 2, joint0=base, joint1=crank, distance0=2, distance1=1
     )
     frame = pe.Fixed(joint0=crank, joint1=follower, distance=1, angle=-np.pi/2)
-    demo_linkage = pe.dlink.DynamicLinkage(
+    demo_linkage = pe.dynamiclinkage.DynamicLinkage(
         name='Some tricky linkage',
         joints=(base, crank, follower, frame),
         space=Space()

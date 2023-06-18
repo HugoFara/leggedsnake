@@ -17,7 +17,7 @@ import pymunk as pm
 from pylinkage.geometry import norm, cyl_to_cart, bounding_box
 from pylinkage.linkage import Static, Crank, Fixed, Pivot
 
-from . import dynamiclinkage as dlink
+from . import dynamiclinkage
 
 # Simulation parameters
 params = {
@@ -55,16 +55,9 @@ params = {
     },
     # Study hypothesis
     "simul": {
-        # Time between two physics computation
+        # Time between two physics computations
         "physics_period": 0.02,
-    },
-    # Display parameters
-    "camera": {
-        # Do you want to follow a system of view whole scene?
-        "dynamic_camera": False,
-        # Required frames per second
-        "fps": 20,
-    },
+    }
 }
 
 
@@ -76,8 +69,9 @@ def set_space_constraints(space):
     space.iterations = int(10 * np.exp(len_c / 60))
     for constraint in constraints:
         if not isinstance(constraint, pm.SimpleMotor) and False:
-            constraint.max_force = params["physics"]["max_force"] * (np.exp(
-                - len_c / 25) / 2 + .5)
+            constraint.max_force = params["physics"]["max_force"] * (
+                    np.exp(- len_c / 25) / 2 + .5
+            )
         constraint.error_bias = (1 - .1 * np.exp(-len_c / 60)) ** 60
 
 
@@ -124,10 +118,10 @@ class World:
 
     def add_linkage(self, linkage):
         """Add a DynamicLinkage to the simulation."""
-        if isinstance(linkage, dlink.DynamicLinkage):
+        if isinstance(linkage, dynamiclinkage.DynamicLinkage):
             dynamic_linkage = linkage
         else:
-            dynamic_linkage = dlink.convert_to_dynamic_linkage(
+            dynamic_linkage = dynamiclinkage.convert_to_dynamic_linkage(
                 linkage, self.space
             )
         for cur_crank in dynamic_linkage._cranks:
@@ -290,7 +284,7 @@ def linkage_bb(linkage):
         The linkage from which to get the bounding box.
     """
     data = [i.coord() for i in linkage.joints]
-    if isinstance(linkage, dlink.DynamicLinkage):
+    if isinstance(linkage, dynamiclinkage.DynamicLinkage):
         data.extend(tuple(i.position) for i in linkage.rigidbodies)
     return bounding_box(data)
 
@@ -301,7 +295,7 @@ if __name__ == "__main__":
     follower = Pivot(0, 2, joint0=base, joint1=crank, distance0=2,
                      distance1=1)
     frame = Fixed(joint0=crank, joint1=follower, distance=1, angle=-np.pi/2)
-    demo_linkage = dlink.DynamicLinkage(
+    demo_linkage = dynamiclinkage.DynamicLinkage(
         name='Some tricky linkage',
         joints=(base, crank, follower, frame),
         space=pm.Space()
