@@ -276,11 +276,18 @@ class GeneticOptimization:
             j += 1
         return children
 
-    def reduce_population(self, quantile=.25):
+    def reduce_population(self):
+        """
+        Reduce the population down to max_pop.
+
+        Returns
+        -------
+        new_population : list of dna
+            At most self.max_pop individuals, sorted by score.
+        """
         # We only keep max_pop individuals
-        target_pop = int(self.max_pop * quantile)
         sorted_pop = sorted(self.pop, key=lambda x: x[0], reverse=True)
-        return sorted_pop[:target_pop]
+        return sorted_pop[:self.max_pop]
 
     def run(self, iters, processes=1):
         """
