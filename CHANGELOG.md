@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``VisualWorld`` has a new method called ``reload_visuals``.
 - ``show_evolution.py`` is a new script plotting various data about the Walkers population's evolution during 
 genetic optimization.
+- In ``docs/examples/strider.py`` we recomend to use ``total_distance`` as the fitness function.
 
 ### Changed
 

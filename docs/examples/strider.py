@@ -538,7 +538,39 @@ def move_linkage(linkage_hollow):
         return False
 
 
-def fitness(dna):
+def total_distance(dna):
+    """
+    Evaluates the final horizontal position of the input linkage.
+
+    Parameters
+    ----------
+    dna : list of 3 elements
+        The first element is dimensions.
+        The second element is score (unused).
+        The third element is initial positions.
+
+    Returns
+    -------
+    list
+        List of two elements: score (a float), and initial positions.
+        The score is negative when mechanism building is impossible.
+    """
+    linkage_hollow = dna_interpreter(dna)
+    # Save initial coordinates, or error report
+    pos = move_linkage(linkage_hollow)
+    if not pos:
+        return -2, list()
+    world = ls.World()
+    world.add_linkage(linkage_hollow)
+    # Simulation duration (in seconds)
+    duration = 30
+    steps = int(duration / ls.params["simul"]["physics_period"])
+    for _ in range(steps):
+        world.update()
+    return world.linkages[0].body.position.x, pos
+
+
+def efficiency(dna):
     """
     Individual yield, return average efficiency and initial coordinates.
 
@@ -547,14 +579,12 @@ def fitness(dna):
     dna : list of 3 elements
         The first element is dimensions. The second element is score (unused).
         The third element is initial positions.
-    linkage_hollow : Linkage
-        A which will integrate this DNA (avoid redefining a new linkage).
 
     Returns
     -------
     list
         List of two elements: score (a float), and initial positions.
-        Score is -float('inf') when mechanism building is impossible.
+        The score is negative when mechanism building is impossible.
     """
     linkage_hollow = dna_interpreter(dna)
     # Save initial coordinates, or error report
@@ -576,7 +606,6 @@ def fitness(dna):
         dur += energy
     if dur == 0:
         return -1, list()
-    return world.linkages[0].body.position.x, pos
     if world.linkages[0].body.position.x < 5:
         return 0, pos
     return tot / dur, pos
@@ -586,7 +615,7 @@ def evolutive_optimizer(
         linkage, 
         dims=DIMENSIONS,
         prev=None, 
-        pop=10, 
+        pop=10,
         iters=10,
         startnstop=False,
         gui=False
@@ -625,7 +654,7 @@ def evolutive_optimizer(
     optimizer = ls.GeneticOptimization(
         dna=dna, 
         prob=.07,
-        fitness=fitness,
+        fitness=total_distance,
         iters=iters,
         max_pop=pop,
         startnstop=startnstop,
@@ -699,8 +728,8 @@ def main(trials_and_errors, particle_swarm, genetic):
         init_coords = strider.get_coords()
         show_physics(strider, debug=False, duration=40, save=False)
         print(
-            "Efficiency score before genetic optimization",
-            fitness([0, strider.get_num_constraints(), strider.get_coords()])[0]
+            "Distance ran score before genetic optimization",
+            total_distance([0, strider.get_num_constraints(), strider.get_coords()])[0]
         )
         # Reload the position: the show_optimized
         file = "Population evolution.json"
@@ -709,18 +738,21 @@ def main(trials_and_errors, particle_swarm, genetic):
             strider,
             dims=strider.get_num_constraints(),
             prev=init_coords,
-            pop=30,
+            pop=10,
             iters=30,
             startnstop=file,
-            gui=show_all_walkers
+            # gui=show_all_walkers # set if you want to see all walkers for each step
         )
         print(
-            "Efficiency score after genetic optimization:", 
+            "Distance ran score after genetic optimization:",
             optimized_striders[0][0]
         )
         strider = dna_interpreter(optimized_striders[0])
         input("Press enter to show result ")
-        show_physics(strider, debug=False, duration=40, save=False)
+        # Show the best walker
+        show_physics(strider, debug=False, duration=30, save=False)
+        # Show everyone
+        show_all_walkers(optimized_striders, duration=30, save=False)
         if file:
             data = ls.load_data(file)
             ls.show_genetic_optimization(data)
