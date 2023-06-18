@@ -7,10 +7,12 @@ import numpy as np
 import pymunk.matplotlib_util
 import matplotlib.animation as anim
 from pymunk import Space
-from physicsengine import *
+
+from . import physicsengine as pe
+from . import dynamiclinkage
 
 
-class VisualWorld(World):
+class VisualWorld(pe.World):
     """Same as parent class World, but with matplotlib objects."""
 
     def __init__(self, space=None, road_y=-5):
@@ -22,7 +24,7 @@ class VisualWorld(World):
         space : pymunk.space.Space, optional
             Space of simulation. The default is None.
         road_y : float, optional
-            The ordinate of the ground. Useful when likages have long legs.
+            The ordinate of the ground. Useful when linkages have long legs.
             The default is -5.
         """
         super().__init__(space=space, road_y=road_y)
@@ -51,19 +53,19 @@ class VisualWorld(World):
         linkage_im = []
         for j in self.linkages[-1].joints:
             if (
-                    isinstance(j, Static)
+                    isinstance(j, pe.Static)
                     and hasattr(j, 'joint0')
                     and j.joint0 is not None
             ):
                 linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
                 if hasattr(j, 'joint1') and j.joint1 is not None:
                     linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
-            elif isinstance(j, Crank):
+            elif isinstance(j, pe.Crank):
                 linkage_im.append(self.ax.plot([], [], 'g-', animated=False)[0])
-            elif isinstance(j, Fixed):
+            elif isinstance(j, pe.Fixed):
                 linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
                 linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
-            elif isinstance(j, Pivot):
+            elif isinstance(j, pe.Pivot):
                 linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
                 linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
         self.linkage_im.append(linkage_im)
@@ -104,7 +106,7 @@ class VisualWorld(World):
             [i[0] for i in self.road],
             [i[1] for i in self.road]
         )
-        if params["camera"]["dynamic_camera"]:
+        if pe.params["camera"]["dynamic_camera"]:
             self.ax.set_xlim(center[0] - 10, center[0] + 10)
             self.ax.set_ylim(center[1] - 10, center[1] + 10)
         else:
@@ -132,15 +134,15 @@ class VisualWorld(World):
         ----------
         time : list | float | None
             When a list, delta-time for physics and display (respectively)
-            Using a float, only delta-time for physics, fps is set with params["camera"]["fps"]
-            Setting to None set physics dt to params["simul"]["physics_period"] and fps to params["camera"]["fps"]
+            Using a float, only delta-time for physics, fps is set with pe.params["camera"]["fps"]
+            Setting to None set physics dt to pe.params["simul"]["physics_period"] and fps to pe.params["camera"]["fps"]
         """
         if time is None:
-            dt = params["simul"]["physics_period"]
-            fps = params["camera"]["fps"]
+            dt = pe.params["simul"]["physics_period"]
+            fps = pe.params["camera"]["fps"]
         elif isinstance(time, int) or isinstance(time, float):
             dt = time
-            fps = params["camera"]["fps"]
+            fps = pe.params["camera"]["fps"]
         else:
             dt, fps = time
         div = 1 // (dt * fps)
@@ -159,7 +161,7 @@ class VisualWorld(World):
 
 def im_debug(world, linkage):
     """Use pymunk debugging for visual debugging."""
-    bbox = linkage_bb(linkage)
+    bbox = pe.linkage_bb(linkage)
     world.ax.clear()
     world.ax.set_xlim(int(bbox[3]) - 5, int(bbox[1]) + 5)
     world.ax.set_ylim(int(bbox[2]) - 5, int(bbox[0]) + 5)
@@ -180,17 +182,17 @@ def im_debug(world, linkage):
 
 def video_debug(linkage):
     """Launch the simulation frame by frame, useful for debug."""
-    road_y = linkage_bb(linkage)[0] - 1
-    if isinstance(linkage, dlink.DynamicLinkage):
+    road_y = pe.linkage_bb(linkage)[0] - 1
+    if isinstance(linkage, dynamiclinkage.DynamicLinkage):
         world = VisualWorld(linkage.space, road_y=road_y)
     else:
         world = VisualWorld(road_y=road_y)
     world.add_linkage(linkage)
     dynamic_linkage = world.linkages[-1]
     for _ in range(1, int(1e3)):
-        dt = params["simul"]["physics_period"]
+        dt = pe.params["simul"]["physics_period"]
         world.space.step(dt)
-        recalc_linkage(dynamic_linkage)
+        pe.recalc_linkage(dynamic_linkage)
         im_debug(world, dynamic_linkage)
         plt.pause(.2)
 
@@ -214,19 +216,22 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
         * If a list of float, it is the list of opacities
         * If a list of list of float, it is the list of colors
         * If None, opacities are set randomly
+    dynamic_camera : bool, optional
+        Type of visualisation. True follows one strider, False gives a larger view.
+        The default is False.
     """
-    road_y = min(linkage_bb(linkage)[0] for linkage in linkages) - 1
-    if isinstance(linkages[0], dlink.DynamicLinkage):
+    road_y = min(pe.linkage_bb(linkage)[0] for linkage in linkages) - 1
+    if isinstance(linkages[0], dynamiclinkage.DynamicLinkage):
         world = VisualWorld(linkages[0].space, road_y=road_y)
     else:
         world = VisualWorld(road_y=road_y)
     for linkage in linkages:
         world.add_linkage(linkage)
     # Number of frames for the selected duration
-    n_frames = int(params["camera"]["fps"] * duration)
+    n_frames = int(pe.params["camera"]["fps"] * duration)
 
-    dt = params["simul"]["physics_period"]
-    fps = params["camera"]["fps"]
+    dt = pe.params["simul"]["physics_period"]
+    fps = pe.params["camera"]["fps"]
     if dt * fps > 1:
         print(
             f"Warning: Physics is computed every {dt}s ({1 / dt} times/s)",
@@ -235,23 +240,23 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
 
     if colors is None:
         colors = np.logspace(0, -1, num=len(linkages))
-    previous_camera = params["camera"]["dynamic_camera"]
-    params["camera"]["dynamic_camera"] = dynamic_camera
+    previous_camera = pe.params["camera"]["dynamic_camera"]
+    pe.params["camera"]["dynamic_camera"] = dynamic_camera
     animation = anim.FuncAnimation(
         world.fig, world.visual_update,
         frames=[None] * (n_frames - 1),
         init_func=partial(world.init_visuals, colors),
-        interval=int(1000 / params["camera"]["fps"]),
+        interval=int(1000 / pe.params["camera"]["fps"]),
         repeat=False, blit=False
     )
     if save:
-        writer = anim.FFMpegWriter(fps=params["camera"]["fps"], bitrate=2500)
+        writer = anim.FFMpegWriter(fps=pe.params["camera"]["fps"], bitrate=2500)
         animation.save(f"Dynamic {linkages[0].name}.mp4", writer=writer)
     else:
         plt.show()
         if animation:
             pass
-    params["camera"]["dynamic_camera"] = previous_camera
+    pe.params["camera"]["dynamic_camera"] = previous_camera
 
 
 def video(linkage, duration=30, save=False, dynamic_camera=True):
@@ -267,20 +272,24 @@ def video(linkage, duration=30, save=False, dynamic_camera=True):
         Duration (in seconds) of the simulation. The default is 40.
     save : bool, optional
         If you want to save it as a .mp4 file.
+    dynamic_camera : bool, optional
+        Type of visualisation. True follows one strider, False gives a larger view.
+        The default is True.
     """
     all_linkages_video([linkage], duration, save, dynamic_camera=dynamic_camera)
 
 
 if __name__ == "__main__":
-    base = Static(0, 0, name="Main trick")
-    crank = Crank(1, 0, name="The crank", angle=1, joint0=base)
-    follower = Pivot(0, 2, joint0=base, joint1=crank, distance0=2,
-                     distance1=1)
-    frame = Fixed(joint0=crank, joint1=follower, distance=1, angle=-np.pi/2)
-    demo_linkage = dlink.DynamicLinkage(
+    base = pe.Static(0, 0, name="Main trick")
+    crank = pe.Crank(1, 0, name="The crank", angle=1, joint0=base)
+    follower = pe.Pivot(
+        0, 2, joint0=base, joint1=crank, distance0=2, distance1=1
+    )
+    frame = pe.Fixed(joint0=crank, joint1=follower, distance=1, angle=-np.pi/2)
+    demo_linkage = pe.dlink.DynamicLinkage(
         name='Some tricky linkage',
         joints=(base, crank, follower, frame),
         space=Space()
     )
-    demo_linkage.space.gravity = params["physics"]["gravity"]
+    demo_linkage.space.gravity = pe.params["physics"]["gravity"]
     video_debug(demo_linkage)
