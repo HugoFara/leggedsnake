@@ -5,7 +5,7 @@ from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
 import pymunk.matplotlib_util
-import matplotlib.animation as anim
+import matplotlib.animation as animation
 from pymunk import Space
 
 from . import physicsengine as pe
@@ -38,7 +38,7 @@ def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
         New bounds : tuple of tuple of float
     """
     new_bounds = [list(target[0]), list(target[1])]
-    # Below the reactivity we won't resize the window
+    # Below this reactivity, we won't resize the window. Does not seem to work.
     reactivity_threshold = 0.5
     reactivity = [[0, 0], [0, 0]]
     for i in range(2):
@@ -303,7 +303,7 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
         colors = np.logspace(0, -1, num=len(linkages))
     previous_camera = CAMERA["dynamic_camera"]
     CAMERA["dynamic_camera"] = dynamic_camera
-    animation = anim.FuncAnimation(
+    ani = animation.FuncAnimation(
         world.fig, world.visual_update,
         frames=[None] * (n_frames - 1),
         init_func=partial(world.init_visuals, colors),
@@ -311,11 +311,11 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
         repeat=False, blit=False
     )
     if save:
-        writer = anim.FFMpegWriter(fps=CAMERA["fps"], bitrate=2500)
-        animation.save(f"Dynamic {linkages[0].name}.mp4", writer=writer)
+        writer = animation.FFMpegWriter(fps=CAMERA["fps"], bitrate=2500)
+        ani.save(f"Dynamic {linkages[0].name}.mp4", writer=writer)
     else:
         plt.show()
-        if animation:
+        if ani:
             pass
     CAMERA["dynamic_camera"] = previous_camera
 
