@@ -118,8 +118,10 @@ class World:
         # The road which will be built
         self.road = [(-15, road_y), (15, road_y)]
         # First road parts
-        seg = pm.Segment(self.space.static_body, self.road[0], self.road[-1],
-                         .1)
+        seg = pm.Segment(
+            self.space.static_body, self.road[0], self.road[-1],
+            .1
+        )
         seg.friction = params["ground"]["friction"]
         self.space.add(seg)
         self.linkages = []
@@ -130,7 +132,8 @@ class World:
             dynamic_linkage = linkage
         else:
             dynamic_linkage = dlink.convert_to_dynamic_linkage(
-                linkage, self.space)
+                linkage, self.space
+            )
         for cur_crank in dynamic_linkage._cranks:
             cur_crank.actuator.max_force = 0
         self.linkages.append(dynamic_linkage)
@@ -143,11 +146,13 @@ class World:
         linkage_crank = next(j for j in linkage.joints if isinstance(j, Crank))
         if (
                 linkage_crank.actuator.max_force == 0
-                and norm(linkage.body.velocity) < .1):
+                and norm(linkage.body.velocity) < .1
+        ):
             linkage_crank.actuator.max_force = params["linkage"]["torque"]
             linkage.height = linkage.body.position.y
-            linkage.mechanical_energy = (.5 * linkage.mass
-                                         * norm(linkage.body.velocity) ** 2)
+            linkage.mechanical_energy = (
+                    .5 * linkage.mass * norm(linkage.body.velocity) ** 2
+            )
 
         # Energy from the motor in this step
         energy = power * params["simul"]["physics_period"]
@@ -356,7 +361,7 @@ class VisualWorld(World):
 
         return self.road_im + [im for im in self.linkage_im]
     
-    def reload_visuals(self, opacities=None):
+    def reload_visuals(self):
         """Reload the visual components only."""
         center = np.mean([linkage.joints[0].coord() for linkage in self.linkages], axis=0)
         self.fig.suptitle(f"Position: {tuple(map(int, center))}")
@@ -381,7 +386,7 @@ class VisualWorld(World):
         visual_objects += self.road_im
         return visual_objects
 
-    def visual_update(self, time=None, opacities=None):
+    def visual_update(self, time=None):
         """
         Update simulation and draw it.
         
@@ -391,8 +396,6 @@ class VisualWorld(World):
             When a list, delta-time for physics and display (respectively) 
             Using a float, only delta-time for physics, fps is set with params["camera"]["fps"]
             Setting to None set physics dt to params["simul"]["physics_period"] and fps to params["camera"]["fps"]
-        opacities : list of float or None
-            Opacity for the drawing of each linkage.
         """
         if time is None:
             dt = params["simul"]["physics_period"]
@@ -412,7 +415,7 @@ class VisualWorld(World):
                 update_ret[i] += step_update
         else:
             update_ret = self.update(dt)
-        self.reload_visuals(opacities)
+        self.reload_visuals()
         return update_ret
 
 
@@ -492,6 +495,10 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None):
         Duration (in seconds) of the simulation. The default is 40.
     save : bool, optional
         If you want to save it as a .mp4 file.
+    colors : list of float or list of list of float
+        * If a list of float, it is the list of opacities
+        * If a list of list of float, it is the list of colors
+        * If None, opacities are set randomly
     """
     road_y = min(linkage_bb(linkage)[0] for linkage in linkages) - 1
     if isinstance(linkages[0], dlink.DynamicLinkage):
