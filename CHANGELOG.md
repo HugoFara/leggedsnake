@@ -35,6 +35,7 @@ genetic optimization.
   - The camera feels more cinematic.
 - You can define a custom load when using ``World.add_linkage`` or ``VisualWorld.add_linkage``. The default is 0.
 - ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
+- In ``docs/example/strider.py``, simulation time was increased from 30 seconds to 40. It was just not enough.
 
 ### Fixed
 

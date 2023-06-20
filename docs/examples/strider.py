@@ -225,15 +225,16 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
     return strider
 
 
-def show_all_walkers(dnas, duration=30, save=False):
+def show_all_walkers(dnas, duration=40, save=False):
     """
     Parameters
     ----------
     dnas : iterable of dna
 
-    duration : float, default is 30
-        Animation duration
-    save : bool, default is False
+    duration : float, optional
+        Animation duration. The default is 40.
+    save : bool, optional
+        Whether to save the resulting animation. The default is False.
 
 
     Returns
@@ -650,11 +651,13 @@ def evolutive_optimizer(
     """
     linkage.rebuild(prev)
     linkage.step()
-    dna = 0, list(dims), list(linkage.get_coords())
+    fitness_function = total_distance
+    dna = [0, list(dims), list(linkage.get_coords())]
+    dna[0] = fitness_function(dna)
     optimizer = ls.GeneticOptimization(
         dna=dna, 
         prob=.07,
-        fitness=total_distance,
+        fitness=fitness_function,
         iters=iters,
         max_pop=pop,
         startnstop=startnstop,
@@ -726,7 +729,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         # Add legs more legs to avoid falling
         strider.add_legs(LEGS_NUMBER - 1)
         init_coords = strider.get_coords()
-        show_physics(strider, debug=False, duration=40, save=False)
+        show_physics(strider, save=False)
         print(
             "Distance ran score before genetic optimization",
             total_distance([0, strider.get_num_constraints(), strider.get_coords()])[0]
@@ -750,9 +753,9 @@ def main(trials_and_errors, particle_swarm, genetic):
         strider = dna_interpreter(optimized_striders[0])
         input("Press enter to show result ")
         # Show the best walker
-        show_physics(strider, debug=False, duration=30, save=False)
+        show_physics(strider, save=False)
         # Show everyone
-        show_all_walkers(optimized_striders, duration=30, save=False)
+        show_all_walkers(optimized_striders, save=False)
         if file:
             data = ls.load_data(file)
             ls.show_genetic_optimization(data)
