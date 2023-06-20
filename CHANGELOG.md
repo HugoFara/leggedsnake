@@ -9,19 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all walkers in one simulation!
-- ``GeneticOptimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+- View all walkers!
+  - ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all walkers in one simulation!
+  - You can set the color of walkers during display.
+- Genetic optimization:
+  - ``GeneticOptimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+  - The average score is now displayed.
 - ``VisualWorld`` has a new method called ``reload_visuals``.
 - ``show_evolution.py`` is a new script plotting various data about the Walkers population's evolution during 
 genetic optimization.
+- In ``docs/examples/strider.py`` we recommend to use ``total_distance`` as the fitness function.
 
 ### Changed
 
-- ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
-- Frame rate and physics speed are now independent parameters.
-- ``startnstop`` argument of ``evolutionary_optimization_builtin`` may now be the name of the file to use (a string).
-- Genetic optimization do no longer display all dimensions in the progress bar.
+- Genetic optimization:
+  - During genetic optimization, population is now stable at max_pop (it used to fluctuate a lot).
+  - Genetic optimization do no longer display all dimensions in the progress bar.
+  - ``startnstop`` argument may now be the name of the file to use (a string).
+  - ``max_genetic_distance`` was changed from 0.7 to 10. Results are much better now!
+- Visuals:
+  - ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
+  - Frame rate and physics speed are now independent parameters.
+  - Visuals go to a new file ``worldvisualizer.py``.
+  - Camera parameters should now be accessed from ``CAMERA`` instead of ``params["camera"]``.
+  - The camera feels more cinematic.
+- You can define a custom load when using ``World.add_linkage`` or ``VisualWorld.add_linkage``. The default is 0.
 - ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
+- In ``docs/example/strider.py``, simulation time was increased from 30 seconds to 40. It was just not enough.
 
 ### Fixed
 
@@ -36,6 +50,9 @@ but (fitness, position, dimensions) was indicated.
 
 ### Removed
 
+- ``evolutionary_optimization`` function is removed. Use  ``GeneticOptimization`` class instead.
+  - You can no longer use the argument "init_pop" to change the size of the initial population. 
+  It now always set to max_pop.
 - ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique 
 ``physics_period`` set to 0.02 (s).
 - ``leggedsnake/Population evolution.json`` removed. 

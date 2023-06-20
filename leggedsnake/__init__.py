@@ -24,21 +24,22 @@ from pylinkage import (
 
 from .utility import step, stride
 from .walker import Walker
-from .geneticoptimizer import (
-    evolutionary_optimization, GeneticOptimization
-)
+from .geneticoptimizer import GeneticOptimization
 from .dynamiclinkage import (
     Nail, PinUp, DynamicPivot, Motor,
     DynamicLinkage,
     convert_to_dynamic_linkage,
 )
 from .physicsengine import (
-    video,
-    video_debug,
-    all_linkages_video,
     params,
     World,
-    VisualWorld
+)
+from .worldvisualizer import (
+    all_linkages_video,
+    video,
+    video_debug,
+    VisualWorld,
+    CAMERA
 )
 from .show_evolution import load_data, show_genetic_optimization
 

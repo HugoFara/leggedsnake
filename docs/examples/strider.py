@@ -126,7 +126,7 @@ def complete_strider(constraints, prev):
         "B_p": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame left (B_p)"),
         # Pivot joints, explicitly defined to be modified later
         # Joint linked to crank. Coordinates are chosen in each frame
-        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / LAP_POINTS, name="Crank link (C)")
+        "C": ls.Crank(joint0=linka["A"], angle=-2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
         "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
@@ -188,7 +188,7 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
         "B_p": ls.Fixed(joint0=linka["A"], joint1=linka["Y"], name="Frame left (B_p)"),
         # Pivot joints, explicitly defined to be modified later
         # Joint linked to crank. Coordinates are chosen in each frame
-        "C": ls.Crank(joint0=linka["A"], angle=2 * np.pi / LAP_POINTS, name="Crank link (C)")
+        "C": ls.Crank(joint0=linka["A"], angle=-2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
         "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
@@ -225,15 +225,16 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
     return strider
 
 
-def show_all_walkers(dnas, duration=30, save=False):
+def show_all_walkers(dnas, duration=40, save=False):
     """
     Parameters
     ----------
     dnas : iterable of dna
 
-    duration : float, default is 30
-        Animation duration
-    save : bool, default is False
+    duration : float, optional
+        Animation duration. The default is 40.
+    save : bool, optional
+        Whether to save the resulting animation. The default is False.
 
 
     Returns
@@ -247,7 +248,13 @@ def show_all_walkers(dnas, duration=30, save=False):
         dummy_strider.set_num_constraints(dna[1])
         dummy_strider.set_coords(dna[2])
         linkages.append(dummy_strider)
-    ls.all_linkages_video(linkages, duration, save)
+    max_score = max(dna[0] for dna in dnas)
+    min_score = min(dna[0] for dna in dnas)
+    ls.all_linkages_video(
+        linkages, duration, save,
+        np.random.rand(len(dnas), 3)  # random color
+        #np.interp([dna[0] for dna in dnas], [min_score, max_score], [0, 1])  # fitness-based opacity
+    )
 
 
 def show_physics(linkage, prev=None, debug=False, duration=40, save=False):
@@ -346,8 +353,10 @@ def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
     return lines
 
 
-def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
-                    iters=400, *args, **kwargs):
+def swarm_optimizer(
+        linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
+        iters=400, *args
+):
     """
     Optimize linkage geometrically using PSO.
 
@@ -373,8 +382,6 @@ def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
         Number of iterations without evaluation. The default is 200.
     *args : list
         Arguments to pass to the particle swarm optimization.
-    **kwargs : dict
-        DESCRIPTION.
 
     Returns
     -------
@@ -407,7 +414,8 @@ def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
             frames=formatted_history,
             fargs=(fig, lines, t), blit=True,
             interval=10, repeat=True,
-            save_count=(iters - 1) * bool(save_each))
+            save_count=(iters - 1) * bool(save_each)
+        )
         plt.show()
         if save_each:
             writer = anim.FFMpegWriter(
@@ -503,23 +511,68 @@ def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
         return out
 
 
-def dna_interpreter(dna, linkage_hollow):
+def dna_interpreter(dna):
+    linkage_hollow = complete_strider(param2dimensions(DIMENSIONS), INIT_COORD)
+    linkage_hollow.add_legs(LEGS_NUMBER - 1)
     linkage_hollow.set_num_constraints(dna[1])
     linkage_hollow.rebuild(dna[2])
     return linkage_hollow
 
 
-def dna_checker(linkage_hollow):
+def move_linkage(linkage_hollow):
+    """
+    Make the linkage do a movement and return it, False if impossible.
+
+    Parameters
+    ----------
+    linkage_hollow : pylinkage.Linkage
+
+    Returns
+    -------
+
+    """
     # Check if the mechanism is buildable
     try:
         # Save initial coordinates
-        pos = tuple(linkage_hollow.step())[-1]
+        pos = tuple(linkage_hollow.step(iterations=LAP_POINTS))[-1]
         return pos
     except ls.UnbuildableError:
         return False
 
 
-def fitness(dna, linkage_hollow):
+def total_distance(dna):
+    """
+    Evaluates the final horizontal position of the input linkage.
+
+    Parameters
+    ----------
+    dna : list of 3 elements
+        The first element is dimensions.
+        The second element is score (unused).
+        The third element is initial positions.
+
+    Returns
+    -------
+    list
+        List of two elements: score (a float), and initial positions.
+        The score is negative when mechanism building is impossible.
+    """
+    linkage_hollow = dna_interpreter(dna)
+    # Save initial coordinates, or error report
+    pos = move_linkage(linkage_hollow)
+    if not pos:
+        return -2, list()
+    world = ls.World()
+    world.add_linkage(linkage_hollow)
+    # Simulation duration (in seconds)
+    duration = 30
+    steps = int(duration / ls.params["simul"]["physics_period"])
+    for _ in range(steps):
+        world.update()
+    return world.linkages[0].body.position.x, pos
+
+
+def efficiency(dna):
     """
     Individual yield, return average efficiency and initial coordinates.
 
@@ -528,18 +581,16 @@ def fitness(dna, linkage_hollow):
     dna : list of 3 elements
         The first element is dimensions. The second element is score (unused).
         The third element is initial positions.
-    linkage_hollow : Linkage
-        A which will integrate this DNA (avoid redefining a new linkage).
 
     Returns
     -------
     list
         List of two elements: score (a float), and initial positions.
-        Score is -float('inf') when mechanism building is impossible.
+        The score is negative when mechanism building is impossible.
     """
-    linkage_hollow = dna_interpreter(dna, linkage_hollow)
+    linkage_hollow = dna_interpreter(dna)
     # Save initial coordinates, or error report
-    pos = dna_checker(linkage_hollow)
+    pos = move_linkage(linkage_hollow)
     if not pos:
         return -2, list()
     world = ls.World()
@@ -557,9 +608,8 @@ def fitness(dna, linkage_hollow):
         dur += energy
     if dur == 0:
         return -1, list()
-    if world.linkages[0].body.position.x > -5:
+    if world.linkages[0].body.position.x < 5:
         return 0, pos
-    # Return 100 times average yield, and initial positions
     return tot / dur, pos
 
 
@@ -567,12 +617,11 @@ def evolutive_optimizer(
         linkage, 
         dims=DIMENSIONS,
         prev=None, 
-        pop=10, 
+        pop=10,
         iters=10,
-        init_pop=None, 
         startnstop=False,
-        gui=False
-    ):
+        gui=None
+):
     """
     Optimization of the linkage by genetic algorithm.
 
@@ -588,11 +637,10 @@ def evolutive_optimizer(
         Number of individuals. The default is 10.
     iters : int, optional
         Number of iterations to perform. The default is 10.
-    init_pop : int, optional
-        Initial population for the highest initial genetic diversity.
-        The default is None.
     startnstop : bool, optional
         To save results to a file regularly, and fetch initial data from this file. The default is False.
+    gui : callable or None, optional
+        A display function. The default is None.
 
     Returns
     -------
@@ -603,19 +651,19 @@ def evolutive_optimizer(
     """
     linkage.rebuild(prev)
     linkage.step()
-    dna = 0, list(dims), list(linkage.get_coords())
+    fitness_function = total_distance
+    dna = [0, list(dims), list(linkage.get_coords())]
+    dna[0] = fitness_function(dna)
     optimizer = ls.GeneticOptimization(
         dna=dna, 
         prob=.07,
-        fitness=fitness,
+        fitness=fitness_function,
         iters=iters,
         max_pop=pop,
-        init_pop=init_pop,
         startnstop=startnstop,
-        fitness_args=(linkage,),
-        processes=4
+        gui=gui
     )
-    return optimizer.run(iters, gui=gui)
+    return optimizer.run(iters, processes=4)
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
@@ -634,12 +682,22 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
 
 def main(trials_and_errors, particle_swarm, genetic):
     """
-    Optimize a strider with different settings.
 
-    :param trials_and_errors: True to use trial and errors optimization.
-    :type trials_and_errors: bool
-    :param particle_swarm: True to use a particle swarm optimization
-    :type particle_swarm: bool
+    Parameters
+    ----------
+    trials_and_errors : bool, optional
+        True to use grid search (trial and errors) optimization.
+        The default is False.
+    particle_swarm : bool, optional
+        True to use a particle swarm optimization.
+        The default is False.
+    genetic : bool, optional
+        True to use genetic optimization.
+        The default is False.
+
+    Returns
+    -------
+
     """
     strider = complete_strider(param2dimensions(DIMENSIONS), INIT_COORD)
     print(
@@ -671,32 +729,34 @@ def main(trials_and_errors, particle_swarm, genetic):
         # Add legs more legs to avoid falling
         strider.add_legs(LEGS_NUMBER - 1)
         init_coords = strider.get_coords()
-        show_physics(strider, debug=False, duration=40, save=False)
+        show_physics(strider, save=False)
         print(
-            "Efficiency score before genetic optimization",
-            fitness([0, strider.get_num_constraints(), strider.get_coords()], strider)[0]
+            "Distance ran score before genetic optimization",
+            total_distance([0, strider.get_num_constraints(), strider.get_coords()])[0]
         )
         # Reload the position: the show_optimized
-        file = "Population evolutio.json"
+        file = "Population evolution.json"
         file = False
         optimized_striders = evolutive_optimizer(
             strider,
             dims=strider.get_num_constraints(),
             prev=init_coords,
-            pop=30,
+            pop=10,
             iters=30,
             startnstop=file,
-            gui=show_all_walkers
+            # gui=show_all_walkers # set if you want to see all walkers for each step
         )
         print(
-            "Efficiency score after genetic optimization:", 
+            "Distance ran score after genetic optimization:",
             optimized_striders[0][0]
         )
-        strider.set_coords(optimized_striders[0][2])
-        strider.set_num_constraints(optimized_striders[0][1], flat=True)
+        strider = dna_interpreter(optimized_striders[0])
         input("Press enter to show result ")
-        show_physics(strider, debug=False, duration=40, save=False)
-        if file is not None:
+        # Show the best walker
+        show_physics(strider, save=False)
+        # Show everyone
+        show_all_walkers(optimized_striders, save=False)
+        if file:
             data = ls.load_data(file)
             ls.show_genetic_optimization(data)
 

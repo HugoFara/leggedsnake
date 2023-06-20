@@ -27,15 +27,15 @@ Contributors are welcome!
 
 ## Installation
 
-### Using pip
-
 The package is hosted on PyPi as [leggedsnake](https://pypi.org/project/leggedsnake/), use:
 
 ```bash
 pip install leggedsnake
 ```
 
-### Setting up Virtual Environment
+## Build from source
+
+### Conda Virtual Environment
 
 We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/main/environment.yml) file for conda.
 Use ``conda env update --file environment.yml --name leggedsnake-env`` to install the requirements in a separate environment.
@@ -70,17 +70,6 @@ my_walker = ls.Walker(
 
 ``Walker`` is just an inherited class of ``Linkage``, with some useful methods, and behaves quite the same way.
 
-### Kinematic optimization using Particle Swarm Optimization (PSO)
-
-No change compared to a classic linkage optimization. You should use the ``step`` and ``stride`` method from the
-[utility module](https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/utility.py) as fitness functions.
-This set of rules should work well for a stride **maximisation** problem:
-
-1. Rebuild the Walker with the provided set of dimensions, and do a complete turn.
-2. If the Walker raises an UnbuildableError, its score is 0 (or ``-float('inf')`` if you use other evaluation functions).
-3. Verify if it can pass a certain obstacle using ``step`` function. If not, its score is 0.
-4. Eventually measure the length of its stride with the ``stride`` function. Return this length as its score.
-
 ### Dynamic Optimization using Genetic Algorithm (GA)
 
 Kinematic optimization is fast, but it can return weird results, and it has no sense of gravity while walking heavily
@@ -100,33 +89,22 @@ have to define a fitness function. Here are the main steps for a **maximisation 
 ```python3
 import leggedsnake as ls
 
-def dynamic_linkage_fitness(walker):
+def total_distance(walker):
     """
-    Make the dynamic evaluation of a Walker.
+    Evaluates the final horizontal position of the input linkage.
     
-    Return yield and initial position of joints.
+    Return final distance and initial position of joints.
     """
+    pos = tuple(walker.step())[-1]
     world = ls.World()
     # We handle all the conversions
     world.add_linkage(walker)
     # Simulation duration (in seconds)
-    duration = 40
-    # Somme of yields
-    tot = 0
-    # Motor turned on duration
-    dur = 0
-    n = duration * ls.params["camera"]["fps"]
-    n /= ls.params["simul"]["time_coef"]
-    pos = tuple(walker.step())[-1]
-    for j in range(int(n)):
-        efficiency, energy = world.update(j)
-        tot += efficiency
-        dur += energy
-    if dur == 0:
-        return - float('inf'), list()
-    print("Score:", tot / dur)
-    # Return 100 times average yield, and initial positions as the final score
-    return tot / dur, pos
+    duration = 30
+    steps = int(duration / ls.params["simul"]["physics_period"])
+    for _ in range(steps):
+        world.update()
+    return world.linkages[0].body.position.x, pos
 ```
 
 And now, relax while your computer creates a civilization of walking machines!
@@ -163,6 +141,19 @@ Let's have a look at the artist:
 
 ![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
 
+
+### Kinematic optimization using Particle Swarm Optimization (PSO)
+
+This is a kinematic linkage optimization, depending solely on pylinkage. 
+You should use the ``step`` and ``stride`` method from the
+[utility module](https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/utility.py) as fitness functions.
+This set of rules should work well for a stride **maximisation** problem:
+
+1. Rebuild the Walker with the provided set of dimensions, and do a complete turn.
+2. If the Walker raises an UnbuildableError, its score is 0 (or ``-float('inf')`` if you use other evaluation functions).
+3. Verify if it can pass a certain obstacle using ``step`` function. If not, its score is 0.
+4. Eventually measure the length of its stride with the ``stride`` function. Return this length as its score.
+
 ## Advice
 
 Use the visualisation tools provided! The optimization tools should always give you a score with a better fitness,
@@ -191,7 +182,7 @@ You can [drop a star](https://github.com/HugoFara/leggedsnake/stargazers),
 
 The more people get engaged into this project, the better it will develop!
 
-### For developpers
+### For developers
 
 You can follow the guide at [CONTRIBUTING.md](CONTRIBUTING.md). Feel free to me any pull request.
 

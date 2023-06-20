@@ -512,12 +512,16 @@ class DynamicLinkage(linkage.Linkage):
     frame.
     """
 
-    __slots__ = ['joint_to_rigidbodies', 'rigidbodies', 'body', 'height',
-                 'mechanical_energy', 'mass', 'space', 'density',
-                 '_thickness', 'filter']
+    __slots__ = [
+        'joint_to_rigidbodies', 'rigidbodies', 'body', 'height',
+        'mechanical_energy', 'mass', 'space', 'density',
+        '_thickness', 'filter'
+    ]
 
-    def __init__(self, joints, space, density=1, load=0, name=None,
-                 thickness=.1):
+    def __init__(
+            self, joints, space, density=1, load=0, name=None,
+            thickness=.1
+    ):
         """
         Instanciate a new DynamicLinkage.
 
@@ -589,7 +593,7 @@ class DynamicLinkage(linkage.Linkage):
             # Joints with at least one reference
             else:
                 """
-                Useless while qe don't support quick joint definition
+                Useless while we don't support quick joint definition
                 if (
                         isinstance(joint.joint0, linkage.Static)
                         and joint.joint0 not in conversion_dict
@@ -603,10 +607,12 @@ class DynamicLinkage(linkage.Linkage):
                     conversion_dict[joint.joint1] = joint.joint1
                 """
                 if isinstance(joint, linkage.Fixed):
-                    djoint = PinUp(distance=joint.r, angle=joint.angle,
-                                   joint0=conversion_dict[joint.joint0],
-                                   joint1=conversion_dict[joint.joint1],
-                                   **common)
+                    djoint = PinUp(
+                        distance=joint.r, angle=joint.angle,
+                        joint0=conversion_dict[joint.joint0],
+                        joint1=conversion_dict[joint.joint1],
+                        **common
+                    )
                 elif isinstance(joint, linkage.Crank):
                     djoint = Motor(
                         joint0=conversion_dict[joint.joint0],
@@ -625,18 +631,20 @@ class DynamicLinkage(linkage.Linkage):
         self.joints = tuple(dynajoints)
 
     def build_load(self, position, load_mass):
-        """Create the load this linkage have to carry."""
+        """Create the load this linkage has to carry."""
         load = pm.Body(load_mass)
         load.position = position
         vertices = (-.5, -.5), (-.5, .5), (.5, .5), (.5, -.5)
         segs = []
         for i, vertex in enumerate(vertices):
-            segs.append(pm.Segment(load, vertex,
-                                   vertices[(i + 1) % len(vertices)],
-                                   self._thickness))
-            segs[-1].density = self.density
+            segment = pm.Segment(
+                load, vertex, vertices[(i + 1) % len(vertices)],
+                self._thickness
+            )
+            segment.density = self.density
             # Rigidbodies in this group won't collide
-            segs[-1].filter = self.filter
+            segment.filter = self.filter
+            segs.append(segment)
         self.space.add(load, *segs)
         return load
 
@@ -644,5 +652,7 @@ class DynamicLinkage(linkage.Linkage):
 def convert_to_dynamic_linkage(kinematic_linkage, space, density=1,
                                load=1):
     """Convert a classic Linkage to its dynamic counterpart."""
-    return DynamicLinkage(kinematic_linkage.joints, space, density=density,
-                          load=load, name=kinematic_linkage.name)
+    return DynamicLinkage(
+        kinematic_linkage.joints, space, density=density,
+        load=load, name=kinematic_linkage.name
+    )
