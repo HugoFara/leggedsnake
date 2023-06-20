@@ -251,8 +251,8 @@ def show_all_walkers(dnas, duration=30, save=False):
     min_score = min(dna[0] for dna in dnas)
     ls.all_linkages_video(
         linkages, duration, save,
-        np.random.rand(len(dnas), 3) # random color
-        #np.interp([dna[0] for dna in dnas], [min_score, max_score], [0, 1]) # fitness-based opacity
+        np.random.rand(len(dnas), 3)  # random color
+        #np.interp([dna[0] for dna in dnas], [min_score, max_score], [0, 1])  # fitness-based opacity
     )
 
 
@@ -352,8 +352,10 @@ def repr_polar_swarm(current_swarm, fig=None, lines=None, t=0):
     return lines
 
 
-def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
-                    iters=400, *args, **kwargs):
+def swarm_optimizer(
+        linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
+        iters=400, *args
+):
     """
     Optimize linkage geometrically using PSO.
 
@@ -379,8 +381,6 @@ def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
         Number of iterations without evaluation. The default is 200.
     *args : list
         Arguments to pass to the particle swarm optimization.
-    **kwargs : dict
-        DESCRIPTION.
 
     Returns
     -------
@@ -413,7 +413,8 @@ def swarm_optimizer(linkage, dims=DIMENSIONS, show=False, save_each=0, age=300,
             frames=formatted_history,
             fargs=(fig, lines, t), blit=True,
             interval=10, repeat=True,
-            save_count=(iters - 1) * bool(save_each))
+            save_count=(iters - 1) * bool(save_each)
+        )
         plt.show()
         if save_each:
             writer = anim.FFMpegWriter(
@@ -618,8 +619,8 @@ def evolutive_optimizer(
         pop=10,
         iters=10,
         startnstop=False,
-        gui=False
-    ):
+        gui=None
+):
     """
     Optimization of the linkage by genetic algorithm.
 
@@ -635,11 +636,10 @@ def evolutive_optimizer(
         Number of individuals. The default is 10.
     iters : int, optional
         Number of iterations to perform. The default is 10.
-    init_pop : int, optional
-        Initial population for the highest initial genetic diversity.
-        The default is None.
     startnstop : bool, optional
         To save results to a file regularly, and fetch initial data from this file. The default is False.
+    gui : callable or None, optional
+        A display function. The default is None.
 
     Returns
     -------

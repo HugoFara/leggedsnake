@@ -338,8 +338,8 @@ class GeneticOptimization:
             # Population selection
             self.pop = self.reduce_population()
             # Display
-            if kwargs_switcher('gui', self.kwargs, False):
-                kwargs_switcher('gui', self.kwargs, False)(self.pop)
+            if kwargs_switcher('gui', self.kwargs, None) is not None:
+                kwargs_switcher('gui', self.kwargs, None)(self.pop)
             parents = self.select_parents(verbose=self.verbosity > 1)
             # We select the best fit individual to show off, we know it is a parent
             best_id = max(enumerate(parents), key=lambda x: x[1][0])[0]
