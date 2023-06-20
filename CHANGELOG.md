@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``VisualWorld`` has a new method called ``reload_visuals``.
 - ``show_evolution.py`` is a new script plotting various data about the Walkers population's evolution during 
 genetic optimization.
-- In ``docs/examples/strider.py`` we recomend to use ``total_distance`` as the fitness function.
+- In ``docs/examples/strider.py`` we recommend to use ``total_distance`` as the fitness function.
 
 ### Changed
 
@@ -26,6 +26,7 @@ genetic optimization.
   - During genetic optimization, population is now stable at max_pop (it used to fluctuate a lot).
   - Genetic optimization do no longer display all dimensions in the progress bar.
   - ``startnstop`` argument may now be the name of the file to use (a string).
+  - ``max_genetic_distance`` was changed from 0.7 to 10. Results are much better now!
 - Visuals:
   - ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
   - Frame rate and physics speed are now independent parameters.

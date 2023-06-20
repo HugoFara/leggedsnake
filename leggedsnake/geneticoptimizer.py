@@ -125,7 +125,7 @@ class GeneticOptimization:
             # At least two parents to begin with
             self.pop = [[self.dna[0], list(self.dna[1]), list(self.dna[2])]]
 
-    def birth(self, par1, par2, prob):
+    def birth(self, par1, par2):
         """
         Return a new individual with par1 and par2 as parents (two sequences).
 
@@ -140,8 +140,6 @@ class GeneticOptimization:
             Dna of first parent.
         par2 : list[float, tuple of float, tuple of tuple of float]
             Dna of second parent.
-        prob : list[float] or float
-            Probability for each gene to mutate, width of a normal law.
 
         Returns
         -------
@@ -151,7 +149,7 @@ class GeneticOptimization:
         """
         child = [0, [], []]
         for gene1, gene2 in zip(par1[1], par2[1]):
-            child[1].append(nprand.normal((gene1 if nprand.rand() < .5 else gene2), prob))
+            child[1].append(nprand.normal((gene1 if nprand.rand() < .5 else gene2), self.prob))
         for pos1, pos2 in zip(par1[2], par2[2]):
             child[2].append(pos1 if nprand.rand() < .5 else pos2)
         return child
@@ -259,17 +257,14 @@ class GeneticOptimization:
             print(f"Median score: {median}, {len(parents)} parents")
         return parents
 
-    def make_children(self, parents, prob, max_genetic_dist=float('inf')):
+    def make_children(self, parents, max_genetic_dist=float('inf')):
         children = []
         j = 0
         while len(parents) > 1 and j < 100:
             par1 = parents.pop(nprand.randint(len(parents) - 1))
-            if len(parents) > 1:
-                par2 = parents.pop(nprand.randint(len(parents) - 1))
-            else:
-                par2 = parents.pop()
+            par2 = parents.pop(int(nprand.rand() * len(parents)))
             if dist(par1[1], par2[1]) < max_genetic_dist:
-                children.append(self.birth(par1, par2, prob))
+                children.append(self.birth(par1, par2))
             elif parents:
                 parents.append(par1)
                 parents.append(par2)
@@ -307,15 +302,14 @@ class GeneticOptimization:
             The list is sorted by score order.
         """
 
-        max_genetic_dist = kwargs_switcher('max_genetic_dist', self.kwargs, .7)
+        max_genetic_dist = kwargs_switcher('max_genetic_dist', self.kwargs, 10)
         fitness_args = kwargs_switcher('fitness_args', self.kwargs, None)
         # Random children to get as many individuals as required
         for _ in range(self.max_pop - len(self.pop)):
             self.pop.append(
                 self.birth(
                     self.pop[int(nprand.rand() * len(self.pop))],
-                    self.pop[int(nprand.rand() * len(self.pop))],
-                    self.prob
+                    self.pop[int(nprand.rand() * len(self.pop))]
                 )
             )
         # Individuals evaluation
@@ -358,7 +352,7 @@ class GeneticOptimization:
                     }
                 )
             # Children generation
-            children = self.make_children(parents, self.prob, max_genetic_dist)
+            children = self.make_children(parents, max_genetic_dist)
             # Add to population
             self.pop.extend(children)
             # Individuals evaluation
@@ -368,9 +362,7 @@ class GeneticOptimization:
                 processes=processes
             )
 
-        out = []
-        for dna in self.pop:
-            # Return (fitness, dimensions, initial positions)
-            out.append(dna)
+        # Return (fitness, dimensions, initial positions)
+        out = [dna for dna in self.pop]
         out.sort(key=lambda x: x[0], reverse=True)
         return out
