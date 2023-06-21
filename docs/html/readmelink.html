@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>leggedsnake &mdash; LeggedSnake 0.3.1 documentation</title>
+  <title>leggedsnake &mdash; LeggedSnake 0.4.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -45,26 +45,28 @@
               <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Readme</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#quick-links">Quick links</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#using-pip">Using pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#setting-up-virtual-environment">Setting up Virtual Environment</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#contribute">Contribute</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#testing">Testing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#release">Release</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-from-source">Build from source</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conda-virtual-environment">Conda Virtual Environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-installation">Other installation</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#defining-a-walker">Defining a <code class="docutils literal notranslate"><span class="pre">Walker</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimization-using-genetic-algorithm-ga">Optimization using Genetic Algorithm (GA)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#results">Results</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#kinematic-optimization-using-particle-swarm-optimization-pso">Kinematic optimization using Particle Swarm Optimization (PSO)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dynamic-optimization-using-genetic-algorithm-ga">Dynamic Optimization using Genetic Algorithm (GA)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#main-features">Main features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#advice">Advice</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contribute">Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#for-everyone">For everyone</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#for-developers">For developers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-links">Quick links</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="changeloglink.html">Changelog</a></li>
@@ -116,94 +118,156 @@
 <h1>leggedsnake<a class="headerlink" href="#leggedsnake" title="Permalink to this heading"></a></h1>
 <a class="reference external image-reference" href="https://pypi.python.org/pypi/leggedsnake/"><img alt="PyPI version fury.io" src="https://badge.fury.io/py/leggedsnake.svg" /></a>
 <a class="reference external image-reference" href="https://pepy.tech/project/leggedsnake"><img alt="Downloads" src="https://static.pepy.tech/personalized-badge/leggedsnake?period=total&amp;units=international_system&amp;left_color=grey&amp;right_color=green&amp;left_text=downloads" /></a>
-<a class="reference external image-reference" href="https://raw.githubusercontent.com/HugoFara/leggedsnake/master/LICENSE.rst"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
-<p>LeggedSnake is a project intended to make the simulation of walking linkages fast and easy.
+<a class="reference external image-reference" href="https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE.rst"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" /></a>
+<p>LeggedSnake makes the simulation of walking linkages fast and easy.
 We believe that building walking linkages is fun and could be useful.
 Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.</p>
-<p>We handle planar <a class="reference external" href="https://en.wikipedia.org/wiki/Leg_mechanism">leg mechanisms</a> in three main parts:</p>
-<ul class="simple">
-<li><p>Linkage conception in simple Python relying on <a class="reference external" href="https://github.com/HugoFara/pylinkage">pylinkage</a>.</p></li>
-<li><p>Kinematic optimization with <code class="docutils literal notranslate"><span class="pre">Walker</span></code> class, inheriting from pylinkage’s <code class="docutils literal notranslate"><span class="pre">Linkage</span></code> class.</p></li>
-<li><p>Dynamic simulation and its optimization using genetic algorithms.</p></li>
-</ul>
-<section id="quick-links">
-<h2>Quick links<a class="headerlink" href="#quick-links" title="Permalink to this heading"></a></h2>
-<ul class="simple">
-<li><p>For the documentation, check the docs at <a class="reference external" href="https://hugofara.github.io/leggedsnake/">hugofara.github.io/leggedsnake</a>!</p></li>
-<li><p>Source code is hosted on GitHub as <a class="reference external" href="https://github.com/HugoFara/leggedsnake">HugoFara/leggedsnake</a></p></li>
-<li><p>We also provide a Python package on PyPi, test <a class="reference external" href="https://pypi.org/project/leggedsnake/">leggedsnake</a>.</p></li>
-<li><p>If you just want to chill out looking at walking linkages striving to survive, join the <a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">discussions</a>.</p></li>
-</ul>
-<p>Contributors are welcome!</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this heading"></a></h2>
+<p>First, you will define a linkage to be optimized.
+Here we use the <a class="reference external" href="https://www.diywalkers.com/strider-linkage-plans.html">strider linkage</a> by <a class="reference external" href="https://www.diywalkers.com/">Wade Wagle and Team Trotbot</a>.</p>
+<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif"><img alt="Dynamic four-leg-pair unoptimized Strider" src="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif" /></a>
+<p><em>Dimensions are intentionally wrong, so that the robots fails to walk properly.</em></p>
+<p>Let’s take several identical linkages, and make them reproduce and evolve through many generations.
+Here is how it looks:</p>
+<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Striders%20run.gif"><img alt="10 optimized striders" src="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Striders%20run.gif" /></a>
+<p>Finally, we will extract the best linkage, and here is our optimized model that do not fall.</p>
+<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20optimized%20strider.gif"><img alt="Dynamic optimized Strider" src="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20optimized%20strider.gif" /></a>
 </section>
 <section id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
-<section id="using-pip">
-<h3>Using pip<a class="headerlink" href="#using-pip" title="Permalink to this heading"></a></h3>
 <p>The package is hosted on PyPi as <a class="reference external" href="https://pypi.org/project/leggedsnake/">leggedsnake</a>, use:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>leggedsnake
 </pre></div>
 </div>
 </section>
-<section id="setting-up-virtual-environment">
-<h3>Setting up Virtual Environment<a class="headerlink" href="#setting-up-virtual-environment" title="Permalink to this heading"></a></h3>
-<p>We provide an <a class="reference external" href="https://github.com/HugoFara/leggedsnake/blob/master/environment.yml">environment.yml</a> file for conda.
-Use <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">update</span> <span class="pre">--file</span> <span class="pre">environment.yml</span> <span class="pre">--name</span> <span class="pre">leggedsnake-env</span></code> to install the requirements in a separate environment.</p>
+<section id="build-from-source">
+<h2>Build from source<a class="headerlink" href="#build-from-source" title="Permalink to this heading"></a></h2>
+<p>Download this repository.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/hugofara/leggedsnake
+</pre></div>
+</div>
+<section id="conda-virtual-environment">
+<h3>Conda Virtual Environment<a class="headerlink" href="#conda-virtual-environment" title="Permalink to this heading"></a></h3>
+<p>We provide an <a class="reference external" href="https://github.com/HugoFara/leggedsnake/blob/main/environment.yml">environment.yml</a> file for conda.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>env<span class="w"> </span>update<span class="w"> </span>--file<span class="w"> </span>environment.yml<span class="w"> </span>--name<span class="w"> </span>leggedsnake-env
+</pre></div>
+</div>
+<p>It will install the requirements in a separate environment.</p>
+</section>
+<section id="other-installation">
+<h3>Other installation<a class="headerlink" href="#other-installation" title="Permalink to this heading"></a></h3>
 <p>If you are looking for a development version, check the GitHub repo under
 <a class="reference external" href="https://github.com/HugoFara/leggedsnake">HugoFara/leggedsnake</a>.</p>
 </section>
 </section>
-<section id="contribute">
-<h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this heading"></a></h2>
-<p>Download the latest GitHub version, then install the dev requirements in <code class="docutils literal notranslate"><span class="pre">requirements-dev.txt</span></code>.</p>
-<p>In a nutshell</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/HugoFara/leggedsnake.git
-<span class="nb">cd</span><span class="w"> </span>leggedsnake
-pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt
-</pre></div>
-</div>
-<section id="testing">
-<h3>Testing<a class="headerlink" href="#testing" title="Permalink to this heading"></a></h3>
-<p>We use unittest. Just run <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">unittest</span> <span class="pre">discover</span> <span class="pre">.</span></code> from the main folder.</p>
-</section>
-<section id="release">
-<h3>Release<a class="headerlink" href="#release" title="Permalink to this heading"></a></h3>
-<p>This section is mainly intended for maintainers.
-Fell free to use the tools described here, but they are not necessary in any way.</p>
-<ul class="simple">
-<li><p>To publish a new version, use <code class="docutils literal notranslate"><span class="pre">bump2version</span></code>. For instance <code class="docutils literal notranslate"><span class="pre">bump2version</span> <span class="pre">minor</span></code>.</p></li>
-<li><p>Regenerate the documentation with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> (uses Sphinx).</p></li>
-</ul>
-</section>
-</section>
 <section id="usage">
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h2>
-<p>The demo script is <a class="reference external" href="https://github.com/HugoFara/leggedsnake/blob/master/docs/examples/strider.py">strider.py</a>, which
+<p>First, you define the linkage you want to use.
+The demo script is <a class="reference external" href="https://github.com/HugoFara/leggedsnake/blob/main/docs/examples/strider.py">strider.py</a>, which
 demonstrates all the techniques about the <a class="reference external" href="https://www.diywalkers.com/strider-linkage-plans.html">Strider linkage</a>.</p>
+<p>In a nutshell, the two main parts are:</p>
+<ol class="arabic simple">
+<li><p>Define a Linkage.</p></li>
+<li><p>Run the optimization.</p></li>
+</ol>
 <section id="defining-a-walker">
 <h3>Defining a <code class="docutils literal notranslate"><span class="pre">Walker</span></code><a class="headerlink" href="#defining-a-walker" title="Permalink to this heading"></a></h3>
-<p>First, you need to define joints for your <code class="docutils literal notranslate"><span class="pre">Walker</span></code> as described in <a class="reference external" href="https://github.com/HugoFara/pylinkage">pylinkage</a>
-documentation. Once your joints (let’s say they are in a joint object), you should have something like that:</p>
+<p>you need to define joints for your <code class="docutils literal notranslate"><span class="pre">Walker</span></code> as described in <a class="reference external" href="https://github.com/HugoFara/pylinkage">pylinkage</a>
+documentation.
+You may use a dictionary, that looks like that:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">leggedsnake</span> <span class="k">as</span> <span class="nn">ls</span>
 
-<span class="c1"># Center of the Walker</span>
+<span class="c1"># Quick definition of a linkage as a dict of joints</span>
 <span class="n">linkage</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;A&quot;</span><span class="p">:</span> <span class="n">ls</span><span class="o">.</span><span class="n">Static</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">),</span>
     <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="n">ls</span><span class="o">.</span><span class="n">Crank</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mf">0.31</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Crank&quot;</span><span class="p">)</span>
     <span class="c1"># etc...</span>
 <span class="p">}</span>
+<span class="c1"># Conversion to a dynamic linkage</span>
 <span class="n">my_walker</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">Walker</span><span class="p">(</span>
     <span class="n">joints</span><span class="o">=</span><span class="n">linkage</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My Walker&quot;</span>
 <span class="p">)</span>
+<span class="c1"># It is often faster to add pairs of legs this way</span>
+<span class="n">my_walker</span><span class="o">.</span><span class="n">add_legs</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+
+<span class="c1"># Then, run launch a GUI simulation with</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">video</span><span class="p">(</span><span class="n">my_walker</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Walker</span></code> is just an inherited class of <code class="docutils literal notranslate"><span class="pre">Linkage</span></code>, with some useful methods, and behaves quite the same way.</p>
+<p>It should display something like the following.</p>
+<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif"><img alt="Dynamic four-leg-pair unoptimized Strider" src="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif" /></a>
+</section>
+<section id="optimization-using-genetic-algorithm-ga">
+<h3>Optimization using Genetic Algorithm (GA)<a class="headerlink" href="#optimization-using-genetic-algorithm-ga" title="Permalink to this heading"></a></h3>
+<p>The next step is to optimize your linkage. We use a genetic algorithm here.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Definition of an individual as (fitness, dimensions, initial coordinates)</span>
+<span class="n">dna</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">my_walker</span><span class="o">.</span><span class="n">get_num</span><span class="o">.</span><span class="n">constraints</span><span class="p">()),</span> <span class="nb">list</span><span class="p">(</span><span class="n">my_walker</span><span class="o">.</span><span class="n">get_coords</span><span class="p">())]</span>
+<span class="n">population</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="k">def</span> <span class="nf">total_distance</span><span class="p">(</span><span class="n">walker</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Evaluates the final horizontal position of the input linkage.</span>
+
+<span class="sd">    Return final distance and initial position of joints.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">walker</span><span class="o">.</span><span class="n">step</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">world</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">World</span><span class="p">()</span>
+    <span class="c1"># We handle all the conversions</span>
+    <span class="n">world</span><span class="o">.</span><span class="n">add_linkage</span><span class="p">(</span><span class="n">walker</span><span class="p">)</span>
+    <span class="c1"># Simulation duration (in seconds)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">duration</span> <span class="o">/</span> <span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;simul&quot;</span><span class="p">][</span><span class="s2">&quot;physics_period&quot;</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+        <span class="n">world</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">world</span><span class="o">.</span><span class="n">linkages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pos</span>
+
+
+<span class="c1"># Prepare the optimization, with any fitness_function(dna) -&gt; score</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">GeneticOptimization</span><span class="p">(</span>
+        <span class="n">dna</span><span class="o">=</span><span class="n">dna</span><span class="p">,</span>
+        <span class="n">fitness</span><span class="o">=</span><span class="n">total_distance</span><span class="p">,</span>
+        <span class="n">max_pop</span><span class="o">=</span><span class="n">population</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1"># Run for 100 iterations, on 4 processes</span>
+<span class="n">optimized_walkers</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">iters</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">processes</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># The following line will display the results</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">all_linkages_video</span><span class="p">(</span><span class="n">optimized_walkers</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For 100 iterations, 10 linkages will be simulated and evaluated by fitness_function.
+The fittest individuals are kept and will propagate their genes (with mutations).</p>
+<p>Now you should see something like the following.</p>
+<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Striders%20run.gif"><img alt="10 optimized striders" src="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Striders%20run.gif" /></a>
+<p>This is a simulation from the last generation of 10 linkages.
+Most of them cover a larger distance (this is the target of our <code class="docutils literal notranslate"><span class="pre">fitness_function</span></code>).</p>
+</section>
+<section id="results">
+<h3>Results<a class="headerlink" href="#results" title="Permalink to this heading"></a></h3>
+<p>Finally, only the best linkage at index 0 may be kept.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Results are sorted by best fitness first,</span>
+<span class="c1"># so we use the walker with the best score</span>
+<span class="n">best_dna</span> <span class="o">=</span> <span class="n">optimized_walkers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="c1"># Change the dimensions</span>
+<span class="n">my_walker</span><span class="o">.</span><span class="n">set_num_constraints</span><span class="p">(</span><span class="n">best_dna</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">my_walker</span><span class="o">.</span><span class="n">set_coords</span><span class="p">(</span><span class="n">best_dna</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="c1"># Once again launch the video</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">video</span><span class="p">(</span><span class="n">my_walker</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20optimized%20strider.gif"><img alt="Dynamic optimized Strider" src="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20optimized%20strider.gif" /></a>
+<p>So now it has a small ski pole, does not fall and goes much farther away!</p>
 </section>
 <section id="kinematic-optimization-using-particle-swarm-optimization-pso">
 <h3>Kinematic optimization using Particle Swarm Optimization (PSO)<a class="headerlink" href="#kinematic-optimization-using-particle-swarm-optimization-pso" title="Permalink to this heading"></a></h3>
-<p>No change compared to a classic linkage optimization. You should use the <code class="docutils literal notranslate"><span class="pre">step</span></code> and <code class="docutils literal notranslate"><span class="pre">stride</span></code> method from the
-<a class="reference external" href="https://github.com/HugoFara/leggedsnake/blob/master/leggedsnake/utility.py">utility module</a> as fitness functions.
+<p>You may need a kinematic optimization, depending solely on pylinkage.
+You should use the <code class="docutils literal notranslate"><span class="pre">step</span></code> and <code class="docutils literal notranslate"><span class="pre">stride</span></code> method from the
+<a class="reference external" href="https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/utility.py">utility module</a> as fitness functions.
 This set of rules should work well for a stride <strong>maximisation</strong> problem:</p>
 <ol class="arabic simple">
 <li><p>Rebuild the Walker with the provided set of dimensions, and do a complete turn.</p></li>
@@ -212,77 +276,15 @@ This set of rules should work well for a stride <strong>maximisation</strong> pr
 <li><p>Eventually measure the length of its stride with the <code class="docutils literal notranslate"><span class="pre">stride</span></code> function. Return this length as its score.</p></li>
 </ol>
 </section>
-<section id="dynamic-optimization-using-genetic-algorithm-ga">
-<h3>Dynamic Optimization using Genetic Algorithm (GA)<a class="headerlink" href="#dynamic-optimization-using-genetic-algorithm-ga" title="Permalink to this heading"></a></h3>
-<p>Kinematic optimization is fast, but it can return weird results, and it has no sense of gravity while walking heavily
-relies on gravity. This is why you may need to use dynamic optimization thanks to
-<a class="reference external" href="http://www.pymunk.org/en/latest/index.html">Pymunk</a>. However, the calculation is much slower, and you can no
-longer test millions of linkages as in PSO (or you will need time). This is why we
-use <a class="reference external" href="https://en.wikipedia.org/wiki/Genetic_algorithm">genetic algorithm</a>, because it can provide good results with
-fewer parents.</p>
-<p>We handle everything almost everything world definition to linkage conversion. Apart from the GA parameters, you just
-have to define a fitness function. Here are the main steps for a <strong>maximisation problem</strong>:</p>
-<ol class="arabic simple">
-<li><p>Create a function of two arguments, the first one should be the parameters of the linkage, the second the initial positions for the joints.</p></li>
-<li><p>Try to do a revolution in <strong>kinematic simulation</strong>. If the Walker raises an <code class="docutils literal notranslate"><span class="pre">UnbuildableError</span></code> set its score to <code class="docutils literal notranslate"><span class="pre">-float('inf')</span></code>.</p></li>
-<li><p>Otherwise, use the following procedure:</p></li>
-</ol>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">leggedsnake</span> <span class="k">as</span> <span class="nn">ls</span>
-
-<span class="k">def</span> <span class="nf">dynamic_linkage_fitness</span><span class="p">(</span><span class="n">walker</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Make the dynamic evaluation of a Walker.</span>
-
-<span class="sd">    Return yield and initial position of joints.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">world</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">World</span><span class="p">()</span>
-    <span class="c1"># We handle all the conversions</span>
-    <span class="n">world</span><span class="o">.</span><span class="n">add_linkage</span><span class="p">(</span><span class="n">walker</span><span class="p">)</span>
-    <span class="c1"># Simulation duration (in seconds)</span>
-    <span class="n">duration</span> <span class="o">=</span> <span class="mi">40</span>
-    <span class="c1"># Somme of yields</span>
-    <span class="n">tot</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="c1"># Motor turned on duration</span>
-    <span class="n">dur</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">*</span> <span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;camera&quot;</span><span class="p">][</span><span class="s2">&quot;fps&quot;</span><span class="p">]</span>
-    <span class="n">n</span> <span class="o">/=</span> <span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;simul&quot;</span><span class="p">][</span><span class="s2">&quot;time_coef&quot;</span><span class="p">]</span>
-    <span class="n">pos</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">walker</span><span class="o">.</span><span class="n">step</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)):</span>
-        <span class="n">efficiency</span><span class="p">,</span> <span class="n">energy</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
-        <span class="n">tot</span> <span class="o">+=</span> <span class="n">efficiency</span>
-        <span class="n">dur</span> <span class="o">+=</span> <span class="n">energy</span>
-    <span class="k">if</span> <span class="n">dur</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">return</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">),</span> <span class="nb">list</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Score:&quot;</span><span class="p">,</span> <span class="n">tot</span> <span class="o">/</span> <span class="n">dur</span><span class="p">)</span>
-    <span class="c1"># Return 100 times average yield, and initial positions as the final score</span>
-    <span class="k">return</span> <span class="n">tot</span> <span class="o">/</span> <span class="n">dur</span><span class="p">,</span> <span class="n">pos</span>
-</pre></div>
-</div>
-<p>And now, relax while your computer creates a civilization of walking machines!</p>
 </section>
-<section id="visualization">
-<h3>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading"></a></h3>
-<p>For this part we will focus on the <a class="reference external" href="https://www.diywalkers.com/strider-linkage-plans.html">Strider linkage</a>,
-an example file is provided at <code class="docutils literal notranslate"><span class="pre">docs/examples/strider.py</span></code>.</p>
-<p>The linkage looks like this:</p>
-<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20unoptimized%20Strider.gif"><img alt="A Kinematic representation of Strider linkage" src="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20unoptimized%20Strider.gif" /></a>
-<p>Looks cool? Let’s simulate it dynamically!</p>
-<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20one-legged%20Strider.gif"><img alt="Dynamic one-leg-pair Strider being tested" src="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20one-legged%20Strider.gif" /></a>
-<p>Oops! Here is what you get when you forget to add more legs! There is <strong>real danger here</strong>, because your walker crawls
-well, you will be able to optimize efficiently the “crawler”, <em>which may be not your goal</em>.</p>
-<p>Let’s add three more leg pairs. Why three? Many legs mean more mass and constraints, so less yield and more intensive
-computations. On the other hand, we always want the center of mass over the
-<a class="reference external" href="https://en.wikipedia.org/wiki/Support_polygon">support line</a>, which means that if the walker begins to lift a foot
-(let’s say a front foot), and another doesn’t come on the ground ahead of it, the linkage will fall nose to the
-ground. With more feet, we make the “snooping” time shorter, and a total of four leg pairs is a minimum for this
-<em>unoptimized</em> version.</p>
-<p>A simple way to do it is:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_linkage</span><span class="o">.</span><span class="n">add_legs</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="c1"># Replace &quot;my_linkage&quot; with your Walker object</span>
-</pre></div>
-</div>
-<p>Let’s have a look at the artist:</p>
-<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20strider.gif"><img alt="Dynamic four-leg-pair unoptimized Strider" src="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Dynamic%20unoptimized%20strider.gif" /></a>
-</section>
+<section id="main-features">
+<h2>Main features<a class="headerlink" href="#main-features" title="Permalink to this heading"></a></h2>
+<p>We handle planar <a class="reference external" href="https://en.wikipedia.org/wiki/Leg_mechanism">leg mechanisms</a> in three main parts:</p>
+<ul class="simple">
+<li><p>Linkage conception in simple Python relies on <a class="reference external" href="https://github.com/HugoFara/pylinkage">pylinkage</a>.</p></li>
+<li><p><em>Optional</em> kinematic optimization with <code class="docutils literal notranslate"><span class="pre">Walker</span></code> class, inherits from pylinkage’s <code class="docutils literal notranslate"><span class="pre">Linkage</span></code> class.</p></li>
+<li><p>Dynamic simulation and its optimization use genetic algorithms.</p></li>
+</ul>
 </section>
 <section id="advice">
 <h2>Advice<a class="headerlink" href="#advice" title="Permalink to this heading"></a></h2>
@@ -295,21 +297,32 @@ the optimization.</p>
 <p>Try to minimize the number of elements in the optimizations! You can often use some linkage properties to reduce the
 number of simulation parameters. For instance, the Strider linkage has axial symmetry. While it is irrelevant to use
 this property in dynamic simulation, you can use “half” your Strider in a kinematic optimization, which is much faster.</p>
-<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20half-Strider.gif"><img alt="A Kinematic half Strider" src="https://github.com/HugoFara/leggedsnake/raw/master/docs/examples/images/Kinematic%20half-Strider.gif" /></a>
+<a class="reference external image-reference" href="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Kinematic%20half-Strider.gif"><img alt="A Kinematic half Strider" src="https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Kinematic%20half-Strider.gif" /></a>
 </section>
-<section id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this heading"></a></h2>
-<p>Python 3, numpy for calculation, matplotlib for drawing, and standard libraries.</p>
-<p>For kinematic optimization, you can either use the built-in algorithm, or
-<a class="reference external" href="https://pyswarms.readthedocs.io/en/latest/">PySwarms</a>, under MIT license.
-PySwarms is a much more complex package which provides quick calculations,
-however, with modern laptops the built-in swarm optimization should be quick enough
-to fit your needs.</p>
-<p>Dynamic optimization relies on multiple packages.
-First of all, it uses <a class="reference external" href="http://www.pymunk.org/en/latest/index.html">Pymunk</a>,
-made by Victor Blomqvist, as its physics engine.
-The genetic algorithm optimizer is home-made,
-but feel free to use any external tool suiting your needs!</p>
+<section id="contribute">
+<h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this heading"></a></h2>
+<p>This project is open to contribution and actively looking for contributors.
+You can help making it better!</p>
+<section id="for-everyone">
+<h3>For everyone<a class="headerlink" href="#for-everyone" title="Permalink to this heading"></a></h3>
+<p>You can <a class="reference external" href="https://github.com/HugoFara/leggedsnake/stargazers">drop a star</a>,
+<a class="reference external" href="https://github.com/HugoFara/leggedsnake/forks">fork this project</a> or simply share the link to your best media.</p>
+<p>The more people get engaged into this project, the better it will develop!</p>
+</section>
+<section id="for-developers">
+<h3>For developers<a class="headerlink" href="#for-developers" title="Permalink to this heading"></a></h3>
+<p>You can follow the guide at <a class="reference external" href="CONTRIBUTING.md">CONTRIBUTING.md</a>. Feel free to me any pull request.</p>
+</section>
+</section>
+<section id="quick-links">
+<h2>Quick links<a class="headerlink" href="#quick-links" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>For the documentation, check the docs at <a class="reference external" href="https://hugofara.github.io/leggedsnake/">hugofara.github.io/leggedsnake</a>!</p></li>
+<li><p>Source code is hosted on GitHub as <a class="reference external" href="https://github.com/HugoFara/leggedsnake">HugoFara/leggedsnake</a></p></li>
+<li><p>We also provide a Python package on PyPi, test <a class="reference external" href="https://pypi.org/project/leggedsnake/">leggedsnake</a>.</p></li>
+<li><p>If you just want to chill out looking at walking linkages striving to survive, join the <a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">discussions</a>.</p></li>
+</ul>
+<p>Contributors are welcome!</p>
 </section>
 </section>
 
