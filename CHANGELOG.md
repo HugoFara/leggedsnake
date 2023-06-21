@@ -5,9 +5,9 @@ All notable changes to the LeggedSnake will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2023-06-21
 
-### Added
+### Added in 0.4.0
 
 - View all walkers!
   - ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all walkers in one simulation!
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 genetic optimization.
 - In ``docs/examples/strider.py`` we recommend to use ``total_distance`` as the fitness function.
 
-### Changed
+### Changed in 0.4.0
 
 - Genetic optimization:
   - During genetic optimization, population is now stable at max_pop (it used to fluctuate a lot).
@@ -37,18 +37,18 @@ genetic optimization.
 - ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
 - In ``docs/example/strider.py``, simulation time was increased from 30 seconds to 40. It was just not enough.
 
-### Fixed
+### Fixed in 0.4.0
 
 - Documentation of ``evolutionary_optimization_builtin`` was wrong: returned data were in order (fitness, dimensions, position),
 but (fitness, position, dimensions) was indicated.
 - After a genetic optimization, the example script was assigning wrong data to the demo walker.
 - ``kwargs_switcher`` from ``geneticoptimizer.py`` do no longer pop (destroy) argument from the input dictionary.
 
-### Deprecated
+### Deprecated in 0.4.0
 
 - ``setup.cfg`` should no longer be used, as it is replaced by ``pyproject.toml``. 
 
-### Removed
+### Removed in 0.4.0
 
 - ``evolutionary_optimization`` function is removed. Use  ``GeneticOptimization`` class instead.
   - You can no longer use the argument "init_pop" to change the size of the initial population. 

@@ -25,7 +25,10 @@ This section is mainly intended for maintainers.
 Fell free to use the tools described here, but they are not necessary in any way.
 
 * To publish a new version, use ``bump2version``. For instance ``bump2version minor``.
+* Update CHANGELOG.md with release date and edit subsection titles.
 * Regenerate the documentation with ``make html`` (uses Sphinx).
+* Commit and add a tag (e. g. v0.4.0).
+* Publish a new [GitHub release](https://github.com/HugoFara/leggedsnake/releases).
 
 ## Contributions for everyone
 
