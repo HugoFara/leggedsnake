@@ -25,7 +25,7 @@ This section is mainly intended for maintainers.
 Fell free to use the tools described here, but they are not necessary in any way.
 
 * To publish a new version, use ``bump2version``. For instance ``bump2version minor``.
-* Regenerate the documentation with ``make html`` (uses Sphinx). Combine it with ``make clear`` to clear old data.
+* Regenerate the documentation with ``make html`` (uses Sphinx).
 
 ## Contributions for everyone
 
