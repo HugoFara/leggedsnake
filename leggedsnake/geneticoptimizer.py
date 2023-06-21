@@ -75,7 +75,6 @@ class GeneticOptimization:
             self, 
             dna,
             fitness,
-            iters,
             prob=.07,
             **kwargs
     ) -> None:
@@ -85,7 +84,6 @@ class GeneticOptimization:
         ----------
         dna : list
         fitness : callable
-        iters : int
         prob : float or tuple[float]
         kwargs : dict
             Other useful parameters for the optimization.
@@ -112,7 +110,7 @@ class GeneticOptimization:
         """
         self.dna = dna
         self.fitness = fitness
-        self.iters = iters
+        self.iters = 0
         self.prob = prob
         self.kwargs = kwargs
         self.pop = None

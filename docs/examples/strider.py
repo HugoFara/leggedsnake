@@ -565,7 +565,7 @@ def total_distance(dna):
     world = ls.World()
     world.add_linkage(linkage_hollow)
     # Simulation duration (in seconds)
-    duration = 30
+    duration = 40
     steps = int(duration / ls.params["simul"]["physics_period"])
     for _ in range(steps):
         world.update()
@@ -596,7 +596,7 @@ def efficiency(dna):
     world = ls.World()
     world.add_linkage(linkage_hollow)
     # Simulation duration (in seconds)
-    duration = 30
+    duration = 40
     # Somme of yields
     tot = 0
     # Motor turned on duration
@@ -658,7 +658,6 @@ def evolutive_optimizer(
         dna=dna, 
         prob=.07,
         fitness=fitness_function,
-        iters=iters,
         max_pop=pop,
         startnstop=startnstop,
         gui=gui
