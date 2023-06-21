@@ -4,26 +4,89 @@
 [![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)](https://pepy.tech/project/leggedsnake)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE.rst)
 
-LeggedSnake is a project intended to make the simulation of walking linkages fast and easy.
+LeggedSnake makes the simulation of walking linkages fast and easy.
 We believe that building walking linkages is fun and could be useful.
 Our philosophy is to provide a quick way of building, optimizing and testing walking linkages.
 
+*An example of a Strider linkage built with the project, failing to climb a slope.*
+
+## Usage
+
+First, you define the linkage you want to use.
+
+```python3
+import leggedsnake as ls
+
+# Quick definition of a linkage as a dict of joints
+linkage = {
+    "A": ls.Static(x=0, y=0, name="A"),
+    "B": ls.Crank(1, 0, distance=1, angle=0.31, name="Crank")
+    # etc...
+}
+# Conversion to a dynamic linkage
+my_walker = ls.Walker(
+    joints=linkage.values(),
+    name="My Walker"
+)
+# It is often faster to add pairs of legs this way
+my_walker.add_legs(3)
+
+
+# Then, run launch a GUI simulation with
+ls.video(my_walker)
+```
+It should display something like the following.
+
 ![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
 
-We handle planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism) in three main parts:
+The next step is to optimize your linkage. We use a genetic algorithm here.
 
-* Linkage conception in simple Python relying on [pylinkage](https://github.com/HugoFara/pylinkage).
-* Kinematic optimization with ``Walker`` class, inheriting from pylinkage's ``Linkage`` class.
-* Dynamic simulation and its optimization using genetic algorithms.
+```python
+# Definition of an individual as (fitness, dimensions, initial coordinates)
+dna = [0, list(my_walker.get_num.constraints()), list(my_walker.get_coords())]
+population = 10
 
-## Quick links
+# Prepare the optimization, with any fitness_function(dna) -> score 
+optimizer = ls.GeneticOptimization(
+        dna=dna, 
+        fitness=fitness_function,
+        max_pop=population,
+)
+# Run for 100 iterations, on 4 processes
+optimized_walkers = optimizer.run(iters=100, processes=4)
 
-* For the documentation, check the docs at [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
-* Source code is hosted on GitHub as [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake)
-* We also provide a Python package on PyPi, test [leggedsnake](https://pypi.org/project/leggedsnake/).
-* If you just want to chill out looking at walking linkages striving to survive, join the [discussions](https://github.com/HugoFara/leggedsnake/discussions).
+# The following line will display the results
+ls.all_linkages_video(optimized_walkers)
+```
+For 100 iterations, 10 linkages will be simulated and evaluated by fitness_function.
+The fittest individuals are kept and will propagate their genes (with mutations).
 
-Contributors are welcome!
+Now you should see something like the following.
+
+![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Striders%20run.gif)
+
+This is a simulation from the last generation of 10 linkages. 
+Most of them cover a larger distance (this is the target of our ``fitness_function``).
+
+Finally, only the best linkage may be kept. 
+As , you can find it at ``optimized_linkages[0]``.
+
+```python
+# Results are sorted by best fitness first, 
+# so we use the walker with the best score
+best_dna = optimized_walkers[0]
+
+# Change the dimensions
+my_walker.set_num_constraints(best_dna[1])
+my_walker.set_coords(best_dna[2])
+
+# Once again launch the video
+ls.video(my_walker)
+```
+
+![Dynamic optimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20optimized%20strider.gif)
+
+So now it has a small ski pole, does not fall and goes much farther away!
 
 ## Installation
 
@@ -35,18 +98,44 @@ pip install leggedsnake
 
 ## Build from source
 
+Download this repository.
+
+```shell
+git clone https://github.com/hugofara/leggedsnake
+```
+
 ### Conda Virtual Environment
 
 We provide an [environment.yml](https://github.com/HugoFara/leggedsnake/blob/main/environment.yml) file for conda.
-Use ``conda env update --file environment.yml --name leggedsnake-env`` to install the requirements in a separate environment.
+
+```shell
+conda env update --file environment.yml --name leggedsnake-env
+``` 
+It will install the requirements in a separate environment.
+
+### Other installation
 
 If you are looking for a development version, check the GitHub repo under
 [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake).
+
+## Main features
+
+We handle planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism) in three main parts:
+
+* Linkage conception in simple Python relies on [pylinkage](https://github.com/HugoFara/pylinkage).
+* *Optional* kinematic optimization with ``Walker`` class, inherits from pylinkage's ``Linkage`` class.
+* Dynamic simulation and its optimization use genetic algorithms.
 
 ## Usage
 
 The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/docs/examples/strider.py), which
 demonstrates all the techniques about the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
+
+In a nutshell, you have at least two parts:
+
+1. Define a Linkage.
+2. Run the optimization. 
+
 
 ### Defining a ``Walker``
 
@@ -186,18 +275,11 @@ The more people get engaged into this project, the better it will develop!
 
 You can follow the guide at [CONTRIBUTING.md](CONTRIBUTING.md). Feel free to me any pull request.
 
-## Requirements
+## Quick links
 
-Python 3, numpy for calculation, matplotlib for drawing, and standard libraries.
+* For the documentation, check the docs at [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
+* Source code is hosted on GitHub as [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake)
+* We also provide a Python package on PyPi, test [leggedsnake](https://pypi.org/project/leggedsnake/).
+* If you just want to chill out looking at walking linkages striving to survive, join the [discussions](https://github.com/HugoFara/leggedsnake/discussions).
 
-For kinematic optimization, you can either use the built-in algorithm, or
-[PySwarms](https://pyswarms.readthedocs.io/en/latest/), under MIT license.
-PySwarms is a much more complex package which provides quick calculations,
-however, with modern laptops the built-in swarm optimization should be quick enough
-to fit your needs.
-
-Dynamic optimization relies on multiple packages.
-First of all, it uses [Pymunk](http://www.pymunk.org/en/latest/index.html),
-made by Victor Blomqvist, as its physics engine.
-The genetic algorithm optimizer is home-made,
-but feel free to use any external tool suiting your needs!
+Contributors are welcome!
