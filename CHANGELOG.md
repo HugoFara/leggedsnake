@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- ``examples/`` is now in the main folder. It was in ``docs/`` previously. 
+
 ### Fixed
 
 - Project links fixed in pyproject.toml

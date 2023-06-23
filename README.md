@@ -14,18 +14,18 @@ First, you will define a linkage to be optimized.
 Here we use the [strider linkage](https://www.diywalkers.com/strider-linkage-plans.html) by [Wade Wagle and Team Trotbot](https://www.diywalkers.com/).
 
 
-![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
+![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20unoptimized%20strider.gif)
 
 *Dimensions are intentionally wrong, so that the robots fails to walk properly.*
 
 Let's take several identical linkages, and make them reproduce and evolve through many generations.
 Here is how it looks:
 
-![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Striders%20run.gif)
+![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Striders%20run.gif)
 
 Finally, we will extract the best linkage, and here is our optimized model that do not fall.
 
-![Dynamic optimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20optimized%20strider.gif)
+![Dynamic optimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20optimized%20strider.gif)
 
 
 ## Installation
@@ -61,7 +61,7 @@ If you are looking for a development version, check the GitHub repo under
 ## Usage
 
 First, you define the linkage you want to use. 
-The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/docs/examples/strider.py), which
+The demo script is [strider.py](https://github.com/HugoFara/leggedsnake/blob/main/examples/strider.py), which
 demonstrates all the techniques about the [Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
 
 In a nutshell, the two main parts are:
@@ -97,7 +97,7 @@ ls.video(my_walker)
 ```
 It should display something like the following.
 
-![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20unoptimized%20strider.gif)
+![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20unoptimized%20strider.gif)
 
 
 ### Optimization using Genetic Algorithm (GA)
@@ -144,7 +144,7 @@ The fittest individuals are kept and will propagate their genes (with mutations)
 
 Now you should see something like the following.
 
-![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Striders%20run.gif)
+![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Striders%20run.gif)
 
 This is a simulation from the last generation of 10 linkages. 
 Most of them cover a larger distance (this is the target of our ``fitness_function``).
@@ -166,7 +166,7 @@ my_walker.set_coords(best_dna[2])
 ls.video(my_walker)
 ```
 
-![Dynamic optimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Dynamic%20optimized%20strider.gif)
+![Dynamic optimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20optimized%20strider.gif)
 
 So now it has a small ski pole, does not fall and goes much farther away!
 
@@ -204,7 +204,7 @@ Try to minimize the number of elements in the optimizations! You can often use s
 number of simulation parameters. For instance, the Strider linkage has axial symmetry. While it is irrelevant to use
 this property in dynamic simulation, you can use "half" your Strider in a kinematic optimization, which is much faster.
 
-![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/main/docs/examples/images/Kinematic%20half-Strider.gif)
+![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Kinematic%20half-Strider.gif)
 
 ## Contribute
 
