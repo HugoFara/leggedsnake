@@ -42,6 +42,6 @@ dynamic = ["version"]
 
 [project.urls]
 Homepage = "https://hugofara.net/leggedsnake-retro-ingeneering-evolution/"
-Documentation = "https://github.com/HugoFara/leggedsnake/blob/main/CHANGELOG.md"
+Documentation = "https://hugofara.github.io/leggedsnake/"
 Repository = "https://github.com/HugoFara/leggedsnake"
-Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
+Changelog = "https://github.com/hugofara/leggedsnake/blob/main/CHANGELOG.md"
