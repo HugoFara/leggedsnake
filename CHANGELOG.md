@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- ``examples/`` is now in the main folder. It was in ``docs/`` previously. 
+- ``examples/`` is now in the main folder. It was in ``docs/`` previously.
 
 ### Fixed
 
-- Project links fixed in pyproject.toml
+- Project links fixed in pyproject.toml.
+- Documentation should be directly under ``docs/`` but the recommended method was placing it in ``docs/html``.
 
 ## [0.4.0] - 2023-06-21
 

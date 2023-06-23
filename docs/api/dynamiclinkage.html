@@ -1,207 +1,189 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>dynamiclinkage &mdash; LeggedSnake 0.3.0 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dynamiclinkage &mdash; LeggedSnake 0.4.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="physicsengine" href="physicsengine.html" />
     <link rel="prev" title="utility" href="utility.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html" class="icon icon-home"> LeggedSnake
           
-
-          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">dynamiclinkage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.dynamiclinkage">Interface to dynamic compatible joints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.dynamiclinkage">Interface to dynamic compatible joints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint"><code class="docutils literal notranslate"><span class="pre">DynamicJoint</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint.__init__"><code class="docutils literal notranslate"><span class="pre">DynamicJoint.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint._abc_impl"><code class="docutils literal notranslate"><span class="pre">DynamicJoint._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint.reload"><code class="docutils literal notranslate"><span class="pre">DynamicJoint.reload()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.__init__"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage._thickness"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage._thickness</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.body"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.body</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.build_load"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.build_load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.convert_to_dynamic_joints"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.convert_to_dynamic_joints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.density"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.density</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.filter"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.filter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.height"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.height</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.joint_to_rigidbodies"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.joint_to_rigidbodies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.mass"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.mass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.mechanical_energy"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.mechanical_energy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.rigidbodies"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.rigidbodies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicLinkage.space"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.space</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot"><code class="docutils literal notranslate"><span class="pre">DynamicPivot</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot.__init__"><code class="docutils literal notranslate"><span class="pre">DynamicPivot.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot._abc_impl"><code class="docutils literal notranslate"><span class="pre">DynamicPivot._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot.r0"><code class="docutils literal notranslate"><span class="pre">DynamicPivot.r0</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot.r1"><code class="docutils literal notranslate"><span class="pre">DynamicPivot.r1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot.reload"><code class="docutils literal notranslate"><span class="pre">DynamicPivot.reload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_a"><code class="docutils literal notranslate"><span class="pre">DynamicPivot.set_anchor_a()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_b"><code class="docutils literal notranslate"><span class="pre">DynamicPivot.set_anchor_b()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Motor"><code class="docutils literal notranslate"><span class="pre">Motor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Motor.__init__"><code class="docutils literal notranslate"><span class="pre">Motor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Motor._abc_impl"><code class="docutils literal notranslate"><span class="pre">Motor._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Motor.angle"><code class="docutils literal notranslate"><span class="pre">Motor.angle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Motor.r"><code class="docutils literal notranslate"><span class="pre">Motor.r</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Motor.reload"><code class="docutils literal notranslate"><span class="pre">Motor.reload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Motor.set_anchor_a"><code class="docutils literal notranslate"><span class="pre">Motor.set_anchor_a()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Nail"><code class="docutils literal notranslate"><span class="pre">Nail</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Nail.__init__"><code class="docutils literal notranslate"><span class="pre">Nail.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Nail._abc_impl"><code class="docutils literal notranslate"><span class="pre">Nail._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.Nail.reload"><code class="docutils literal notranslate"><span class="pre">Nail.reload()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp"><code class="docutils literal notranslate"><span class="pre">PinUp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp.__init__"><code class="docutils literal notranslate"><span class="pre">PinUp.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp._abc_impl"><code class="docutils literal notranslate"><span class="pre">PinUp._abc_impl</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp.angle"><code class="docutils literal notranslate"><span class="pre">PinUp.angle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp.r"><code class="docutils literal notranslate"><span class="pre">PinUp.r</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp.reload"><code class="docutils literal notranslate"><span class="pre">PinUp.reload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp.set_anchor_a"><code class="docutils literal notranslate"><span class="pre">PinUp.set_anchor_a()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamiclinkage.PinUp.set_anchor_b"><code class="docutils literal notranslate"><span class="pre">PinUp.set_anchor_b()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamiclinkage.convert_to_dynamic_linkage"><code class="docutils literal notranslate"><span class="pre">convert_to_dynamic_linkage()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="physicsengine.html">physicsengine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="geneticoptimizer.html">geneticoptimizer</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Quick Links</span></p>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
 </ul>
-<p class="caption"><span class="caption-text">See Also</span></p>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">LeggedSnake</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-      <li>dynamiclinkage</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">dynamiclinkage</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/dynamiclinkage.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="dynamiclinkage">
-<h1>dynamiclinkage<a class="headerlink" href="#dynamiclinkage" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-leggedsnake.dynamiclinkage">
-<span id="interface-to-dynamic-compatible-joints"></span><h2>Interface to dynamic compatible joints<a class="headerlink" href="#module-leggedsnake.dynamiclinkage" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="dynamiclinkage">
+<h1>dynamiclinkage<a class="headerlink" href="#dynamiclinkage" title="Permalink to this heading"></a></h1>
+<section id="module-leggedsnake.dynamiclinkage">
+<span id="interface-to-dynamic-compatible-joints"></span><h2>Interface to dynamic compatible joints<a class="headerlink" href="#module-leggedsnake.dynamiclinkage" title="Permalink to this heading"></a></h2>
 <p>The dynamiclinkage module is an interface between Pymunk and a kinematic linkage.</p>
-<p>It provide various classes to overwrite the pylinkage.Joint objects.
-It also includes a DynamicLinkage that inheritates from
+<p>It provides various classes to overwrite the pylinkage.Joint objects.
+It also includes a DynamicLinkage that inherits from
 pylinkage.linkage.Linkage.
-Enventually a handy convert_to_dynamic_linkage methoc can generate a
+Eventually a handy convert_to_dynamic_linkage method can generate a
 DynamicLinkage from a pylinkage.linkage.Linkage.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicJoint">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">DynamicJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">DynamicJoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Dynamic, pymunk compatible equivalent of kinematic Joint.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicJoint.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">body0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Partial class to generate a DynamicJoint.</p>
 <p>A DynamicJoint is a Joint that can handle Pymunk Bodies.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>body0</strong> (<em>pymunk.body.Body</em><em>, </em><em>optional</em>) – First Body to link to. The default is None.</p></li>
 <li><p><strong>body1</strong> (<em>pymunk.body.Body</em><em>, </em><em>optional</em>) – Second Body to link to. The default is None</p></li>
-<li><p><strong>space</strong> (<em>pymunk.space.Space</em><em>, </em><em>optional</em>) – Simulation space in which the DynamicJoint exist.
+<li><p><strong>space</strong> (<em>pymunk.space.Space</em><em>, </em><em>optional</em>) – Simulation space in which the DynamicJoint exists.
 The default is None.</p></li>
-<li><p><strong>radius</strong> (<em>float</em><em>, </em><em>optional</em>) – DynamicJoint will generate hulles of this radius. The default is .3.</p></li>
+<li><p><strong>radius</strong> (<em>float</em><em>, </em><em>optional</em>) – DynamicJoint will generate hulls of this radius. The default is .3.</p></li>
 <li><p><strong>density</strong> (<em>float</em><em>, </em><em>optional</em>) – Density of the hull, mass will be computed accordingly.
 The default is 1.</p></li>
-<li><p><strong>shape_filter</strong> (<em>pymunk.shapes.ShapeFilter</em><em>, </em><em>optional</em>) – Prevent hulles from colliding with each another. Useful is the same
+<li><p><strong>shape_filter</strong> (<em>pymunk.shapes.ShapeFilter</em><em>, </em><em>optional</em>) – Prevent hulls from colliding with each other. Useful is the same
 linkage for instance. The default is None.</p></li>
 </ul>
 </dd>
@@ -210,21 +192,18 @@ linkage for instance. The default is None.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicJoint._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;_abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint._abc_impl" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint._abc_impl" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicJoint.reload">
-<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint.reload" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicJoint.reload" title="Permalink to this definition"></a></dt>
 <dd><p>Reload DynamicJoint coordinates.</p>
-<p>Coordinates only depend of Body position and DO NOT use any linkage
+<p>Coordinates only depend on Body position and DO NOT use any linkage
 constraint.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -233,23 +212,23 @@ constraint.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">DynamicLinkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pylinkage.linkage.Linkage</span></code></p>
-<p>Dynamic couterpart of a kinematic linkage.Linkage.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">DynamicLinkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Linkage</span></code></p>
+<p>Dynamic counterpart of a kinematic linkage.Linkage.</p>
 <p>It has several attributes linked to its dynamic nature and is close to an
 empty shell in the ways you will use it.</p>
-<p>Please not that it carries a load, which is relevant with real-world
+<p>Please note that it carries a load, which is relevant with real-world
 simulation where the weight of legs is small compared to the weight of the
 frame.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Instanciate a new DynamicLinkage.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>joints</strong> (<em>linkage.Joint</em>) – Joints to be part of the linkage. Kinematic joints will be
-converted in there dynamic equivalents.</p></li>
+converted to their dynamic equivalents.</p></li>
 <li><p><strong>space</strong> (<em>pymunk.Space</em>) – Space in which linkage should be instantiated.</p></li>
 <li><p><strong>density</strong> (<em>float</em><em>, </em><em>optional</em>) – Density of the Bodies in the linkage. The default is 1.</p></li>
 <li><p><strong>load</strong> (<em>float</em><em>, </em><em>optional</em>) – Mass of the load to carry. The default is 0.</p></li>
@@ -259,90 +238,87 @@ be set to str(id(self)) if not provided.</p></li>
 The default is .1.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage._thickness">
-<span class="sig-name descname"><span class="pre">_thickness</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage._thickness" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_thickness</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage._thickness" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.body">
-<span class="sig-name descname"><span class="pre">body</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.body" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">body</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.body" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.build_load">
-<span class="sig-name descname"><span class="pre">build_load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_mass</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.build_load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create the load this linkage have to carry.</p>
+<span class="sig-name descname"><span class="pre">build_load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_mass</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.build_load" title="Permalink to this definition"></a></dt>
+<dd><p>Create the load this linkage has to carry.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.convert_to_dynamic_joints">
-<span class="sig-name descname"><span class="pre">convert_to_dynamic_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.convert_to_dynamic_joints" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">convert_to_dynamic_joints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.convert_to_dynamic_joints" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a kinematic joint in its dynamic counterpart.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.density">
-<span class="sig-name descname"><span class="pre">density</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.density" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">density</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.density" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.filter">
-<span class="sig-name descname"><span class="pre">filter</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.filter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">filter</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.filter" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.height">
-<span class="sig-name descname"><span class="pre">height</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.height" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">height</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.height" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.joint_to_rigidbodies">
-<span class="sig-name descname"><span class="pre">joint_to_rigidbodies</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.joint_to_rigidbodies" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">joint_to_rigidbodies</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.joint_to_rigidbodies" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.mass">
-<span class="sig-name descname"><span class="pre">mass</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.mass" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mass</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.mass" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.mechanical_energy">
-<span class="sig-name descname"><span class="pre">mechanical_energy</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.mechanical_energy" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mechanical_energy</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.mechanical_energy" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.rigidbodies">
-<span class="sig-name descname"><span class="pre">rigidbodies</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.rigidbodies" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">rigidbodies</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.rigidbodies" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicLinkage.space">
-<span class="sig-name descname"><span class="pre">space</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.space" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">space</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicLinkage.space" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">DynamicPivot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pylinkage.linkage.Pivot</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">leggedsnake.dynamiclinkage.DynamicJoint</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">DynamicPivot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Pivot</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicJoint</span></code></a></p>
 <p>Dynamic counterpart of a Pivot joint.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Set point position, parents, and if it is fixed for this turn.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>float</em><em>, </em><em>optional</em>) – Position on horizontal axis. The default is 0.</p></li>
 <li><p><strong>y</strong> (<em>float</em><em>, </em><em>optional</em>) – Position on vertical axis. The default is O.</p></li>
@@ -358,73 +334,64 @@ The default is .1.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;_abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot._abc_impl" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot._abc_impl" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot.r0">
-<span class="sig-name descname"><span class="pre">r0</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.r0" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">r0</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.r0" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot.r1">
-<span class="sig-name descname"><span class="pre">r1</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.r1" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">r1</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.r1" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot.reload">
-<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.reload" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.reload" title="Permalink to this definition"></a></dt>
 <dd><p>Reload DynamicJoint coordinates.</p>
-<p>Coordinates only depend of Body position and DO NOT use any linkage
+<p>Coordinates only depend on Body position and DO NOT use any linkage
 constraint.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_a">
-<span class="sig-name descname"><span class="pre">set_anchor_a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_a" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set anchor_a caracteristics.</p>
+<span class="sig-name descname"><span class="pre">set_anchor_a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_a" title="Permalink to this definition"></a></dt>
+<dd><p>Set anchor_a characteristics.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>joint</strong> (<a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><em>DynamicJoint</em></a>) – DynamicJoint to use as anchor_a.</p></li>
 <li><p><strong>distance</strong> (<em>float</em><em>, </em><em>optional</em>) – Distance to keep constant between anchor_a and self.
 The default is None.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_b">
-<span class="sig-name descname"><span class="pre">set_anchor_b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_b" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set anchor_b caracteristics.</p>
+<span class="sig-name descname"><span class="pre">set_anchor_b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.DynamicPivot.set_anchor_b" title="Permalink to this definition"></a></dt>
+<dd><p>Set anchor_b characteristics.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>joint</strong> (<a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><em>DynamicJoint</em></a>) – DynamicJoint to use as anchor_b.</p></li>
 <li><p><strong>distance</strong> (<em>float</em><em>, </em><em>optional</em>) – Distance to keep constant between anchor_b and self.
 The default is None.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -433,19 +400,19 @@ The default is None.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Motor">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">Motor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pylinkage.linkage.Crank</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">leggedsnake.dynamiclinkage.DynamicJoint</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">Motor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Crank</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicJoint</span></code></a></p>
 <p>A Motor is a crank.</p>
-<p>It makes a link between a body and a sencond link it creates. It attaches
+<p>It makes a link between a body and a second link it creates. It attaches
 them with a PivotJoint, and adds a SimpleMotor over it. The bodies are now
 constrained to rotate around one each other.</p>
 <p>The Motor is placed at the extremity of the body it creates.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Motor.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Define a crank (circular motor).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>float</em><em>, </em><em>optional</em>) – initial horizontal position, won’t be used thereafter.
 The default is None.</p></li>
@@ -458,63 +425,54 @@ The default is None.</p></li>
 <li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – user-friendly name. The default is None.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Motor._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;_abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor._abc_impl" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor._abc_impl" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Motor.angle">
-<span class="sig-name descname"><span class="pre">angle</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.angle" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">angle</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.angle" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Motor.r">
-<span class="sig-name descname"><span class="pre">r</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.r" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">r</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.r" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Motor.reload">
-<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.reload" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.reload" title="Permalink to this definition"></a></dt>
 <dd><p>Reload DynamicJoint coordinates.</p>
-<p>Coordinates only depend of Body position and DO NOT use any linkage
+<p>Coordinates only depend on Body position and DO NOT use any linkage
 constraint.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Motor.set_anchor_a">
-<span class="sig-name descname"><span class="pre">set_anchor_a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.set_anchor_a" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set anchor_a caracteristics.</p>
+<span class="sig-name descname"><span class="pre">set_anchor_a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Motor.set_anchor_a" title="Permalink to this definition"></a></dt>
+<dd><p>Set anchor_a characteristics.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>joint</strong> (<a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><em>DynamicJoint</em></a>) – DynamicJoint to use as anchor_a.</p></li>
 <li><p><strong>distance</strong> (<em>float</em><em>, </em><em>optional</em>) – Distance to keep constant between anchor_a and self.
 The default is None.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -523,13 +481,13 @@ The default is None.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Nail">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">Nail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pylinkage.linkage.Static</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">leggedsnake.dynamiclinkage.DynamicJoint</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">Nail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Static</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicJoint</span></code></a></p>
 <p>A simple point to follow a rigidbody.</p>
 <p>It is special since it DOES NOT generate bodies.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Nail.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>A Static joint is a point in space to use as anchor by other joints.</p>
 <p>It is NOT a kind of joint as viewed in engineering terms!</p>
 <dl class="simple">
@@ -544,12 +502,12 @@ The default is None.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Nail._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;_abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail._abc_impl" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail._abc_impl" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.Nail.reload">
-<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail.reload" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.Nail.reload" title="Permalink to this definition"></a></dt>
 <dd><p>Reload position based on linked body rotation and position.</p>
 </dd></dl>
 
@@ -557,16 +515,16 @@ The default is None.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">PinUp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pylinkage.linkage.Fixed</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">leggedsnake.dynamiclinkage.DynamicJoint</span></code></a></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">PinUp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Fixed</span></code>, <a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">DynamicJoint</span></code></a></p>
 <p>Dynamic counterpart of Fixed joint.</p>
 <p>Add two pm.Segment to the linked body.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.__init__" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Create a point, of position fully defined by its two references.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<em>float</em><em>, </em><em>optional</em>) – Position on horizontal axis. The default is 0.</p></li>
 <li><p><strong>y</strong> (<em>float</em><em>, </em><em>optional</em>) – Position on vertical axis. The default is O.</p></li>
@@ -584,71 +542,62 @@ order. The default is None.</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp._abc_impl">
-<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;_abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp._abc_impl" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">_abc_impl</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;_abc._abc_data</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp._abc_impl" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp.angle">
-<span class="sig-name descname"><span class="pre">angle</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.angle" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">angle</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.angle" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp.r">
-<span class="sig-name descname"><span class="pre">r</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.r" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">r</span></span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.r" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp.reload">
-<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.reload" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.reload" title="Permalink to this definition"></a></dt>
 <dd><p>Reload DynamicJoint coordinates.</p>
-<p>Coordinates only depend of Body position and DO NOT use any linkage
+<p>Coordinates only depend on Body position and DO NOT use any linkage
 constraint.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp.set_anchor_a">
-<span class="sig-name descname"><span class="pre">set_anchor_a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.set_anchor_a" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set first anchor charactertics.</p>
+<span class="sig-name descname"><span class="pre">set_anchor_a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.set_anchor_a" title="Permalink to this definition"></a></dt>
+<dd><p>Set first anchor characteristics.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>joint</strong> (<a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><em>DynamicJoint</em></a>) – DynamicJoint to use as achor_a.</p></li>
+<li><p><strong>joint</strong> (<a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><em>DynamicJoint</em></a>) – DynamicJoint to use as anchor_a.</p></li>
 <li><p><strong>distance</strong> (<em>float</em><em>, </em><em>optional</em>) – Distance to keep constant. The default is None.</p></li>
 <li><p><strong>angle</strong> (<em>float</em><em>, </em><em>optional</em>) – Angle (in radians)  (joint1, joint0, self). The default is None.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.PinUp.set_anchor_b">
-<span class="sig-name descname"><span class="pre">set_anchor_b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.set_anchor_b" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set second anchor caracteristics.</p>
+<span class="sig-name descname"><span class="pre">set_anchor_b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.PinUp.set_anchor_b" title="Permalink to this definition"></a></dt>
+<dd><p>Set second anchor characteristics.</p>
 <p>It will create errors if called before anchor_a is properly defined.
-SIDE EFFECT : it create two Segment and add them to self.space.</p>
+SIDE EFFECT: creates two Segment objects and adds them to self.space.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>joint</strong> (<a class="reference internal" href="#leggedsnake.dynamiclinkage.DynamicJoint" title="leggedsnake.dynamiclinkage.DynamicJoint"><em>DynamicJoint</em></a>) – Joint to use as anchor_b.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>None.</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -657,60 +606,42 @@ SIDE EFFECT : it create two Segment and add them to self.space.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.dynamiclinkage.convert_to_dynamic_linkage">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">convert_to_dynamic_linkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kinematic_linkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.convert_to_dynamic_linkage" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamiclinkage.</span></span><span class="sig-name descname"><span class="pre">convert_to_dynamic_linkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kinematic_linkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamiclinkage.convert_to_dynamic_linkage" title="Permalink to this definition"></a></dt>
 <dd><p>Convert a classic Linkage to its dynamic counterpart.</p>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="physicsengine.html" class="btn btn-neutral float-right" title="physicsengine" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="utility.html" class="btn btn-neutral float-left" title="utility" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="utility.html" class="btn btn-neutral float-left" title="utility" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="physicsengine.html" class="btn btn-neutral float-right" title="physicsengine" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2021, Hugo Farajallah
-
-    </p>
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

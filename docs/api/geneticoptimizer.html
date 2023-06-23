@@ -1,703 +1,344 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>geneticoptimizer &mdash; LeggedSnake 0.3.0 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>geneticoptimizer &mdash; LeggedSnake 0.4.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="prev" title="physicsengine" href="physicsengine.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="../index.html" class="icon icon-home"> LeggedSnake
           
-
-          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dynamiclinkage.html">dynamiclinkage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="physicsengine.html">physicsengine</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">geneticoptimizer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.geneticoptimizer">Optimization using Genetic Algorithms (GA)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.geneticoptimizer">Optimization using Genetic Algorithms (GA)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.__init__"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.birth"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.birth()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_individual"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.evaluate_individual()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_population"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.evaluate_population()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.make_children"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.make_children()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.reduce_population"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.reduce_population()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.run"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.select_parents"><code class="docutils literal notranslate"><span class="pre">GeneticOptimization.select_parents()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.geneticoptimizer.kwargs_switcher"><code class="docutils literal notranslate"><span class="pre">kwargs_switcher()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.geneticoptimizer.load_population"><code class="docutils literal notranslate"><span class="pre">load_population()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.geneticoptimizer.save_population"><code class="docutils literal notranslate"><span class="pre">save_population()</span></code></a></li>
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Quick Links</span></p>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
 </ul>
-<p class="caption"><span class="caption-text">See Also</span></p>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../index.html">LeggedSnake</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="../index.html">Docs</a> &raquo;</li>
-        
-      <li>geneticoptimizer</li>
-    
-    
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">geneticoptimizer</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="../_sources/api/geneticoptimizer.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="geneticoptimizer">
-<h1>geneticoptimizer<a class="headerlink" href="#geneticoptimizer" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-leggedsnake.geneticoptimizer">
-<span id="optimization-using-genetic-algorithms-ga"></span><h2>Optimization using Genetic Algorithms (GA)<a class="headerlink" href="#module-leggedsnake.geneticoptimizer" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="geneticoptimizer">
+<h1>geneticoptimizer<a class="headerlink" href="#geneticoptimizer" title="Permalink to this heading"></a></h1>
+<section id="module-leggedsnake.geneticoptimizer">
+<span id="optimization-using-genetic-algorithms-ga"></span><h2>Optimization using Genetic Algorithms (GA)<a class="headerlink" href="#module-leggedsnake.geneticoptimizer" title="Permalink to this heading"></a></h2>
 <p>The geneticoptimizer module provides optimizers and wrappers for GA.</p>
-<p>As for now I didn’t tried a convincing Genetic Algorithm library. This is why
-you it is built-in here. Feel free to propose a copyleft library on GitHub!</p>
+<p>As for now, I didn’t try a convincing Genetic Algorithm library. This is why
+it is built-in here. Feel free to propose a copyleft library on GitHub!</p>
 <p>Created on Thu Jun 10 21:20:47 2021.</p>
 <p>&#64;author: HugoFara</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.birth">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">birth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.birth" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new individual with par1 and par2 as parents (two sequences).</p>
-<p>Child are generated by a uniform crossover followed by a random “resetting”
-mutation of each gene. The resetting is a normal law.</p>
-<p>Initial positions come from one of the two parents randomly.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">GeneticOptimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.07</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.07</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>par1</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – Dna of first parent.</p></li>
-<li><p><strong>par2</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – Dna of second parent.</p></li>
-<li><p><strong>prob</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – Probability for each gene to mutate, width of a normal law.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>child</strong> – Dna of the child.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list[float, tuple of float, tuple of tuple of float]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evaluate_individual">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evaluate_individual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evaluate_individual" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simple evaluation for a single individual.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – List of the individuals’ DNAs</p></li>
-<li><p><strong>fitness</strong> (<em>callable</em>) – Fitness function of signature fitness(dna, fitness_args) → float.</p></li>
-<li><p><strong>fitness_args</strong> (<em>tuple</em>) – Additional arguments to pass to the fitness function. Usually the
-initial positions of the joints.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Score then initial coordinates.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>tuple</p>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.evaluate_population" title="leggedsnake.geneticoptimizer.evaluate_population"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_population</span></code></a></dt><dd><p>counterpart for an entire population.</p>
-</dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evaluate_population">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evaluate_population" title="Permalink to this definition">¶</a></dt>
-<dd><p>Evaluate the whole population, attribute scores.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pop</strong> (<em>list of list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – List of the individuals’ DNAs</p></li>
-<li><p><strong>fitness</strong> (<em>callable</em>) – Fitness function of signature fitness(dna, fitness_args) → float.</p></li>
-<li><p><strong>fitness_args</strong> (<em>tuple</em>) – Additional arguments to pass to the fitness function. Usually the
-initial positions of the joints.</p></li>
-<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>default=True</em>) – To display informations about population evaluation.</p></li>
-<li><p><strong>processes</strong> (<em>int</em><em>, </em><em>default=1</em>) – Number of processes involved for a multiprocessors evaluation.</p></li>
-</ul>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.evaluate_individual" title="leggedsnake.geneticoptimizer.evaluate_individual"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_individual</span></code></a></dt><dd><p>same function but on a single DNA.</p>
-</dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evolutionary_optimization">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionary_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.07</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionary_optimization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run the Genetic Optimizer.</p>
-<p>Genetic Optimization is a procedural algorithm based on Darwinian evolution
-models.</p>
-<p>As of today, this function will only use the built-in algorithm, but you
-should still use it because we may implement another GA library.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – DNA of a linkage in format (score, dimensions, initial coordinates).</p></li>
-<li><p><strong>prob</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>default=.07</em>) – Mutation probability for each gene.</p></li>
-<li><p><strong>fitness</strong> (<em>callable</em>) – Evaluation function for an MAXIMISATION problem.
-Must return a float.</p></li>
-<li><p><strong>iters</strong> (<em>int</em>) – Number of iterations.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – <p>Other useful parameters for the optimization.</p>
-<dl class="simple">
-<dt>max_pop<span class="classifier">int, optional</span></dt><dd><p>Maximum number of individuals. The default is 11.</p>
-</dd>
-<dt>init_pop<span class="classifier">sequence of object, optional</span></dt><dd><p>Initial population, for wider INITIAL genetic diversity.
-The default is None.</p>
-</dd>
-<dt>max_genetic_dist<span class="classifier">float, optional</span></dt><dd><p>Maximum genetic distance, before individuals
-cannot reproduce (separated species). The default is .7.</p>
-</dd>
-<dt>startnstop<span class="classifier">bool, optional</span></dt><dd><p>Ability to close program without loosing population.
-If True, we verify at initialization the existence of a data file.
-Population is save every int(250 / max_pop) iterations.
-The default is False.</p>
-</dd>
-<dt>fitness_args<span class="classifier">tuple</span></dt><dd><p>Positional arguments to send to the fitness function.
-The default is None (no argument sent).</p>
-</dd>
-<dt>verbose<span class="classifier">int, optional</span></dt><dd><p>Level of verbosity.
-0 : no verbose, do not print anything.
-1 : show a progress bar.
-2 : complete report for each turn.
-The default is 1.</p>
-</dd>
-<dt>processes<span class="classifier">int, default=1</span></dt><dd><p>Number of processes that will evaluate the linkages.</p>
-</dd>
-</dl>
-</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>An iterable of the best fit individuals, in format
-(score, dimensions, initial coordinates).</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list[dna]</p>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.evolutionary_optimization_builtin" title="leggedsnake.geneticoptimizer.evolutionary_optimization_builtin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evolutionary_optimization_builtin</span></code></a></dt><dd><p>built-in genetic algorithm.</p>
-</dd>
-</dl>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.evolutionary_optimization_builtin">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">evolutionary_optimization_builtin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iters</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.evolutionary_optimization_builtin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Optimization by genetic algorithm (GA).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple of float</em><em>, </em><em>tuple of tuple of float</em><em>]</em>) – DNA of individuals.</p></li>
-<li><p><strong>prob</strong> (<em>list of float</em>) – List of probabilities of the good transmission of one
-characteristics.</p></li>
-<li><p><strong>fitness</strong> (<em>callable</em>) – Evaluation function.
-Return float.
-The</p></li>
-<li><p><strong>iters</strong> (<em>int</em>) – Number of iterations.</p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – <p>Other useful parameters for the optimization.</p>
+<li><p><strong>dna</strong> (<em>list</em>) – </p></li>
+<li><p><strong>fitness</strong> (<em>callable</em>) – </p></li>
+<li><p><strong>prob</strong> (<em>float</em><em> or </em><em>tuple</em><em>[</em><em>float</em><em>]</em>) – </p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – <p>Other useful parameters for the optimization.</p>
 <dl class="simple">
 <dt>max_pop<span class="classifier">int, default=11</span></dt><dd><p>Maximum number of individuals. The default is 11.</p>
-</dd>
-<dt>init_pop<span class="classifier">sequence of object, default=None</span></dt><dd><p>Initial population, for wider INITIAL genetic diversity.
-The default is None.</p>
 </dd>
 <dt>max_genetic_dist<span class="classifier">float, default=.7</span></dt><dd><p>Maximum genetic distance, before individuals
 cannot reproduce (separated species). The default is .7.</p>
 </dd>
 <dt>startnstop<span class="classifier">bool, default=False</span></dt><dd><p>Ability to close program without loosing population.
 If True, we verify at initialization the existence of a data file.
-Population is save every int(250 / max_pop) iterations.
+Population is saved every int(250 / max_pop) iterations.
 The default is False.</p>
 </dd>
 <dt>fitness_args<span class="classifier">tuple</span></dt><dd><p>Keyword arguments to send to the fitness function.
 The default is None (no argument sent).</p>
 </dd>
 <dt>verbose<span class="classifier">int</span></dt><dd><p>Level of verbosity.
-0 : no verbose, do not print anything.
-1 : show a progress bar.
-2 : complete report for each turn.
+0: no verbose, do not print anything.
+1: show a progress bar.
+2: complete report for each turn.
 The default is 1.</p>
-</dd>
-<dt>processes<span class="classifier">int, default=1</span></dt><dd><p>Number of processes that will evaluate the linkages.</p>
 </dd>
 </dl>
 </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List of 3-tuples: best dimensions, best score and initial positions.
-The list is sorted by score order.</p>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.birth">
+<span class="sig-name descname"><span class="pre">birth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">par1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">par2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.birth" title="Permalink to this definition"></a></dt>
+<dd><p>Return a new individual with par1 and par2 as parents (two sequences).</p>
+<p>Child are generated by a uniform crossover followed by a random “resetting”
+mutation of each gene. The resetting is a normal law.</p>
+<p>Initial positions come from one of the two parents randomly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>par1</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple</em><em> of </em><em>float</em><em>, </em><em>tuple</em><em> of </em><em>tuple</em><em> of </em><em>float</em><em>]</em>) – Dna of first parent.</p></li>
+<li><p><strong>par2</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple</em><em> of </em><em>float</em><em>, </em><em>tuple</em><em> of </em><em>tuple</em><em> of </em><em>float</em><em>]</em>) – Dna of second parent.</p></li>
+</ul>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>child</strong> – Dna of the child.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[float, tuple of float, tuple of tuple of float]</p>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_individual">
+<span class="sig-name descname"><span class="pre">evaluate_individual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dna</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_individual" title="Permalink to this definition"></a></dt>
+<dd><p>Simple evaluation for a single individual.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dna</strong> (<em>list</em><em>[</em><em>float</em><em>, </em><em>tuple</em><em> of </em><em>float</em><em>, </em><em>tuple</em><em> of </em><em>tuple</em><em> of </em><em>float</em><em>]</em>) – List of the individuals’ DNAs</p></li>
+<li><p><strong>fitness_args</strong> (<em>tuple</em>) – Additional arguments to pass to the fitness function. Usually the
+initial positions of the joints.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Score then initial coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_population" title="leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_population"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_population</span></code></a></dt><dd><p>counterpart for an entire population.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_population">
+<span class="sig-name descname"><span class="pre">evaluate_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fitness_args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_population" title="Permalink to this definition"></a></dt>
+<dd><p>Evaluate the whole population, attribute scores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fitness_args</strong> (<em>tuple</em>) – Additional arguments to pass to the fitness function. Usually the
+initial positions of the joints.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>default=True</em>) – To display information about population evaluation.</p></li>
+<li><p><strong>processes</strong> (<em>int</em><em>, </em><em>default=1</em>) – Number of processes involved for a multiprocessor evaluation.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_individual" title="leggedsnake.geneticoptimizer.GeneticOptimization.evaluate_individual"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_individual</span></code></a></dt><dd><p>same function but on a single DNA.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.make_children">
+<span class="sig-name descname"><span class="pre">make_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_genetic_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.make_children" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.reduce_population">
+<span class="sig-name descname"><span class="pre">reduce_population</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.reduce_population" title="Permalink to this definition"></a></dt>
+<dd><p>Reduce the population down to max_pop.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>new_population</strong> – At most self.max_pop individuals, sorted by score.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of dna</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.run" title="Permalink to this definition"></a></dt>
+<dd><p>Optimization by genetic algorithm (GA).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iters</strong> (<em>int</em>) – Number of iterations.</p></li>
+<li><p><strong>processes</strong> (<em>int</em><em>, </em><em>default=1</em>) – Number of processes that will evaluate the linkages.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of 3-tuples: best score, best dimensions and initial positions.
+The list is sorted by score order.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[float, tuple[float], tuple[tuple[float]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.GeneticOptimization.select_parents">
+<span class="sig-name descname"><span class="pre">select_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.GeneticOptimization.select_parents" title="Permalink to this definition"></a></dt>
+<dd><p>Selection 1/4 of the population as parents.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.kwargs_switcher">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">kwargs_switcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.kwargs_switcher" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">kwargs_switcher</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.kwargs_switcher" title="Permalink to this definition"></a></dt>
 <dd><p>Simple function to return the good element from a kwargs dict.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.load_population">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">load_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.load_population" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">load_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.load_population" title="Permalink to this definition"></a></dt>
 <dd><p>Return a population from a given file.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.make_children">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">make_children</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_genetic_dist</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">inf</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.make_children" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.normal">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.normal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Draw random samples from a normal (Gaussian) distribution.</p>
-<p>The probability density function of the normal distribution, first
-derived by De Moivre and 200 years later by both Gauss and Laplace
-independently <a class="footnote-reference brackets" href="#id5" id="id1">2</a>, is often called the bell curve because of
-its characteristic shape (see the example below).</p>
-<p>The normal distributions occurs often in nature.  For example, it
-describes the commonly occurring distribution of samples influenced
-by a large number of tiny, random disturbances, each with its own
-unique distribution <a class="footnote-reference brackets" href="#id5" id="id2">2</a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code class="docutils literal notranslate"><span class="pre">normal</span></code> method of a <code class="docutils literal notranslate"><span class="pre">default_rng()</span></code>
-instance instead; please see the <span class="xref std std-ref">random-quick-start</span>.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>loc</strong> (<em>float</em><em> or </em><em>array_like of floats</em>) – Mean (“centre”) of the distribution.</p></li>
-<li><p><strong>scale</strong> (<em>float</em><em> or </em><em>array_like of floats</em>) – Standard deviation (spread or “width”) of the distribution. Must be
-non-negative.</p></li>
-<li><p><strong>size</strong> (<em>int</em><em> or </em><em>tuple of ints</em><em>, </em><em>optional</em>) – Output shape.  If the given shape is, e.g., <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">n,</span> <span class="pre">k)</span></code>, then
-<code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">k</span></code> samples are drawn.  If size is <code class="docutils literal notranslate"><span class="pre">None</span></code> (default),
-a single value is returned if <code class="docutils literal notranslate"><span class="pre">loc</span></code> and <code class="docutils literal notranslate"><span class="pre">scale</span></code> are both scalars.
-Otherwise, <code class="docutils literal notranslate"><span class="pre">np.broadcast(loc,</span> <span class="pre">scale).size</span></code> samples are drawn.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>out</strong> – Drawn samples from the parameterized normal distribution.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ndarray or scalar</p>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.stats.norm</span></code></dt><dd><p>probability density function, distribution or cumulative density function, etc.</p>
-</dd>
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.normal</span></code></dt><dd><p>which should be used for new code.</p>
-</dd>
-</dl>
-</div>
-<p class="rubric">Notes</p>
-<p>The probability density for the Gaussian distribution is</p>
-<div class="math notranslate nohighlight">
-\[p(x) = \frac{1}{\sqrt{ 2 \pi \sigma^2 }}
-e^{ - \frac{ (x - \mu)^2 } {2 \sigma^2} },\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mu\)</span> is the mean and <span class="math notranslate nohighlight">\(\sigma\)</span> the standard
-deviation. The square of the standard deviation, <span class="math notranslate nohighlight">\(\sigma^2\)</span>,
-is called the variance.</p>
-<p>The function has its peak at the mean, and its “spread” increases with
-the standard deviation (the function reaches 0.607 times its maximum at
-<span class="math notranslate nohighlight">\(x + \sigma\)</span> and <span class="math notranslate nohighlight">\(x - \sigma\)</span> <a class="footnote-reference brackets" href="#id5" id="id3">2</a>).  This implies that
-normal is more likely to return samples lying close to the mean, rather
-than those far away.</p>
-<p class="rubric">References</p>
-<dl class="footnote brackets">
-<dt class="label" id="id4"><span class="brackets">1</span></dt>
-<dd><p>Wikipedia, “Normal distribution”,
-<a class="reference external" href="https://en.wikipedia.org/wiki/Normal_distribution">https://en.wikipedia.org/wiki/Normal_distribution</a></p>
-</dd>
-<dt class="label" id="id5"><span class="brackets">2</span><span class="fn-backref">(<a href="#id1">1</a>,<a href="#id2">2</a>,<a href="#id3">3</a>)</span></dt>
-<dd><p>P. R. Peebles Jr., “Central Limit Theorem” in “Probability,
-Random Variables and Random Signal Principles”, 4th ed., 2001,
-pp. 51, 51, 125.</p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<p>Draw samples from the distribution:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.1</span> <span class="c1"># mean and standard deviation</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Verify the mean and the variance:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">abs</span><span class="p">(</span><span class="n">mu</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
-<span class="go">0.0  # may vary</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">abs</span><span class="p">(</span><span class="n">sigma</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-<span class="go">0.1  # may vary</span>
-</pre></div>
-</div>
-<p>Display the histogram of the samples, along with
-the probability density function:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">count</span><span class="p">,</span> <span class="n">bins</span><span class="p">,</span> <span class="n">ignored</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">sigma</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span> <span class="o">*</span>
-<span class="gp">... </span>               <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="o">-</span> <span class="p">(</span><span class="n">bins</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="p">),</span>
-<span class="gp">... </span>         <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>Two-by-four array of samples from N(3, 6.25):</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="go">array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random</span>
-<span class="go">       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.rand">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">rand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">d0</span></em>, <em class="sig-param"><span class="pre">d1</span></em>, <em class="sig-param"><span class="pre">...</span></em>, <em class="sig-param"><span class="pre">dn</span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.rand" title="Permalink to this definition">¶</a></dt>
-<dd><p>Random values in a given shape.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This is a convenience function for users porting code from Matlab,
-and wraps <cite>random_sample</cite>. That function takes a
-tuple to specify the size of the output, which is consistent with
-other NumPy functions like <cite>numpy.zeros</cite> and <cite>numpy.ones</cite>.</p>
-</div>
-<p>Create an array of the given shape and populate it with
-random samples from a uniform distribution
-over <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1)</span></code>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>d0</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p></li>
-<li><p><strong>d1</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p></li>
-<li><p><strong>...</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p></li>
-<li><p><strong>dn</strong> (<em>int</em><em>, </em><em>optional</em>) – The dimensions of the returned array, must be non-negative.
-If no argument is given a single Python float is returned.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>out</strong> – Random values.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>ndarray, shape <code class="docutils literal notranslate"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code></p>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">random</span></code></p>
-</div>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-<span class="go">array([[ 0.14022471,  0.96360618],  #random</span>
-<span class="go">       [ 0.37601032,  0.25528411],  #random</span>
-<span class="go">       [ 0.49313049,  0.94909878]]) #random</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.randint">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">randint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">low</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">high</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.randint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return random integers from <cite>low</cite> (inclusive) to <cite>high</cite> (exclusive).</p>
-<p>Return random integers from the “discrete uniform” distribution of
-the specified dtype in the “half-open” interval [<cite>low</cite>, <cite>high</cite>). If
-<cite>high</cite> is None (the default), then results are from [0, <cite>low</cite>).</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>New code should use the <code class="docutils literal notranslate"><span class="pre">integers</span></code> method of a <code class="docutils literal notranslate"><span class="pre">default_rng()</span></code>
-instance instead; please see the <span class="xref std std-ref">random-quick-start</span>.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>low</strong> (<em>int</em><em> or </em><em>array-like of ints</em>) – Lowest (signed) integers to be drawn from the distribution (unless
-<code class="docutils literal notranslate"><span class="pre">high=None</span></code>, in which case this parameter is one above the
-<em>highest</em> such integer).</p></li>
-<li><p><strong>high</strong> (<em>int</em><em> or </em><em>array-like of ints</em><em>, </em><em>optional</em>) – If provided, one above the largest (signed) integer to be drawn
-from the distribution (see above for behavior if <code class="docutils literal notranslate"><span class="pre">high=None</span></code>).
-If array-like, must contain integer values</p></li>
-<li><p><strong>size</strong> (<em>int</em><em> or </em><em>tuple of ints</em><em>, </em><em>optional</em>) – Output shape.  If the given shape is, e.g., <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">n,</span> <span class="pre">k)</span></code>, then
-<code class="docutils literal notranslate"><span class="pre">m</span> <span class="pre">*</span> <span class="pre">n</span> <span class="pre">*</span> <span class="pre">k</span></code> samples are drawn.  Default is None, in which case a
-single value is returned.</p></li>
-<li><p><strong>dtype</strong> (<em>dtype</em><em>, </em><em>optional</em>) – <p>Desired dtype of the result. Byteorder must be native.
-The default value is int.</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 1.11.0.</span></p>
-</div>
-</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>out</strong> – <cite>size</cite>-shaped array of random integers from the appropriate
-distribution, or a single such random int if <cite>size</cite> not provided.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>int or ndarray of ints</p>
-</dd>
-</dl>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">random_integers</span></code></dt><dd><p>similar to <cite>randint</cite>, only for the closed interval [<cite>low</cite>, <cite>high</cite>], and 1 is the lowest value if <cite>high</cite> is omitted.</p>
-</dd>
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.integers</span></code></dt><dd><p>which should be used for new code.</p>
-</dd>
-</dl>
-</div>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<span class="go">array([1, 0, 0, 0, 1, 1, 0, 0, 1, 0]) # random</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
-<span class="go">array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])</span>
-</pre></div>
-</div>
-<p>Generate a 2 x 4 array of ints between 0 and 4, inclusive:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="go">array([[4, 0, 2, 1], # random</span>
-<span class="go">       [3, 2, 2, 0]])</span>
-</pre></div>
-</div>
-<p>Generate a 1 x 3 array with 3 different upper bounds</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
-<span class="go">array([2, 2, 9]) # random</span>
-</pre></div>
-</div>
-<p>Generate a 1 by 3 array with 3 different lower bounds</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="mi">10</span><span class="p">)</span>
-<span class="go">array([9, 8, 7]) # random</span>
-</pre></div>
-</div>
-<p>Generate a 2 by 4 array using broadcasting with dtype of uint8</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[[</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">20</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="go">array([[ 8,  6,  9,  7], # random</span>
-<span class="go">       [ 1, 16,  9, 12]], dtype=uint8)</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.save_population">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">save_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_descriptors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.save_population" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">save_population</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">population</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_descriptors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.save_population" title="Permalink to this definition"></a></dt>
 <dd><p>Save the population to a json file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_path</strong> (<em>str</em>) – </p></li>
-<li><p><strong>population</strong> (<em>list of dna</em>) – </p></li>
-<li><p><strong>verbose</strong> (<em>bool</em>) – </p></li>
+<li><p><strong>file_path</strong> (<em>str</em>) – Path of the file to write to.</p></li>
+<li><p><strong>population</strong> (<em>list</em>) – Sequence of dna</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Enable or not verbosity (outputs success).</p></li>
 <li><p><strong>data_descriptors</strong> (<em>dict</em>) – Any additional value you want to save for the current generation.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.select_parents">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">select_parents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pop</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.select_parents" title="Permalink to this definition">¶</a></dt>
-<dd><p>Selection 1/4 of the population as parents.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="leggedsnake.geneticoptimizer.tqdm_verbosity">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.geneticoptimizer.</span></span><span class="sig-name descname"><span class="pre">tqdm_verbosity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.geneticoptimizer.tqdm_verbosity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper for tqdm, that let you specify if you want verbosity.</p>
-</dd></dl>
-
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="physicsengine.html" class="btn btn-neutral float-left" title="physicsengine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="physicsengine.html" class="btn btn-neutral float-left" title="physicsengine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2021, Hugo Farajallah
-
-    </p>
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

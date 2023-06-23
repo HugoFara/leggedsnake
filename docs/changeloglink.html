@@ -1,154 +1,132 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Changelog &mdash; LeggedSnake 0.3.0 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changelog &mdash; LeggedSnake 0.4.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
   
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="walker" href="api/walker.html" />
     <link rel="prev" title="leggedsnake" href="readmelink.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
           
-            <a href="index.html" class="icon icon-home"> LeggedSnake
           
-
-          
+          <a href="index.html" class="icon icon-home">
+            LeggedSnake
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
-              <p class="caption"><span class="caption-text">Introduction</span></p>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readmelink.html">Readme</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#unreleased">[Unreleased]</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#beta-2021-07-21">[0.3.0-beta] - 2021-07-21</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#added">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unreleased">[Unreleased]</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fixed">Fixed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#removed">Removed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">[0.4.0] - 2023-06-21</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-4-0">Added in 0.4.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-4-0">Changed in 0.4.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-4-0">Fixed in 0.4.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deprecated-in-0-4-0">Deprecated in 0.4.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#removed-in-0-4-0">Removed in 0.4.0</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">[0.3.1] - 2023-06-14</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-3-1">Added in 0.3.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-3-1">Changed in 0.3.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-3-1">Fixed in 0.3.1</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#beta-2021-07-21">[0.3.0-beta] - 2021-07-21</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-3-0">Added in 0.3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-3-0">Changed in 0.3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-3-0">Fixed in 0.3.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#removed-in-0-3-0">Removed in 0.3.0</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-07-14">[0.2.0-alpha] - 2021-07-14</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id1">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#deprecated">Deprecated</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id3">Removed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-2-0">Added in 0.2.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-2-0">Changed in 0.2.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deprecated-in-0-2-0">Deprecated in 0.2.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#removed-in-0-2-0">Removed in 0.2.0</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-07-12">[0.1.4-alpha] - 2021-07-12</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id4">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-1-4">Added in 0.1.4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-1-4">Changed in 0.1.4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-1-4">Fixed in 0.1.4</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-07-10">[0.1.3-alpha] - 2021-07-10</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id7">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-1-3">Added in 0.1.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-1-3">Changed in 0.1.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-1-3">Fixed in 0.1.3</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-07-07">[0.1.2-alpha] - 2021-07-07</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id10">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id11">Fixed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#security">Security</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-1-2">Added in 0.1.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-1-2">Changed in 0.1.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-1-2">Fixed in 0.1.2</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-26">[0.1.1-alpha] - 2021-06-26</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id12">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id13">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-1-1">Added in 0.1.1</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-1-1">Changed in 0.1.1</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-25">[0.1.0-alpha] - 2021-06-25</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id14">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id15">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id16">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-1-0">Added in 0.1.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-1-0">Changed in 0.1.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-1-0">Fixed in 0.1.0</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-23">[0.0.3-alpha] - 2021-06-23</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id17">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id18">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-0-3">Added in 0.0.3</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-0-3">Fixed in 0.0.3</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#alpha-2021-06-22">[0.0.2-alpha] - 2021-06-22</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id19">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id20">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id21">Fixed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-0-2">Added in 0.0.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed-in-0-0-2">Changed in 0.0.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed-in-0-0-2">Fixed in 0.0.2</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id22">[0.0.1-alpha] - 2021-06-22</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id23">Added</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">[0.0.1-alpha] - 2021-06-22</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#added-in-0-0-1">Added in 0.0.1</a></li>
 </ul>
 </li>
 </ul>
-<p class="caption"><span class="caption-text">Modules</span></p>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/walker.html">walker</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/utility.html">utility</a></li>
@@ -156,125 +134,210 @@
 <li class="toctree-l1"><a class="reference internal" href="api/physicsengine.html">physicsengine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/geneticoptimizer.html">geneticoptimizer</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Quick Links</span></p>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
 </ul>
-<p class="caption"><span class="caption-text">See Also</span></p>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">LeggedSnake</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
-      <li>Changelog</li>
-    
-    
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Changelog</li>
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/changeloglink.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="changelog">
-<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading"></a></h1>
 <p>All notable changes to the LeggedSnake will be documented in this file.</p>
 <p>The format is based on <a class="reference external" href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
 and this project adheres to <a class="reference external" href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
-<div class="section" id="unreleased">
-<h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="beta-2021-07-21">
-<h2>[0.3.0-beta] - 2021-07-21<a class="headerlink" href="#beta-2021-07-21" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="added">
-<h3>Added<a class="headerlink" href="#added" title="Permalink to this headline">¶</a></h3>
+<section id="unreleased">
+<h2>[Unreleased]<a class="headerlink" href="#unreleased" title="Permalink to this heading"></a></h2>
+<section id="changed">
+<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">examples/</span></code> is now in the main folder. It was in <code class="docutils literal notranslate"><span class="pre">docs/</span></code> previously.</p></li>
+</ul>
+</section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Project links fixed in pyproject.toml</p></li>
+</ul>
+</section>
+</section>
+<section id="id1">
+<h2>[0.4.0] - 2023-06-21<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-4-0">
+<h3>Added in 0.4.0<a class="headerlink" href="#added-in-0-4-0" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>View all walkers!</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">show_all_walkers</span></code> in <code class="docutils literal notranslate"><span class="pre">docs/examples/strider.py</span></code> let you see all walkers in one simulation!</p></li>
+<li><p>You can set the color of walkers during display.</p></li>
+</ul>
+</li>
+<li><p>Genetic optimization:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">GeneticOptimization</span></code> class in <code class="docutils literal notranslate"><span class="pre">geneticoptimizer.py</span></code> that will replace the previous functional paradigm.</p></li>
+<li><p>The average score is now displayed.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">VisualWorld</span></code> has a new method called <code class="docutils literal notranslate"><span class="pre">reload_visuals</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">show_evolution.py</span></code> is a new script plotting various data about the Walkers population’s evolution during
+genetic optimization.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">docs/examples/strider.py</span></code> we recommend to use <code class="docutils literal notranslate"><span class="pre">total_distance</span></code> as the fitness function.</p></li>
+</ul>
+</section>
+<section id="changed-in-0-4-0">
+<h3>Changed in 0.4.0<a class="headerlink" href="#changed-in-0-4-0" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Genetic optimization:</p>
+<ul>
+<li><p>During genetic optimization, population is now stable at max_pop (it used to fluctuate a lot).</p></li>
+<li><p>Genetic optimization do no longer display all dimensions in the progress bar.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">startnstop</span></code> argument may now be the name of the file to use (a string).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_genetic_distance</span></code> was changed from 0.7 to 10. Results are much better now!</p></li>
+</ul>
+</li>
+<li><p>Visuals:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code> method of <code class="docutils literal notranslate"><span class="pre">VisualWorld</span></code> replaced by <code class="docutils literal notranslate"><span class="pre">visual_update</span></code>. It clearly separates physics and display time.</p></li>
+<li><p>Frame rate and physics speed are now independent parameters.</p></li>
+<li><p>Visuals go to a new file <code class="docutils literal notranslate"><span class="pre">worldvisualizer.py</span></code>.</p></li>
+<li><p>Camera parameters should now be accessed from <code class="docutils literal notranslate"><span class="pre">CAMERA</span></code> instead of <code class="docutils literal notranslate"><span class="pre">params[&quot;camera&quot;]</span></code>.</p></li>
+<li><p>The camera feels more cinematic.</p></li>
+</ul>
+</li>
+<li><p>You can define a custom load when using <code class="docutils literal notranslate"><span class="pre">World.add_linkage</span></code> or <code class="docutils literal notranslate"><span class="pre">VisualWorld.add_linkage</span></code>. The default is 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> updated with the data of <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>. This is now the recommended metadata for the project.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">docs/example/strider.py</span></code>, simulation time was increased from 30 seconds to 40. It was just not enough.</p></li>
+</ul>
+</section>
+<section id="fixed-in-0-4-0">
+<h3>Fixed in 0.4.0<a class="headerlink" href="#fixed-in-0-4-0" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Documentation of <code class="docutils literal notranslate"><span class="pre">evolutionary_optimization_builtin</span></code> was wrong: returned data were in order (fitness, dimensions, position),
+but (fitness, position, dimensions) was indicated.</p></li>
+<li><p>After a genetic optimization, the example script was assigning wrong data to the demo walker.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kwargs_switcher</span></code> from <code class="docutils literal notranslate"><span class="pre">geneticoptimizer.py</span></code> do no longer pop (destroy) argument from the input dictionary.</p></li>
+</ul>
+</section>
+<section id="deprecated-in-0-4-0">
+<h3>Deprecated in 0.4.0<a class="headerlink" href="#deprecated-in-0-4-0" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> should no longer be used, as it is replaced by <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></li>
+</ul>
+</section>
+<section id="removed-in-0-4-0">
+<h3>Removed in 0.4.0<a class="headerlink" href="#removed-in-0-4-0" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">evolutionary_optimization</span></code> function is removed. Use  <code class="docutils literal notranslate"><span class="pre">GeneticOptimization</span></code> class instead.</p>
+<ul>
+<li><p>You can no longer use the argument “init_pop” to change the size of the initial population.
+It now always set to max_pop.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_coef</span></code>, <code class="docutils literal notranslate"><span class="pre">calc_rate</span></code> and <code class="docutils literal notranslate"><span class="pre">max_sub</span></code> parameters of <code class="docutils literal notranslate"><span class="pre">params[&quot;simul&quot;]</span></code> replaced by a unique
+<code class="docutils literal notranslate"><span class="pre">physics_period</span></code> set to 0.02 (s).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/Population</span> <span class="pre">evolution.json</span></code> removed.
+It contained data about an evolution run and is not relevant for users.</p></li>
+</ul>
+</section>
+</section>
+<section id="id2">
+<h2>[0.3.1] - 2023-06-14<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h2>
+<p>Starting from 0.3.1, we won’t include “-alpha” or “-beta” in the naming scheme,
+as it is considered irrelevant.</p>
+<section id="added-in-0-3-1">
+<h3>Added in 0.3.1<a class="headerlink" href="#added-in-0-3-1" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">requirements-dev.txt</span></code> that contain dev requirements. It makes contribution easier.</p></li>
+<li><p>PyCharm configuration files.</p></li>
+</ul>
+</section>
+<section id="changed-in-0-3-1">
+<h3>Changed in 0.3.1<a class="headerlink" href="#changed-in-0-3-1" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Animations are now all stored in local variables, and no longer in an “ani”
+global list of animations.</p></li>
+</ul>
+</section>
+<section id="fixed-in-0-3-1">
+<h3>Fixed in 0.3.1<a class="headerlink" href="#fixed-in-0-3-1" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>The main example file <code class="docutils literal notranslate"><span class="pre">strider.py</span></code> was launching animations for each subprocess.
+This file is now considered an executable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evolutionary_optimization_builtin</span></code> was during the last evaluation of linkages.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_descriptors</span></code> were not save for the first line of data only in
+<code class="docutils literal notranslate"><span class="pre">geneticoptimizer</span></code>.</p></li>
+<li><p>Multiple grammar corrections.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">video</span></code> function of <code class="docutils literal notranslate"><span class="pre">physicsengine.py</span></code> now effectively launches the video (no call to plt.show required).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">video</span></code> function of <code class="docutils literal notranslate"><span class="pre">physicsengine.py</span></code> using <code class="docutils literal notranslate"><span class="pre">debug=True</span></code> was crashing.</p></li>
+</ul>
+</section>
+</section>
+<section id="beta-2021-07-21">
+<h2>[0.3.0-beta] - 2021-07-21<a class="headerlink" href="#beta-2021-07-21" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-3-0">
+<h3>Added in 0.3.0<a class="headerlink" href="#added-in-0-3-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Multiprocessing is here! The genetic optimization can now be run in parallel!
 Performances got improved by 65 % using 4 processes only.</p></li>
 </ul>
-</div>
-<div class="section" id="changed">
-<h3>Changed<a class="headerlink" href="#changed" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changed-in-0-3-0">
+<h3>Changed in 0.3.0<a class="headerlink" href="#changed-in-0-3-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>We now save data using JSON! Slow computer users, you can relax and stop
 computing when you want.</p></li>
-<li><p>The sidebar in the documentation a bit more useful.</p></li>
+<li><p>The sidebar in the documentation is a bit more useful.</p></li>
 <li><p>Not having tqdm will cause an exception.</p></li>
 </ul>
-</div>
-<div class="section" id="fixed">
-<h3>Fixed<a class="headerlink" href="#fixed" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fixed-in-0-3-0">
+<h3>Fixed in 0.3.0<a class="headerlink" href="#fixed-in-0-3-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Corrected the example, the genetic optimization is now properly fixed but
 slower.</p></li>
 </ul>
-</div>
-<div class="section" id="removed">
-<h3>Removed<a class="headerlink" href="#removed" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="removed-in-0-3-0">
+<h3>Removed in 0.3.0<a class="headerlink" href="#removed-in-0-3-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
-<li><p>native support for PyGAD is no longer present.</p></li>
+<li><p>Native support for PyGAD is no longer present.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">evolutionnary_optimization</span></code> (replaced by <code class="docutils literal notranslate"><span class="pre">evolutionary_optimization</span></code>).</p></li>
-<li><p>Data saved in the old txt format are no longer readable (were they?)</p></li>
+<li><p>Data saved in the old txt format are no longer readable (were they readable?)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-07-14">
-<h2>[0.2.0-alpha] - 2021-07-14<a class="headerlink" href="#alpha-2021-07-14" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id1">
-<h3>Added<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="alpha-2021-07-14">
+<h2>[0.2.0-alpha] - 2021-07-14<a class="headerlink" href="#alpha-2021-07-14" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-2-0">
+<h3>Added in 0.2.0<a class="headerlink" href="#added-in-0-2-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Dependency to <a class="reference external" href="https://tqdm.github.io/">tqdm</a> and matplotlib.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">evolutionary_optimization</span></code> replaces <code class="docutils literal notranslate"><span class="pre">evolutionnary_optimization</span></code>.</p>
@@ -286,34 +349,34 @@ information on optimization state, or nothing.</p></li>
 </li>
 <li><p>The best solution can be displayed with PyGAD as well.</p></li>
 </ul>
-</div>
-<div class="section" id="id2">
-<h3>Changed<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changed-in-0-2-0">
+<h3>Changed in 0.2.0<a class="headerlink" href="#changed-in-0-2-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Typos and cleans-up in <code class="docutils literal notranslate"><span class="pre">docs/examples/strider.py</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">evolutionnary_optimization_legacy</span></code> renamed to
 <code class="docutils literal notranslate"><span class="pre">evolutionary_optimization_builtin</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="deprecated">
-<h3>Deprecated<a class="headerlink" href="#deprecated" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="deprecated-in-0-2-0">
+<h3>Deprecated in 0.2.0<a class="headerlink" href="#deprecated-in-0-2-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">evolutionnary_optimization</span></code> is now deprecated. Please use
 <code class="docutils literal notranslate"><span class="pre">evolutionary_optimization</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="id3">
-<h3>Removed<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="removed-in-0-2-0">
+<h3>Removed in 0.2.0<a class="headerlink" href="#removed-in-0-2-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Explicit dependency to PyGAD. There is no longer an annoying message when
 PyGAD is not installed.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-07-12">
-<h2>[0.1.4-alpha] - 2021-07-12<a class="headerlink" href="#alpha-2021-07-12" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id4">
-<h3>Added<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="alpha-2021-07-12">
+<h2>[0.1.4-alpha] - 2021-07-12<a class="headerlink" href="#alpha-2021-07-12" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-1-4">
+<h3>Added in 0.1.4<a class="headerlink" href="#added-in-0-1-4" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>It is now possible and advised to import class and functions using quick
 paths, for instance <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">leggedsnake</span> <span class="pre">import</span> <span class="pre">Walker</span></code> instead of
@@ -326,16 +389,16 @@ maintenance.</p></li>
 <li><p>This is fixed by the <code class="docutils literal notranslate"><span class="pre">road_y</span></code> parameter in <code class="docutils literal notranslate"><span class="pre">World</span></code> let you define a
 custom height for the base ground.</p></li>
 </ul>
-</div>
-<div class="section" id="id5">
-<h3>Changed<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changed-in-0-1-4">
+<h3>Changed in 0.1.4<a class="headerlink" href="#changed-in-0-1-4" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">docs/examples/strider.py</span></code> has been updated to the latest version of
 leggedsnake 0.1.4.</p></li>
 </ul>
-</div>
-<div class="section" id="id6">
-<h3>Fixed<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fixed-in-0-1-4">
+<h3>Fixed in 0.1.4<a class="headerlink" href="#fixed-in-0-1-4" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>The full swarm representation in polar graph has been repaired in
 <code class="docutils literal notranslate"><span class="pre">docs/examples/strider.py</span></code>.</p></li>
@@ -344,42 +407,48 @@ road.</p></li>
 <li><p>The documentation was not properly rendered because Napoleon (NumPy coding
 style) was not integrated.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-07-10">
-<h2>[0.1.3-alpha] - 2021-07-10<a class="headerlink" href="#alpha-2021-07-10" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="alpha-2021-07-10">
+<h2>[0.1.3-alpha] - 2021-07-10<a class="headerlink" href="#alpha-2021-07-10" title="Permalink to this heading"></a></h2>
 <p>This package was lacking real documentation, it is fixed in this version.</p>
-<div class="section" id="id7">
-<h3>Added<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<section id="added-in-0-1-3">
+<h3>Added in 0.1.3<a class="headerlink" href="#added-in-0-1-3" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Sphinx documentation!</p></li>
 <li><p>Website hosted on GitHub pages, check
 <a class="reference external" href="https://hugofara.github.io/leggedsnake/">hugofara.github.io/leggedsnake</a>!</p></li>
 <li><p>Expanded README with the quick links section.</p></li>
 </ul>
-</div>
-<div class="section" id="id8">
-<h3>Changed<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changed-in-0-1-3">
+<h3>Changed in 0.1.3<a class="headerlink" href="#changed-in-0-1-3" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Tests moved from <code class="docutils literal notranslate"><span class="pre">leggedsnake/tests</span></code> to <code class="docutils literal notranslate"><span class="pre">tests/</span></code>.</p></li>
 <li><p>Examples moved from <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/</span></code> to <code class="docutils literal notranslate"><span class="pre">docs/examples/</span></code>.</p></li>
-<li><p>I was testing my code on <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/strider.py</span></code>  (old path) and
+<li><p>I was testing my code on <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/strider.py</span></code>  (the old path) and
 that’s why it was a big mess. I cleaned up that all. Sorry for the
 inconvenience!</p></li>
 </ul>
-</div>
-<div class="section" id="id9">
-<h3>Fixed<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fixed-in-0-1-3">
+<h3>Fixed in 0.1.3<a class="headerlink" href="#fixed-in-0-1-3" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>A lot of outdated code in the <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/strider.py</span></code></p></li>
 <li><p>Changelog URL was broken in <code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-07-07">
-<h2>[0.1.2-alpha] - 2021-07-07<a class="headerlink" href="#alpha-2021-07-07" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id10">
-<h3>Changed<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="alpha-2021-07-07">
+<h2>[0.1.2-alpha] - 2021-07-07<a class="headerlink" href="#alpha-2021-07-07" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-1-2">
+<h3>Added in 0.1.2<a class="headerlink" href="#added-in-0-1-2" title="Permalink to this heading"></a></h3>
+<ul class="simple">
+<li><p>Security: tests with <code class="docutils literal notranslate"><span class="pre">tox.ini</span></code> now include Python 3.9 and Flake 8.</p></li>
+</ul>
+</section>
+<section id="changed-in-0-1-2">
+<h3>Changed in 0.1.2<a class="headerlink" href="#changed-in-0-1-2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">step</span></code> function execution speed has been increased by 25% when
 <code class="docutils literal notranslate"><span class="pre">return_res</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>! Small performance improvement when <code class="docutils literal notranslate"><span class="pre">return_res</span></code>
@@ -387,9 +456,9 @@ is <code class="docutils literal notranslate"><span class="pre">False</span></co
 <li><p>The <code class="docutils literal notranslate"><span class="pre">size</span></code> argument of <code class="docutils literal notranslate"><span class="pre">step</span></code> function is now known as <code class="docutils literal notranslate"><span class="pre">witdh</span></code>.</p></li>
 <li><p>We now require pylinkage&gt;=0.4.0.</p></li>
 </ul>
-</div>
-<div class="section" id="id11">
-<h3>Fixed<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fixed-in-0-1-2">
+<h3>Fixed in 0.1.2<a class="headerlink" href="#fixed-in-0-1-2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Files in <code class="docutils literal notranslate"><span class="pre">leggedsnake/examples/</span></code> were not included in the PyPi package.</p></li>
 <li><p>The example was incompatible with pylinkage 0.4.0.</p></li>
@@ -397,85 +466,79 @@ is <code class="docutils literal notranslate"><span class="pre">False</span></co
 <li><p>Tests fixed.</p></li>
 <li><p>Incompatible argument between PyGAD init_pop and built-in GA.</p></li>
 </ul>
-</div>
-<div class="section" id="security">
-<h3>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li><p>Tests with <code class="docutils literal notranslate"><span class="pre">tox.ini</span></code> now include Python 3.9 and Flake 8.</p></li>
-</ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-06-26">
-<h2>[0.1.1-alpha] - 2021-06-26<a class="headerlink" href="#alpha-2021-06-26" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id12">
-<h3>Added<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="alpha-2021-06-26">
+<h2>[0.1.1-alpha] - 2021-06-26<a class="headerlink" href="#alpha-2021-06-26" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-1-1">
+<h3>Added in 0.1.1<a class="headerlink" href="#added-in-0-1-1" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>The example file <code class="docutils literal notranslate"><span class="pre">examples/strider.py</span></code> is now shipped with the Python
 package.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/geneticoptimizer.py</span></code> can now automatically switch to the
 built-in GA algorithm if PyGAD is not installed.</p></li>
 </ul>
-</div>
-<div class="section" id="id13">
-<h3>Changed<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changed-in-0-1-1">
+<h3>Changed in 0.1.1<a class="headerlink" href="#changed-in-0-1-1" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> metadata</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-06-25">
-<h2>[0.1.0-alpha] - 2021-06-25<a class="headerlink" href="#alpha-2021-06-25" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id14">
-<h3>Added<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="alpha-2021-06-25">
+<h2>[0.1.0-alpha] - 2021-06-25<a class="headerlink" href="#alpha-2021-06-25" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-1-0">
+<h3>Added in 0.1.0<a class="headerlink" href="#added-in-0-1-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Code vulnerabilities automatic checks</p></li>
 <li><p>Example videos in <code class="docutils literal notranslate"><span class="pre">examples/images/</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="id15">
-<h3>Changed<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changed-in-0-1-0">
+<h3>Changed in 0.1.0<a class="headerlink" href="#changed-in-0-1-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
-<li><p>Manny reforms in code style, to make the dynamic part naming conventions
+<li><p>Many reforms in code style in order to make the dynamic part of naming conventions
 consistent with Pymunk.</p></li>
 <li><p>Images in the <code class="docutils literal notranslate"><span class="pre">README.md</span></code>!</p></li>
 </ul>
-</div>
-<div class="section" id="id16">
-<h3>Fixed<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fixed-in-0-1-0">
+<h3>Fixed in 0.1.0<a class="headerlink" href="#fixed-in-0-1-0" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>You can now define linkages with an enormous number of legs. Systems with
 many should no longer break physics but your CPU instead :)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-06-23">
-<h2>[0.0.3-alpha] - 2021-06-23<a class="headerlink" href="#alpha-2021-06-23" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id17">
-<h3>Added<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="alpha-2021-06-23">
+<h2>[0.0.3-alpha] - 2021-06-23<a class="headerlink" href="#alpha-2021-06-23" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-0-3">
+<h3>Added in 0.0.3<a class="headerlink" href="#added-in-0-0-3" title="Permalink to this heading"></a></h3>
 <ul class="simple">
-<li><p>Started walktrough demo in <code class="docutils literal notranslate"><span class="pre">README.md</span></code></p></li>
+<li><p>Started walkthrough demo in <code class="docutils literal notranslate"><span class="pre">README.md</span></code></p></li>
 <li><p>Automatic release to PyPi</p></li>
 </ul>
-</div>
-<div class="section" id="id18">
-<h3>Fixed<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fixed-in-0-0-3">
+<h3>Fixed in 0.0.3<a class="headerlink" href="#fixed-in-0-0-3" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p>Pymunk version should be at least 6.0.0 in requirement files.</p></li>
 <li><p>Some URLs typos in <code class="docutils literal notranslate"><span class="pre">README.md</span></code></p></li>
 <li><p>Versioning tests not executing (GitHub action)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="alpha-2021-06-22">
-<h2>[0.0.2-alpha] - 2021-06-22<a class="headerlink" href="#alpha-2021-06-22" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id19">
-<h3>Added<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="alpha-2021-06-22">
+<h2>[0.0.2-alpha] - 2021-06-22<a class="headerlink" href="#alpha-2021-06-22" title="Permalink to this heading"></a></h2>
+<section id="added-in-0-0-2">
+<h3>Added in 0.0.2<a class="headerlink" href="#added-in-0-0-2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">requirement.txt</span></code> was absent due to <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> misconfiguration.</p></li>
 </ul>
-</div>
-<div class="section" id="id20">
-<h3>Changed<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changed-in-0-0-2">
+<h3>Changed in 0.0.2<a class="headerlink" href="#changed-in-0-0-2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> now ignores .txt files only in the leggedsnake folder.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> more flexible (versions can be superior to the selected).
@@ -483,21 +546,21 @@ pymunk&gt;5.0.0 and pylinkage added.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">leggedsnake/utility.py</span></code> not having zipfile or xml modules error
 encapsulation.</p></li>
 </ul>
-</div>
-<div class="section" id="id21">
-<h3>Fixed<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fixed-in-0-0-2">
+<h3>Fixed in 0.0.2<a class="headerlink" href="#fixed-in-0-0-2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code> was not PyPi compatible. Removed mail (use GitHub!), we now
 explicitly say that <code class="docutils literal notranslate"><span class="pre">README.md</span></code> is markdown (PyPi is conservative)</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="id22">
-<h2>[0.0.1-alpha] - 2021-06-22<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="id3">
+<h2>[0.0.1-alpha] - 2021-06-22<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h2>
 <p>Basic version, supporting Genetic Algorithm optimization, but with various
 problems.</p>
-<div class="section" id="id23">
-<h3>Added<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<section id="added-in-0-0-1">
+<h3>Added in 0.0.1<a class="headerlink" href="#added-in-0-0-1" title="Permalink to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">CODE_OF_CONDUCT.md</span></code> to help community.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">LICENSE</span></code> MIT License.</p></li>
@@ -517,59 +580,41 @@ and <code class="docutils literal notranslate"><span class="pre">stride</span></
 <li><p><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">setup.cfg</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">setup.py</span></code> empty, for compatibility purposes only.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tox.ini</span></code> tox with Python 3.7 and 3.8</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tox.ini</span></code> tox with Python 3.7 and 3.8.</p></li>
 </ul>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="api/walker.html" class="btn btn-neutral float-right" title="walker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="readmelink.html" class="btn btn-neutral float-left" title="leggedsnake" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="readmelink.html" class="btn btn-neutral float-left" title="leggedsnake" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/walker.html" class="btn btn-neutral float-right" title="walker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2021, Hugo Farajallah
-
-    </p>
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
