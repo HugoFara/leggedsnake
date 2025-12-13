@@ -10,7 +10,7 @@ Created on Sat Nov 17 2018 20:35:39.
 
 @author: HugoFara
 """
-from pylinkage.geometry import bounding_box
+from pylinkage import bounding_box
 
 try:
     # Used to read GeoGebra file

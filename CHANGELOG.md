@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``examples/`` is now in the main folder. It was in ``docs/`` previously.
 - Minimum Python version is now 3.10 (was 3.7).
 - Support for Python 3.12, 3.13, and 3.14.
+- Compatibility with pylinkage 0.7.0.
 
 ### Fixed
 

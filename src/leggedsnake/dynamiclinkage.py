@@ -3,17 +3,21 @@
 """
 The dynamiclinkage module is an interface between Pymunk and a kinematic linkage.
 
-It provides various classes to overwrite the pylinkage.Joint objects.
+It provides various classes to overwrite the pyJoint objects.
 It also includes a DynamicLinkage that inherits from
-pylinkage.linkage.Linkage.
+pylinkage.Linkage.
 Eventually a handy convert_to_dynamic_linkage method can generate a
-DynamicLinkage from a pylinkage.linkage.Linkage.
+DynamicLinkage from a pylinkage.Linkage.
 """
 import abc
 from math import atan2
 import pymunk as pm
-from pylinkage import linkage
-from pylinkage.geometry import dist, cyl_to_cart
+from pylinkage import (
+    Crank, Fixed, Linkage, Pivot, Static, UnbuildableError
+)
+from pylinkage.geometry import cyl_to_cart
+from pylinkage.geometry.core import dist
+from pylinkage.joints.joint import Joint
 
 
 class DynamicJoint(abc.ABC):
@@ -110,7 +114,7 @@ class DynamicJoint(abc.ABC):
         sindex = str(index)
         if (
                 hasattr(self, 'joint' + sindex)
-                and isinstance(getattr(self, 'joint' + sindex), linkage.Joint)
+                and isinstance(getattr(self, 'joint' + sindex), Joint)
         ):
             body = pm.Body()
             body.mass = 1
@@ -138,7 +142,7 @@ class DynamicJoint(abc.ABC):
         if len(inter) == 0:
             message = ('Unable to find a common body between parents joints'
                        ' {} and {}.').format(*joints)
-            raise linkage.UnbuildableError(self, message=message)
+            raise UnbuildableError(self, message=message)
         if len(inter) == 1:
             return inter.pop()
         else:
@@ -161,7 +165,7 @@ class DynamicJoint(abc.ABC):
         self.set_coord(*self._b.local_to_world(self._anchor_b))
 
 
-class Nail(linkage.Static, DynamicJoint):
+class Nail(Static, DynamicJoint):
     """
     A simple point to follow a rigidbody.
 
@@ -170,7 +174,7 @@ class Nail(linkage.Static, DynamicJoint):
 
     def __init__(self, x=0, y=0, name=None, body=None, space=None,
                  radius=.3, density=1, shape_filter=None):
-        linkage.Static.__init__(self, x, y, name=name)
+        Static.__init__(self, x, y, name=name)
         DynamicJoint.__init__(
             self, body0=body, body1=body, space=space, radius=radius,
             density=density, shape_filter=shape_filter)
@@ -182,7 +186,7 @@ class Nail(linkage.Static, DynamicJoint):
         if self._a is not None:
             self.__set_offset__()
             if hasattr(self, 'joint0') and isinstance(self.joint0,
-                                                      linkage.Joint):
+                                                      Joint):
                 seg = pm.Segment(self._a, self._a.world_to_local(self.coord()),
                                  self._a.world_to_local(self.joint0.coord()),
                                  self.radius)
@@ -190,7 +194,7 @@ class Nail(linkage.Static, DynamicJoint):
                 seg.filter = self.filter
                 self.space.add(seg)
             if hasattr(self, 'joint1') and isinstance(self.joint1,
-                                                      linkage.Joint):
+                                                      Joint):
                 seg = pm.Segment(self._a, self._a.world_to_local(self.coord()),
                                  self._a.world_to_local(self.joint1.coord()),
                                  self.radius)
@@ -211,7 +215,7 @@ class Nail(linkage.Static, DynamicJoint):
                                    self._a.position))
 
 
-class PinUp(linkage.Fixed, DynamicJoint):
+class PinUp(Fixed, DynamicJoint):
     """
     Dynamic counterpart of Fixed joint.
 
@@ -221,17 +225,17 @@ class PinUp(linkage.Fixed, DynamicJoint):
     def __init__(self, x=0, y=0, joint0=None, space=None,
                  joint1=None, distance=None, angle=None, name=None,
                  radius=.3, density=1, shape_filter=None):
-        linkage.Fixed.__init__(
+        Fixed.__init__(
             self, x, y, joint0=joint0, joint1=joint1, name=name,
             distance=distance, angle=angle)
         DynamicJoint.__init__(
             self, space=space, radius=radius, density=density,
             shape_filter=shape_filter)
         if (
-                isinstance(self.joint0, linkage.Joint) and
-                isinstance(self.joint1, linkage.Joint)
+                isinstance(self.joint0, Joint) and
+                isinstance(self.joint1, Joint)
         ):
-            linkage.Fixed.reload(self)
+            Fixed.reload(self)
         if self.joint0 is not None:
             self.set_anchor_a(self.joint0, self.r, self.angle)
         if self.joint1 is not None:
@@ -255,7 +259,7 @@ class PinUp(linkage.Fixed, DynamicJoint):
         None.
 
         """
-        linkage.Fixed.set_anchor0(self, joint, distance, angle)
+        Fixed.set_anchor0(self, joint, distance, angle)
 
     def set_anchor_b(self, joint):
         """
@@ -274,8 +278,8 @@ class PinUp(linkage.Fixed, DynamicJoint):
         None.
 
         """
-        linkage.Fixed.set_anchor1(self, joint)
-        linkage.Fixed.reload(self)
+        Fixed.set_anchor1(self, joint)
+        Fixed.reload(self)
         self._b = self._a = super().__find_common_body__()
         self._anchor_a = self._a.world_to_local(self.coord())
         self.space.add(self.__generate_link__(self._a, joint.coord()))
@@ -298,13 +302,13 @@ class PinUp(linkage.Fixed, DynamicJoint):
         DynamicJoint.reload(self)
 
 
-class DynamicPivot(linkage.Pivot, DynamicJoint):
+class DynamicPivot(Pivot, DynamicJoint):
     """Dynamic counterpart of a Pivot joint."""
 
     def __init__(self, x=0, y=0, joint0=None, space=None,
                  joint1=None, distance0=None, distance1=None, name=None,
                  radius=.3, density=1, shape_filter=None):
-        linkage.Pivot.__init__(
+        Pivot.__init__(
             self, x, y,
             joint0=joint0, joint1=joint1,
             name=name,
@@ -336,7 +340,7 @@ class DynamicPivot(linkage.Pivot, DynamicJoint):
         None.
 
         """
-        linkage.Pivot.set_anchor0(self, joint, distance)
+        Pivot.set_anchor0(self, joint, distance)
         if not hasattr(self, '_a'):
             self.__generate_body__(0)
             if isinstance(joint, Nail):
@@ -367,7 +371,7 @@ class DynamicPivot(linkage.Pivot, DynamicJoint):
         None.
 
         """
-        linkage.Pivot.set_anchor1(self, joint, distance)
+        Pivot.set_anchor1(self, joint, distance)
         if not hasattr(self, '_b'):
             self.__generate_body__(1)
             # PivotJoint on self position
@@ -395,7 +399,7 @@ class DynamicPivot(linkage.Pivot, DynamicJoint):
         DynamicJoint.reload(self)
 
 
-class Motor(linkage.Crank, DynamicJoint):
+class Motor(Crank, DynamicJoint):
     """
     A Motor is a crank.
 
@@ -409,9 +413,9 @@ class Motor(linkage.Crank, DynamicJoint):
     def __init__(self, x=None, y=None, joint0=None, space=None,
                  distance=None, angle=None, name=None, radius=.3, density=1,
                  shape_filter=None):
-        linkage.Crank.__init__(self, x, y, joint0=joint0,
+        Crank.__init__(self, x, y, joint0=joint0,
                                distance=distance, angle=angle, name=name)
-        linkage.Crank.reload(self, dt=0)
+        Crank.reload(self, dt=0)
         DynamicJoint.__init__(self, space=space, density=density,
                               shape_filter=shape_filter, radius=radius)
         if joint0 is not None:
@@ -449,7 +453,7 @@ class Motor(linkage.Crank, DynamicJoint):
 
     def __generate_body__(self):
         """Generate the crank body only."""
-        if hasattr(self, 'joint0') and isinstance(self.joint0, linkage.Joint):
+        if hasattr(self, 'joint0') and isinstance(self.joint0, Joint):
             body = pm.Body()
             body.position = (pm.Vec2d(*self.coord()) + self.joint0.coord()) / 2
             seg = self.__generate_link__(body, self.joint0.coord())
@@ -474,7 +478,7 @@ class Motor(linkage.Crank, DynamicJoint):
         None.
 
         """
-        linkage.Crank.set_anchor0(self, joint, distance)
+        Crank.set_anchor0(self, joint, distance)
         ref_body = self.__get_reference_body__()
         if not hasattr(self, '_b'):
             self.__generate_body__()
@@ -500,9 +504,9 @@ class Motor(linkage.Crank, DynamicJoint):
         DynamicJoint.reload(self)
 
 
-class DynamicLinkage(linkage.Linkage):
+class DynamicLinkage(Linkage):
     """
-    Dynamic counterpart of a kinematic linkage.Linkage.
+    Dynamic counterpart of a kinematic Linkage.
 
     It has several attributes linked to its dynamic nature and is close to an
     empty shell in the ways you will use it.
@@ -527,7 +531,7 @@ class DynamicLinkage(linkage.Linkage):
 
         Parameters
         ----------
-        joints : linkage.Joint
+        joints : Joint
             Joints to be part of the linkage. Kinematic joints will be
             converted to their dynamic equivalents.
         space : pymunk.Space
@@ -561,7 +565,7 @@ class DynamicLinkage(linkage.Linkage):
         self.body = load_body
         convert = False
         for i, j in enumerate(self.joints):
-            if isinstance(j, linkage.Static):
+            if isinstance(j, Static):
                 self.joint_to_rigidbodies[i] = [load_body]
             if isinstance(j, DynamicJoint):
                 j.space = self.space
@@ -588,38 +592,38 @@ class DynamicLinkage(linkage.Linkage):
             common.update({'x': joint.x, 'y': joint.y, 'name': joint.name})
             if isinstance(joint, DynamicJoint):
                 djoint = joint
-            elif isinstance(joint, linkage.Static):
+            elif isinstance(joint, Static):
                 djoint = Nail(body=self.body, **common)
             # Joints with at least one reference
             else:
                 """
                 Useless while we don't support quick joint definition
                 if (
-                        isinstance(joint.joint0, linkage.Static)
+                        isinstance(joint.joint0, Static)
                         and joint.joint0 not in conversion_dict
                 ):
                     conversion_dict[joint.joint0] = joint.joint0
                 if (
                         hasattr(joint, "joint1")
-                        and isinstance(joint.joint1, linkage.Static)
+                        and isinstance(joint.joint1, Static)
                         and joint.joint1 not in conversion_dict
                 ):
                     conversion_dict[joint.joint1] = joint.joint1
                 """
-                if isinstance(joint, linkage.Fixed):
+                if isinstance(joint, Fixed):
                     djoint = PinUp(
                         distance=joint.r, angle=joint.angle,
                         joint0=conversion_dict[joint.joint0],
                         joint1=conversion_dict[joint.joint1],
                         **common
                     )
-                elif isinstance(joint, linkage.Crank):
+                elif isinstance(joint, Crank):
                     djoint = Motor(
                         joint0=conversion_dict[joint.joint0],
                         distance=joint.r, angle=joint.angle,
                         **common
                     )
-                elif isinstance(joint, linkage.Pivot):
+                elif isinstance(joint, Pivot):
                     djoint = DynamicPivot(
                         joint0=conversion_dict[joint.joint0],
                         joint1=conversion_dict[joint.joint1],

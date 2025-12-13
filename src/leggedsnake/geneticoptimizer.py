@@ -17,7 +17,7 @@ import numpy as np
 import numpy.random as nprand
 # Progress bar
 import tqdm
-from pylinkage.geometry import dist
+from pylinkage.geometry.core import dist
 
 
 def kwargs_switcher(arg_name, kwargs, default=None):

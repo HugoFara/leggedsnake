@@ -14,8 +14,8 @@ Created on Sat May 25 2019 14:56:01.
 """
 import numpy as np
 import pymunk as pm
-from pylinkage.geometry import norm, cyl_to_cart, bounding_box
-from pylinkage.linkage import Static, Crank, Fixed, Pivot
+from pylinkage import bounding_box, Static, Crank, Fixed, Pivot
+from pylinkage.geometry import norm, cyl_to_cart
 
 from . import dynamiclinkage
 
