@@ -204,15 +204,17 @@ class Nail(Static, DynamicJoint):
 
     def __set_offset__(self):
         """Memorize the offset distance between self and linked Body."""
-        self._distance0 = dist(self.coord(), self._a.position)
+        self._distance0 = dist(*self.coord(), *self._a.position)
         x_pos, y_pos = self.coord() - self._a.position
         self._angle0 = atan2(y_pos, x_pos) - self._a.angle
 
     def reload(self):
         """Reload position based on linked body rotation and position."""
+        # Unpack Vec2d position for cyl_to_cart (takes ori_x, ori_y separately)
+        pos = self._a.position
         self.set_coord(cyl_to_cart(self._distance0,
                                    self._a.angle + self._angle0,
-                                   self._a.position))
+                                   pos.x, pos.y))
 
 
 class PinUp(Fixed, DynamicJoint):

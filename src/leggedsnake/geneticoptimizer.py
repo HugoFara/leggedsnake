@@ -17,7 +17,6 @@ import numpy as np
 import numpy.random as nprand
 # Progress bar
 import tqdm
-from pylinkage.geometry.core import dist
 
 
 def kwargs_switcher(arg_name, kwargs, default=None):
@@ -261,7 +260,7 @@ class GeneticOptimization:
         while len(parents) > 1 and j < 100:
             par1 = parents.pop(nprand.randint(len(parents) - 1))
             par2 = parents.pop(int(nprand.rand() * len(parents)))
-            if dist(par1[1], par2[1]) < max_genetic_dist:
+            if np.linalg.norm(np.array(par1[1]) - np.array(par2[1])) < max_genetic_dist:
                 children.append(self.birth(par1, par2))
             elif parents:
                 parents.append(par1)

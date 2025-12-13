@@ -12,6 +12,7 @@ Created on Thu Jun 10 2021 21:13:12.
 """
 from math import tau
 import pylinkage.linkage as lk
+from pylinkage import Static, Crank, Fixed, Pivot
 
 
 class Walker(lk.Linkage):
@@ -50,18 +51,18 @@ class Walker(lk.Linkage):
             equiv = {None: None}
             # For each new joint
             for pos, j in zip(positions, self._solve_order):
-                if isinstance(j.joint0, lk.Static) and j.joint0 not in equiv:
+                if isinstance(j.joint0, Static) and j.joint0 not in equiv:
                     equiv[j.joint0] = j.joint0
                 common = {
                     'x': pos[0], 'y': pos[1],
                     'joint0': equiv[j.joint0],
                     'name': j.name + ' ({})'.format(i)
                 }
-                if isinstance(j, lk.Static):
+                if isinstance(j, Static):
                     new_j = j
-                elif isinstance(j, lk.Crank):
+                elif isinstance(j, Crank):
                     common['joint1'] = crank_memory[j]
-                    new_j = lk.Fixed(
+                    new_j = Fixed(
                         **common, distance=j.r,
                         angle=tau / (number + 1)
                     )
@@ -69,16 +70,16 @@ class Walker(lk.Linkage):
                     new_joints.append(new_j)
                 else:
                     # Static joints not always included in joints
-                    if isinstance(j.joint1, lk.Static) and j.joint1 not in equiv:
+                    if isinstance(j.joint1, Static) and j.joint1 not in equiv:
                         equiv[j.joint1] = j.joint1
                     common['joint1'] = equiv[j.joint1]
 
-                    if isinstance(j, lk.Fixed):
-                        new_j = lk.Fixed(
+                    if isinstance(j, Fixed):
+                        new_j = Fixed(
                             **common, distance=j.r, angle=j.angle
                         )
-                    elif isinstance(j, lk.Pivot):
-                        new_j = lk.Pivot(
+                    elif isinstance(j, Pivot):
+                        new_j = Pivot(
                             **common, distance0=j.r0, distance1=j.r1
                         )
                     new_joints.append(new_j)

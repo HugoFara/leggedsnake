@@ -149,21 +149,23 @@ class World:
     def __update_linkage__(self, linkage, power):
         """Update a specific linkage."""
         linkage_crank = next(j for j in linkage.joints if isinstance(j, Crank))
+        vel = linkage.body.velocity
         if (
                 linkage_crank.actuator.max_force == 0
-                and norm(linkage.body.velocity) < .1
+                and norm(vel.x, vel.y) < .1
         ):
             linkage_crank.actuator.max_force = params["linkage"]["torque"]
             linkage.height = linkage.body.position.y
             linkage.mechanical_energy = (
-                    .5 * linkage.mass * norm(linkage.body.velocity) ** 2
+                    .5 * linkage.mass * norm(vel.x, vel.y) ** 2
             )
 
         # Energy from the motor in this step
         energy = power * params["simul"]["physics_period"]
         if hasattr(linkage, 'height') and energy != 0.:
-            v = norm(linkage.body.velocity)
-            g = norm(params["physics"]["gravity"])
+            vel = linkage.body.velocity
+            v = norm(vel.x, vel.y)
+            g = norm(*params["physics"]["gravity"])
             m = linkage.mass
             new_mechanical_energy = m * (
                 .5 * v ** 2 + g * (linkage.body.position.y - linkage.height)
@@ -259,7 +261,7 @@ class World:
         if not index:
             angle = np.pi - angle
         a = pm.Vec2d(*cyl_to_cart(ground["section_len"], angle,
-                                  self.road[index]))
+                                  *self.road[index]))
         s = pm.Segment(self.space.static_body, a, self.road[index], .1)
         s.friction = ground["friction"]
         self.space.add(s)
