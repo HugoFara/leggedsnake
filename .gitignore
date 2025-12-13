@@ -1,5 +1,6 @@
-# Data from optimizer are currently in .txt files
+# Data from optimizer
 leggedsnake/*.txt
+leggedsnake/Population evolution*.json
 # Project generate several videos
 *.mp4
 
@@ -144,3 +145,5 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# Ignore .idea files
+.idea

@@ -9,6 +9,7 @@ The show_evolution module provides data visualization about GA.
 @author: HugoFara
 """
 
+import argparse
 import json
 import matplotlib.pyplot as plt
 import numpy as np
@@ -96,7 +97,18 @@ def show_genetic_optimization(data=DATA):
 
 
 if __name__ == "__main__":
-    with open("Population evolution.json") as file:
+    parser = argparse.ArgumentParser(
+        description="Visualize genetic algorithm optimization data."
+    )
+    parser.add_argument(
+        "file",
+        nargs="?",
+        default="Population evolution.json",
+        help="Path to the JSON data file (default: Population evolution.json)"
+    )
+    args = parser.parse_args()
+
+    with open(args.file) as file:
         DATA.extend(json.load(file))
 
     show_genetic_optimization()

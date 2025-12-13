@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `show_evolution.py` now accepts a filename as an argument.
+
 ### Fixed
  - `data_descriptors` were not save for the first line of data only in 
    ``geneticoptimizer``. 
