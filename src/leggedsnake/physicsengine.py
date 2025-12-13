@@ -220,17 +220,20 @@ class World:
         self, linkage: dynamiclinkage.DynamicLinkage, power: float
     ) -> tuple[float, float]:
         """Update a specific linkage."""
-        linkage_crank = next(j for j in linkage.joints if isinstance(j, Crank))
+        # Get all crank joints (there may be multiple for mechanisms with
+        # opposite legs or multiple independent motors)
+        linkage_cranks = [j for j in linkage.joints if isinstance(j, Crank)]
         vel = linkage.body.velocity
-        if (
-                linkage_crank.actuator.max_force == 0
-                and norm(vel.x, vel.y) < .1
-        ):
-            linkage_crank.actuator.max_force = params["linkage"]["torque"]
-            linkage.height = linkage.body.position.y
-            linkage.mechanical_energy = (
-                    .5 * linkage.mass * norm(vel.x, vel.y) ** 2
-            )
+        # Check if any motor needs enabling (use first crank as reference)
+        if linkage_cranks and linkage_cranks[0].actuator.max_force == 0:
+            if norm(vel.x, vel.y) < .1:
+                # Enable ALL crank motors when linkage settles
+                for crank in linkage_cranks:
+                    crank.actuator.max_force = params["linkage"]["torque"]
+                linkage.height = linkage.body.position.y
+                linkage.mechanical_energy = (
+                        .5 * linkage.mass * norm(vel.x, vel.y) ** 2
+                )
 
         # Energy from the motor in this step
         energy = power * params["simul"]["physics_period"]

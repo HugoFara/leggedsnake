@@ -188,14 +188,20 @@ class Walker(lk.Linkage):  # type: ignore[misc]
                     new_j.joint0 = equiv.get(j.joint0, j.joint0)
                 new_joints.append(new_j)
             elif isinstance(j, Crank):
-                # Crank rotation stays the same; initial position is mirrored
-                new_j = Crank(
-                    **common,
+                # Use Fixed joint to share the motor with the original crank
+                # (models a common shaft connecting both sides)
+                # angle=tau/2 (180°) creates phase opposition for stable gait
+                new_j = Fixed(
+                    x=mirrored_x,
+                    y=j.y,
+                    joint0=equiv.get(j.joint0, j.joint0),  # Ground
+                    joint1=j,  # Original crank - creates mechanical link
                     distance=j.r,
-                    angle=j.angle,  # Keep same rotation direction for walking
+                    angle=tau / 2,  # 180° phase opposition
+                    name=j.name + ' (opposite)'
                 )
                 new_joints.append(new_j)
-                new_cranks.append(new_j)
+                # Don't add to new_cranks - Fixed joints share the original motor
             elif isinstance(j, Fixed):
                 # Mirror angle by negating it
                 common['joint1'] = equiv.get(j.joint1, j.joint1)
