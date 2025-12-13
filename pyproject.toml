@@ -62,7 +62,7 @@ Changelog = "https://github.com/hugofara/leggedsnake/blob/main/CHANGELOG.md"
 version = {attr = "leggedsnake.__version__"}
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["leggedsnake*"]
 
 [tool.pytest.ini_options]
@@ -86,11 +86,11 @@ commit = false
 tag = false
 
 [[tool.bumpversion.files]]
-filename = "leggedsnake/__init__.py"
+filename = "src/leggedsnake/__init__.py"
 search = '__version__ = "{current_version}"'
 replace = '__version__ = "{new_version}"'
 
 [[tool.bumpversion.files]]
-filename = "source/conf.py"
+filename = "docs_src/conf.py"
 search = "release = '{current_version}'"
 replace = "release = '{new_version}'"

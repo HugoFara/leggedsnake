@@ -176,7 +176,7 @@ You should use the ``step`` and ``stride`` method from the
 
 This set of rules should work well for a stride **maximisation** problem:
 
-[utility-module]: https://github.com/HugoFara/leggedsnake/blob/main/leggedsnake/utility.py
+[utility-module]: https://github.com/HugoFara/leggedsnake/blob/main/src/leggedsnake/utility.py
 
 1. Rebuild the Walker with the provided set of dimensions, and do a
    complete turn.
