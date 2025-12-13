@@ -18,7 +18,8 @@ from pylinkage import (
     Fixed,
     HypostaticError,
     Linkage,
-    Pivot,
+    Pivot,  # Deprecated, use Revolute instead
+    Revolute,
     Static,
     UnbuildableError,
     bounding_box,
@@ -59,7 +60,8 @@ __all__ = [
     "generate_bounds",
     "Static",
     "Fixed",
-    "Pivot",
+    "Pivot",  # Deprecated, use Revolute
+    "Revolute",
     "Crank",
     "Linkage",
     "trials_and_errors_optimization",

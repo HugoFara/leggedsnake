@@ -218,7 +218,8 @@ class DynamicJoint(abc.ABC):
         None.
 
         """
-        self.set_coord(*self._b.local_to_world(self._anchor_b))
+        if hasattr(self, '_b') and hasattr(self, '_anchor_b'):
+            self.set_coord(*self._b.local_to_world(self._anchor_b))
 
 
 class Nail(Static, DynamicJoint):  # type: ignore[misc]

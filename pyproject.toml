@@ -34,9 +34,9 @@ classifiers = [
 dependencies = [
     "numpy>=1.20.2",
     "tqdm>=4.40.0",
-    "matplotlib>=3.3.4",
     "pylinkage>=0.5.0",
     "pymunk>=6.0.0",
+    "pyglet>=2.0.0",
 ]
 dynamic = ["version"]
 
@@ -109,5 +109,6 @@ module = [
     "pymunk.*",
     "pylinkage.*",
     "tqdm.*",
+    "pyglet.*",
 ]
 ignore_missing_imports = true

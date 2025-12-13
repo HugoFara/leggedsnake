@@ -129,8 +129,8 @@ def complete_strider(constraints, prev):
         "C": ls.Crank(joint0=linka["A"], angle=-2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
-        "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
-        "E": ls.Pivot(joint0=linka["B"], joint1=linka["C"], name="Right knee link (E)")
+        "D": ls.Revolute(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
+        "E": ls.Revolute(joint0=linka["B"], joint1=linka["C"], name="Right knee link (E)")
     })
     linka.update({
         # F is fixed relative to C and E
@@ -139,8 +139,8 @@ def complete_strider(constraints, prev):
         "G": ls.Fixed(joint0=linka["C"], joint1=linka["D"], name='Right ankle link (G)')
     })
     linka.update({
-        "H": ls.Pivot(joint0=linka["D"], joint1=linka["F"], name="Left foot (H)"),
-        "I": ls.Pivot(joint0=linka["E"], joint1=linka["G"], name="Right foot (I)")
+        "H": ls.Revolute(joint0=linka["D"], joint1=linka["F"], name="Left foot (H)"),
+        "I": ls.Revolute(joint0=linka["E"], joint1=linka["G"], name="Right foot (I)")
     })
     # Mechanism definition
     strider = ls.Walker(
@@ -191,18 +191,18 @@ def strider_builder(constraints, prev, n_leg_pairs=1, minimal=False):
         "C": ls.Crank(joint0=linka["A"], angle=-2 * np.pi / LAP_POINTS, name="Crank link (C)")
     })
     linka.update({
-        "D": ls.Pivot(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
-        "E": ls.Pivot(joint0=linka["B"], joint1=linka["C"], name="Right knee link (E)")
+        "D": ls.Revolute(joint0=linka["B_p"], joint1=linka["C"], name="Left knee link (D)"),
+        "E": ls.Revolute(joint0=linka["B"], joint1=linka["C"], name="Right knee link (E)")
     })
     # F is fixed relative to C and E
     linka["F"] = ls.Fixed(joint0=linka["C"], joint1=linka["E"], name='Left ankle link (F)') 
-    linka["H"] = ls.Pivot(joint0=linka["D"], joint1=linka["F"], name="Left foot (H)")
+    linka["H"] = ls.Revolute(joint0=linka["D"], joint1=linka["F"], name="Left foot (H)")
     joints = list(linka.values())
     if not minimal:
         # G fixed to C and D
         linka["G"] = ls.Fixed(joint0=linka["C"], joint1=linka["D"], name='Right ankle link (G)')
         joints.insert(-1, linka["G"])
-        joints.append(ls.Pivot(joint0=linka["E"], joint1=linka["G"], name="Right foot (I)"))
+        joints.append(ls.Revolute(joint0=linka["E"], joint1=linka["G"], name="Right foot (I)"))
     # Mechanism definition
     strider = ls.Walker(
         joints=joints,

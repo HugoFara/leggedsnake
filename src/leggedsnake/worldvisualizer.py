@@ -1,21 +1,19 @@
 """
 This file contains class and method to see the walkers in action.
+
+Uses Pyglet for hardware-accelerated rendering with pymunk integration.
 """
 from __future__ import annotations
 
-from functools import partial
 from typing import Any, TypedDict
 
-import matplotlib.pyplot as plt
-from matplotlib.artist import Artist
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-from matplotlib.lines import Line2D
 import numpy as np
 import numpy.typing as npt
+import pyglet
+from pyglet import shapes
+from pyglet.window import key
 import pymunk as pm
-import pymunk.matplotlib_util
-import matplotlib.animation as animation
+import pymunk.pyglet_util
 from pymunk import Space
 from pylinkage import Static, Crank, Fixed, Pivot
 from pylinkage.linkage import Linkage
@@ -28,16 +26,34 @@ class CameraSettings(TypedDict):
     dynamic_camera: bool
     fps: int
 
+
 # Display settings
 CAMERA: CameraSettings = {
     # Do you want to follow a system of view whole scene?
     "dynamic_camera": False,
     # Required frames per second
-    "fps": 20,
+    "fps": 60,
 }
 
 # Type alias for bounds
 Bounds = tuple[tuple[float, float], tuple[float, float]]
+
+# Window dimensions
+WINDOW_WIDTH = 1280
+WINDOW_HEIGHT = 720
+
+# Colors for different joint types (RGBA)
+COLORS = {
+    "static": (100, 100, 100, 255),    # Gray
+    "crank": (50, 200, 50, 255),       # Green
+    "fixed": (200, 50, 50, 255),       # Red
+    "pivot": (50, 100, 200, 255),      # Blue
+    "road": (80, 80, 80, 255),         # Dark gray
+    "background": (240, 240, 245, 255), # Light gray-blue
+}
+
+# Line width for drawing
+LINE_WIDTH = 3.0
 
 
 def smooth_transition(
@@ -97,14 +113,24 @@ def smooth_transition(
 
 
 class VisualWorld(pe.World):
-    """Same as parent class World, but with matplotlib objects."""
+    """Same as parent class World, but with Pyglet rendering."""
 
-    fig: Figure
-    ax: Axes
-    linkage_im: list[list[Line2D]]
-    road_im: list[Line2D]
+    window: pyglet.window.Window | None
+    batch: pyglet.graphics.Batch
+    _view_bounds: Bounds
+    _scale: float
+    _offset_x: float
+    _offset_y: float
+    _linkage_colors: list[tuple[int, int, int, int]] | None
+    _running: bool
+    _headless: bool
 
-    def __init__(self, space: pm.Space | None = None, road_y: float = -5) -> None:
+    def __init__(
+        self,
+        space: pm.Space | None = None,
+        road_y: float = -5,
+        headless: bool = False,
+    ) -> None:
         """
         Instantiate the world and objects to be displayed.
 
@@ -115,117 +141,250 @@ class VisualWorld(pe.World):
         road_y : float, optional
             The ordinate of the ground. Useful when linkages have long legs.
             The default is -5.
+        headless : bool, optional
+            If True, run without creating a window (for testing).
+            The default is False.
         """
         super().__init__(space=space, road_y=road_y)
-        self.fig, self.ax = plt.subplots()
-        self.ax.set_aspect('equal')
-        self.linkage_im = []
-        # Same for the road
-        self.road_im = self.ax.plot([], [], 'k-', animated=False)
+        self._headless = headless
+        self._running = True
+        self._linkage_colors = None
 
-    def add_linkage(
-        self, linkage: Linkage | dynamiclinkage.DynamicLinkage, load: float = 0
+        # Initialize view bounds
+        self._view_bounds = ((-20.0, 20.0), (-15.0, 15.0))
+
+        # Create batch for efficient rendering
+        self.batch = pyglet.graphics.Batch()
+
+        # Set window before calling _update_scale
+        if not headless:
+            self.window = pyglet.window.Window(  # type: ignore[abstract]
+                width=WINDOW_WIDTH,
+                height=WINDOW_HEIGHT,
+                caption="LeggedSnake Simulation",
+                resizable=True,
+            )
+            self._setup_window_handlers()
+        else:
+            self.window = None
+
+        self._update_scale()
+
+    def _setup_window_handlers(self) -> None:
+        """Set up Pyglet window event handlers."""
+        if self.window is None:
+            return
+
+        @self.window.event
+        def on_draw() -> None:
+            self._on_draw()
+
+        @self.window.event
+        def on_key_press(symbol: int, modifiers: int) -> None:
+            if symbol == key.ESCAPE or symbol == key.Q:
+                self._running = False
+                if self.window:
+                    self.window.close()
+
+        @self.window.event
+        def on_resize(width: int, height: int) -> None:
+            self._update_scale()
+
+    def _update_scale(self) -> None:
+        """Update the scale and offset based on current view bounds."""
+        x_range = self._view_bounds[0][1] - self._view_bounds[0][0]
+        y_range = self._view_bounds[1][1] - self._view_bounds[1][0]
+
+        if self.window:
+            width, height = self.window.width, self.window.height
+        else:
+            width, height = WINDOW_WIDTH, WINDOW_HEIGHT
+
+        # Calculate scale to fit the view in the window
+        scale_x = width / x_range if x_range > 0 else 1.0
+        scale_y = height / y_range if y_range > 0 else 1.0
+        self._scale = min(scale_x, scale_y) * 0.9  # 90% to leave some margin
+
+        # Calculate offsets to center the view
+        self._offset_x = width / 2 - (self._view_bounds[0][0] + x_range / 2) * self._scale
+        self._offset_y = height / 2 - (self._view_bounds[1][0] + y_range / 2) * self._scale
+
+    def _world_to_screen(self, x: float, y: float) -> tuple[float, float]:
+        """Convert world coordinates to screen coordinates."""
+        screen_x = x * self._scale + self._offset_x
+        screen_y = y * self._scale + self._offset_y
+        return screen_x, screen_y
+
+    def _get_joint_color(self, joint: Any) -> tuple[int, int, int, int]:
+        """Get the color for a joint based on its type."""
+        if isinstance(joint, Crank):
+            return COLORS["crank"]
+        elif isinstance(joint, Fixed):
+            return COLORS["fixed"]
+        elif isinstance(joint, Pivot):
+            return COLORS["pivot"]
+        else:
+            return COLORS["static"]
+
+    def _on_draw(self) -> None:
+        """Draw the scene."""
+        if self.window is None:
+            return
+
+        self.window.clear()
+
+        # Set background color
+        pyglet.gl.glClearColor(
+            COLORS["background"][0] / 255,
+            COLORS["background"][1] / 255,
+            COLORS["background"][2] / 255,
+            1.0
+        )
+
+        # Draw road
+        self._draw_road()
+
+        # Draw linkages
+        for idx, linkage in enumerate(self.linkages):
+            alpha = 255
+            if self._linkage_colors is not None and idx < len(self._linkage_colors):
+                color = self._linkage_colors[idx]
+            else:
+                color = None
+            self._draw_linkage(linkage, color, alpha)
+
+        # Draw info text
+        self._draw_info()
+
+    def _draw_road(self) -> None:
+        """Draw the road segments."""
+        if len(self.road) < 2:
+            return
+
+        for i in range(len(self.road) - 1):
+            x1, y1 = self._world_to_screen(self.road[i][0], self.road[i][1])
+            x2, y2 = self._world_to_screen(self.road[i + 1][0], self.road[i + 1][1])
+
+            line = shapes.Line(
+                x1, y1, x2, y2,
+                thickness=LINE_WIDTH + 1,
+                color=COLORS["road"][:3],
+            )
+            line.draw()
+
+    def _draw_linkage(
+        self,
+        linkage: dynamiclinkage.DynamicLinkage,
+        override_color: tuple[int, int, int, int] | None = None,
+        alpha: int = 255,
     ) -> None:
-        """
-        Add a linkage to the simulation, and create the appropriate Artist objects.
+        """Draw a linkage by rendering pymunk segments and joints."""
+        # Default color for bars
+        bar_color = override_color[:3] if override_color else COLORS["static"][:3]
 
-        Parameters
-        ----------
-        linkage : pylinkage.Linkage or leggedsnake.DynamicLinkage
-            Linkage to add.
-            We use the linkage's space if it is a DynamicLinkage.
-        load : float, optional
-            Load to add the center of the linkage.
-            Has no effect when using a DynamicLinkage.
-            The default is 0.
-        Returns
-        -------
-        None.
+        # Draw all segments (bars) from the pymunk space that belong to this linkage
+        drawn_segments: set[int] = set()
+        for body in linkage.rigidbodies:
+            for shape in body.shapes:
+                if isinstance(shape, pm.Segment) and id(shape) not in drawn_segments:
+                    drawn_segments.add(id(shape))
+                    # Get world coordinates of segment endpoints
+                    a = body.local_to_world(shape.a)
+                    b = body.local_to_world(shape.b)
+                    x1, y1 = self._world_to_screen(a.x, a.y)
+                    x2, y2 = self._world_to_screen(b.x, b.y)
 
-        """
-        super().add_linkage(linkage, load)
-        # Objects that will allow display
-        linkage_im = []
-        for j in self.linkages[-1].joints:
-            if (
-                    isinstance(j, Static)
-                    and hasattr(j, 'joint0')
-                    and j.joint0 is not None
-            ):
-                linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
-                if hasattr(j, 'joint1') and j.joint1 is not None:
-                    linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
-            elif isinstance(j, Crank):
-                linkage_im.append(self.ax.plot([], [], 'g-', animated=False)[0])
-            elif isinstance(j, Fixed):
-                linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
-                linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
-            elif isinstance(j, Pivot):
-                linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
-                linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
-        self.linkage_im.append(linkage_im)
+                    line = shapes.Line(x1, y1, x2, y2, thickness=LINE_WIDTH, color=bar_color)
+                    line.opacity = alpha
+                    line.draw()
 
-    def draw_linkage(
-        self, linkage_im: list[Line2D], joints: tuple[Any, ...]
-    ) -> list[Line2D]:
-        """Draw the linkage at his current state."""
-        a = 0
-        for j in joints:
-            if hasattr(j, 'joint0') and j.joint0 is not None:
-                linkage_im[a].set_data(
-                    [j.x, j.joint0.x], [j.y, j.joint0.y]
-                )
-                a += 1
-            if hasattr(j, 'joint1') and j.joint1 is not None:
-                linkage_im[a].set_data(
-                    [j.x, j.joint1.x], [j.y, j.joint1.y]
-                )
-                a += 1
-        return linkage_im
+        # Draw joints as circles on top
+        for joint in linkage.joints:
+            if override_color is not None:
+                color = override_color[:3]
+            else:
+                color = self._get_joint_color(joint)[:3]
+
+            sx, sy = self._world_to_screen(joint.x, joint.y)
+            # Draw a filled circle for the joint
+            circle = shapes.Circle(sx, sy, 5, color=color)
+            circle.opacity = alpha
+            circle.draw()
+            # Draw a smaller inner circle for visual appeal
+            inner = shapes.Circle(sx, sy, 2, color=(255, 255, 255))
+            inner.opacity = alpha
+            inner.draw()
+
+    def _draw_info(self) -> None:
+        """Draw information text on screen."""
+        if not self.linkages or self.window is None:
+            return
+
+        center = np.mean([linkage.joints[0].coord() for linkage in self.linkages], axis=0)
+        info_text = f"Position: ({int(center[0])}, {int(center[1])})  |  Press Q or ESC to quit"
+
+        label = pyglet.text.Label(
+            info_text,
+            font_name='Arial',
+            font_size=12,
+            x=10,
+            y=self.window.height - 20,
+            color=(50, 50, 50, 255),
+        )
+        label.draw()
 
     def init_visuals(
         self, colors: list[float] | list[list[float]] | npt.NDArray[np.floating[Any]] | None = None
     ) -> list[Any]:
+        """Initialize visual settings."""
         if colors is not None:
-            for im, color in zip(self.linkage_im, colors):
-                for line in im:
-                    if isinstance(color, (int, float, np.floating)):
-                        line.set_alpha(float(color))
+            processed_colors: list[tuple[int, int, int, int]] = []
+            for color in colors:
+                if isinstance(color, (int, float, np.floating)):
+                    # Opacity value - use gray with given alpha
+                    alpha = int(float(color) * 255)
+                    processed_colors.append((150, 150, 150, alpha))
+                else:
+                    # RGB or RGBA color
+                    if len(color) == 3:
+                        processed_colors.append((int(color[0] * 255), int(color[1] * 255), int(color[2] * 255), 255))
                     else:
-                        line.set_color(color)
+                        processed_colors.append((int(color[0] * 255), int(color[1] * 255), int(color[2] * 255), int(color[3] * 255)))
+            self._linkage_colors = processed_colors
+        return []
 
-        return self.road_im + [im for im in self.linkage_im]
-
-    def reload_visuals(self) -> list[Line2D]:
+    def reload_visuals(self) -> list[Any]:
         """Reload the visual components only."""
-        center = np.mean([linkage.joints[0].coord() for linkage in self.linkages], axis=0)
-        self.fig.suptitle(f"Position: {tuple(map(int, center))}")
+        if not self.linkages:
+            return []
 
-        self.road_im[0].set_data(
-            [i[0] for i in self.road],
-            [i[1] for i in self.road]
-        )
-        prev_view: Bounds = self.ax.get_xlim(), self.ax.get_ylim()
+        center = np.mean([linkage.joints[0].coord() for linkage in self.linkages], axis=0)
+
+        prev_view: Bounds = self._view_bounds
         target: Bounds
+
         if CAMERA["dynamic_camera"]:
-            target = (float(center[0]) - 10, float(center[0]) + 10), (float(center[1]) - 10, float(center[1]) + 10)
+            target = (
+                (float(center[0]) - 10, float(center[0]) + 10),
+                (float(center[1]) - 10, float(center[1]) + 10)
+            )
         else:
             target = (
-                min([0.0] + [min(float(i.x) for i in linkage.joints) for linkage in self.linkages]) - 10,
-                max([0.0] + [max(float(i.x) for i in linkage.joints) for linkage in self.linkages]) + 10
-            ), (
-                min([0.0] + [min(float(i.y) for i in linkage.joints) for linkage in self.linkages]) - 5,
-                max([0.0] + [max(float(i.y) for i in linkage.joints) for linkage in self.linkages]) + 5
+                (
+                    min([0.0] + [min(float(i.x) for i in linkage.joints) for linkage in self.linkages]) - 10,
+                    max([0.0] + [max(float(i.x) for i in linkage.joints) for linkage in self.linkages]) + 10
+                ),
+                (
+                    min([0.0] + [min(float(i.y) for i in linkage.joints) for linkage in self.linkages]) - 5,
+                    max([0.0] + [max(float(i.y) for i in linkage.joints) for linkage in self.linkages]) + 5
+                )
             )
+
         new_bounds = smooth_transition(target, prev_view)
-        self.ax.set_xlim(*new_bounds[0])
-        self.ax.set_ylim(*new_bounds[1])
-        # Return modified objects for animation optimization
-        visual_objects = []
-        for linkage, im in zip(self.linkages, self.linkage_im):
-            visual_objects += self.draw_linkage(im, linkage.joints)
-        visual_objects += self.road_im
-        return visual_objects
+        self._view_bounds = ((new_bounds[0][0], new_bounds[0][1]), (new_bounds[1][0], new_bounds[1][1]))
+        self._update_scale()
+
+        return []
 
     def visual_update(
         self, time: list[float] | float | None = None
@@ -237,8 +396,8 @@ class VisualWorld(pe.World):
         ----------
         time : list | float | None
             When a list, delta-time for physics and display (respectively)
-            Using a float, only delta-time for physics, fps is set with CAMERA_SETTINGS["fps"]
-            Setting to None set physics dt to pe.params["simul"]["physics_period"] and fps to CAMERA_SETTINGS["fps"]
+            Using a float, only delta-time for physics, fps is set with CAMERA["fps"]
+            Setting to None set physics dt to pe.params["simul"]["physics_period"] and fps to CAMERA["fps"]
         """
         dt: float
         fps: int
@@ -250,8 +409,10 @@ class VisualWorld(pe.World):
             fps = CAMERA["fps"]
         else:
             dt, fps = float(time[0]), int(time[1])
+
         div = 1 // (dt * fps)
         update_ret: tuple[float, float] | None
+
         if div >= 1:
             update_list: list[float] = [0.0, 0.0]
             for _ in range(int(div)):
@@ -266,28 +427,61 @@ class VisualWorld(pe.World):
             update_ret = (update_list[0], update_list[1])
         else:
             update_ret = self.update(dt)
+
         self.reload_visuals()
         return update_ret
+
+    def run(self, duration: float = 30.0) -> None:
+        """
+        Run the simulation for the specified duration.
+
+        Parameters
+        ----------
+        duration : float
+            Duration in seconds to run the simulation.
+        """
+        if self._headless:
+            # In headless mode, just run the physics
+            n_frames = int(CAMERA["fps"] * duration)
+            for _ in range(n_frames):
+                self.visual_update()
+            return
+
+        if self.window is None:
+            return
+
+        self._running = True
+        elapsed_time = 0.0
+        frame_duration = 1.0 / CAMERA["fps"]
+
+        def update(dt: float) -> None:
+            nonlocal elapsed_time
+            if not self._running or elapsed_time >= duration:
+                pyglet.app.exit()
+                return
+            self.visual_update()
+            elapsed_time += dt
+
+        pyglet.clock.schedule_interval(update, frame_duration)
+        pyglet.app.run()
+        pyglet.clock.unschedule(update)
 
 
 def im_debug(world: VisualWorld, linkage: dynamiclinkage.DynamicLinkage) -> None:
     """Use pymunk debugging for visual debugging."""
+    if world.window is None:
+        return
+
     bbox = pe.linkage_bb(linkage)
-    world.ax.clear()
-    world.ax.set_xlim(int(bbox[3]) - 5, int(bbox[1]) + 5)
-    world.ax.set_ylim(int(bbox[2]) - 5, int(bbox[0]) + 5)
-    world.ax.scatter(
-        [i.x for i in linkage.joints],
-        [i.y for i in linkage.joints],
-        c='r'
+    # Update view bounds based on linkage bounding box
+    world._view_bounds = (
+        (float(bbox[3]) - 5, float(bbox[1]) + 5),
+        (float(bbox[0]) - 5, float(bbox[2]) + 5)
     )
-    for j in linkage.joints:
-        for shape in j._a.shapes:
-            begin = j._a.local_to_world(shape.a)
-            end = j._a.local_to_world(shape.b)
-            world.ax.plot([begin[0], end[0]], [begin[1], end[1]])
-    options = pymunk.matplotlib_util.DrawOptions(world.ax)
-    options.constraint_color = (.1, .1, .1, .0)  # type: ignore[assignment]
+    world._update_scale()
+
+    # Use pymunk's pyglet draw options
+    options = pymunk.pyglet_util.DrawOptions()
     world.space.debug_draw(options)
 
 
@@ -302,12 +496,18 @@ def video_debug(
         world = VisualWorld(road_y=road_y)
     world.add_linkage(linkage)
     dynamic_linkage = world.linkages[-1]
-    for _ in range(1, int(1e3)):
-        dt = pe.params["simul"]["physics_period"]
-        world.space.step(dt)
+
+    if world.window is None:
+        return
+
+    def update(dt: float) -> None:
+        physics_dt = pe.params["simul"]["physics_period"]
+        world.space.step(physics_dt)
         pe.recalc_linkage(dynamic_linkage)
-        im_debug(world, dynamic_linkage)
-        plt.pause(.2)
+        world.reload_visuals()
+
+    pyglet.clock.schedule_interval(update, 0.2)
+    pyglet.app.run()
 
 
 def all_linkages_video(
@@ -328,13 +528,13 @@ def all_linkages_video(
     ]
         The Linkage you want to simulate.
     duration : float, optional
-        Duration (in seconds) of the simulation. The default is 40.
+        Duration (in seconds) of the simulation. The default is 30.
     save : bool, optional
-        If you want to save it as a .mp4 file.
+        If you want to save it as a video file (not yet implemented for Pyglet).
     colors : list of float or list of list of float
         * If a list of float, it is the list of opacities
         * If a list of list of float, it is the list of colors
-        * If None, opacities are set randomly
+        * If None, opacities are set based on index
     dynamic_camera : bool, optional
         Type of visualization. True follows one strider, False gives a larger view.
         The default is False.
@@ -344,10 +544,9 @@ def all_linkages_video(
         world = VisualWorld(linkages[0].space, road_y=road_y)
     else:
         world = VisualWorld(road_y=road_y)
+
     for linkage in linkages:
         world.add_linkage(linkage)
-    # Number of frames for the selected duration
-    n_frames = int(CAMERA["fps"] * duration)
 
     dt = pe.params["simul"]["physics_period"]
     fps = CAMERA["fps"]
@@ -358,23 +557,19 @@ def all_linkages_video(
         )
 
     if colors is None:
-        colors = np.logspace(0, -1, num=len(linkages))
+        colors = list(np.logspace(0, -1, num=len(linkages)))
+
     previous_camera = CAMERA["dynamic_camera"]
     CAMERA["dynamic_camera"] = dynamic_camera
-    ani = animation.FuncAnimation(
-        world.fig, world.visual_update,  # type: ignore[arg-type]
-        frames=[None] * (n_frames - 1),
-        init_func=partial(world.init_visuals, colors),
-        interval=int(1000 / CAMERA["fps"]),
-        repeat=False, blit=False
-    )
+
+    world.init_visuals(colors)
+
     if save:
-        writer = animation.FFMpegWriter(fps=CAMERA["fps"], bitrate=2500)
-        ani.save(f"Dynamic {linkages[0].name}.mp4", writer=writer)
-    else:
-        plt.show()
-        if ani:
-            pass
+        print("Warning: Video saving is not yet implemented for Pyglet backend.")
+        print("Consider using screen recording software or implementing pyglet video export.")
+
+    world.run(duration)
+
     CAMERA["dynamic_camera"] = previous_camera
 
 
@@ -393,9 +588,9 @@ def video(
     leggedsnake.dynamiclinkage.DynamicLinkage]
         The Linkage you want to simulate.
     duration : float, optional
-        Duration (in seconds) of the simulation. The default is 40.
+        Duration (in seconds) of the simulation. The default is 30.
     save : bool, optional
-        If you want to save it as a .mp4 file.
+        If you want to save it as a video file (not yet implemented for Pyglet).
     dynamic_camera : bool, optional
         Type of visualization. True follows one strider, False gives a larger view.
         The default is True.
