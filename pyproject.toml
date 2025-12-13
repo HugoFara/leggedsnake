@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,39 +9,72 @@ authors = [
 ]
 description = "Simulate and optimize planar leg mechanisms using PSO and GA"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 keywords = [
     "linkage", "leg mechanism", "optimization",
     "leggedsnake", "walking linkage"
 ]
 license = {text = "MIT License"}
 classifiers = [
-	"Development Status :: 4 - Beta",
+    "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3",
-	"Topic :: Scientific/Engineering",
-	"Topic :: Scientific/Engineering :: Artificial Life",
-	"Programming Language :: Python :: 3",
-	"Programming Language :: Python :: 3.7",
-	"Programming Language :: Python :: 3.8",
-	"Programming Language :: Python :: 3.9",
-	"Programming Language :: Python :: 3.10",
-	"Programming Language :: Python :: 3.11",
-	"Environment :: Console",
-	"Intended Audience :: Science/Research",
-	"Intended Audience :: Legal Industry",
-	"Intended Audience :: End Users/Desktop",
-	"Operating System :: OS Independent"
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Life",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Legal Industry",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent"
 ]
 dependencies = [
-	"numpy",
-	"tqdm",
-	"matplotlib",
-	"pylinkage"
+    "numpy>=1.20.2",
+    "tqdm>=4.40.0",
+    "matplotlib>=3.3.4",
+    "pylinkage>=0.5.0",
+    "pymunk>=6.0.0",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+    "sphinx>=6.2.1",
+    "sphinx-rtd-theme>=1.2.0",
+    "m2r2>=0.3.0",
+    "bump2version>=1.0.0",
+]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
 
 [project.urls]
 Homepage = "https://hugofara.net/leggedsnake-retro-ingeneering-evolution/"
 Documentation = "https://hugofara.github.io/leggedsnake/"
 Repository = "https://github.com/HugoFara/leggedsnake"
 Changelog = "https://github.com/hugofara/leggedsnake/blob/main/CHANGELOG.md"
+
+[tool.setuptools.dynamic]
+version = {attr = "leggedsnake.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["leggedsnake*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.uv]
+dev-dependencies = [
+    "sphinx>=6.2.1",
+    "sphinx-rtd-theme>=1.2.0",
+    "m2r2>=0.3.0",
+    "bump2version>=1.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
