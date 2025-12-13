@@ -14,12 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - ``examples/`` is now in the main folder. It was in ``docs/`` previously.
+- Minimum Python version is now 3.10 (was 3.7).
+- Support for Python 3.12, 3.13, and 3.14.
 
 ### Fixed
 
 - Project links fixed in pyproject.toml.
 - Documentation should be directly under ``docs/`` but the recommended
   method was placing it in ``docs/html``.
+
+### Removed
+
+- Removed ``setup.cfg`` (replaced by ``pyproject.toml``).
+- Removed ``setup.py`` (no longer needed with modern packaging).
+- Removed ``requirements.txt`` and ``requirements-dev.txt``
+  (dependencies now in ``pyproject.toml``).
+- Removed conda support and ``environment.yml``.
 
 ## [0.4.0] - 2023-06-21
 

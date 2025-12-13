@@ -78,3 +78,18 @@ dev-dependencies = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
 ]
+
+[tool.bumpversion]
+current_version = "0.4.0"
+commit = false
+tag = false
+
+[[tool.bumpversion.files]]
+filename = "leggedsnake/__init__.py"
+search = '__version__ = "{current_version}"'
+replace = '__version__ = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "source/conf.py"
+search = "release = '{current_version}'"
+replace = "release = '{new_version}'"

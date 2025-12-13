@@ -42,28 +42,15 @@ pip install leggedsnake
 
 ## Build from source
 
-Download this repository.
+Download this repository and install with [uv](https://docs.astral.sh/uv/).
 
 ```shell
 git clone https://github.com/hugofara/leggedsnake
+cd leggedsnake
+uv sync
 ```
 
-### Conda Virtual Environment
-
-We provide an
-[environment.yml](https://github.com/HugoFara/leggedsnake/blob/main/environment.yml)
-file for conda.
-
-```shell
-conda env update --file environment.yml --name leggedsnake-env
-```
-
-It will install the requirements in a separate environment.
-
-### Other installation
-
-If you are looking for a development version, check the GitHub repo under
-[HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake).
+This will create a virtual environment and install all dependencies.
 
 ## Usage
 
