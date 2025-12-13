@@ -24,7 +24,7 @@ References:
 Run with: uv run python examples/klann_linkage.py
 """
 import numpy as np
-from pylinkage import Static, Crank, Revolute
+from pylinkage import Static, Crank, Revolute, Fixed
 import leggedsnake as ls
 
 # Simulation parameters
@@ -188,18 +188,41 @@ def compute_initial_coords(d, angle=0):
     }
 
 
+def _compute_fixed_angle(p0, p1, p_target):
+    """
+    Compute the angle for a Fixed joint.
+
+    Parameters
+    ----------
+    p0 : tuple
+        Position of joint0 (the anchor point)
+    p1 : tuple
+        Position of joint1 (the reference direction point)
+    p_target : tuple
+        Position of the Fixed joint itself
+
+    Returns
+    -------
+    float
+        Angle from (p0->p1) direction to (p0->p_target) direction
+    """
+    angle_to_ref = np.arctan2(p1[1] - p0[1], p1[0] - p0[0])
+    angle_to_target = np.arctan2(p_target[1] - p0[1], p_target[0] - p0[0])
+    return angle_to_target - angle_to_ref
+
+
 def create_klann_linkage():
     """
     Create a single Klann leg unit.
 
     The Klann linkage is a 6-bar Stephenson III mechanism with:
-    - 6 links: frame, crank, coupler, lower-ternary, upper-rocker, leg-ternary
+    - 6 links: frame, crank, coupler, lower-rocker, upper-rocker, leg-ternary
     - 7 revolute joints (3 grounded)
     - 1 degree of freedom
 
     The two ternary links are:
-    - Lower-ternary: O_lower → Elbow → Knee (rigid triangle)
-    - Leg-ternary: Hip → Knee → Foot (rigid triangle)
+    - Ternary coupler: A → Elbow → Knee (rigid triangle, Knee uses Fixed joint)
+    - Ternary leg: Hip → Knee → Foot (rigid triangle, Foot uses Fixed joint)
 
     Returns
     -------
@@ -233,11 +256,14 @@ def create_klann_linkage():
         name="Elbow"
     )
 
-    # Knee: part of ternary coupler, connects to A and Elbow
-    Knee = Revolute(
+    # Knee: part of ternary coupler (A-Elbow-Knee rigid triangle)
+    # Use Fixed joint to signal rigid structure for physics
+    knee_angle = _compute_fixed_angle(coords['A'], coords['Elbow'], coords['Knee'])
+    Knee = Fixed(
         x=coords['Knee'][0], y=coords['Knee'][1],
         joint0=A, joint1=Elbow,
-        distance0=d['A_knee'], distance1=d['elbow_knee'],
+        distance=d['A_knee'],
+        angle=knee_angle,
         name="Knee"
     )
 
@@ -249,11 +275,14 @@ def create_klann_linkage():
         name="Hip"
     )
 
-    # Foot: part of leg-ternary, connects to Hip and Knee
-    Foot = Revolute(
+    # Foot: part of leg-ternary (Hip-Knee-Foot rigid triangle)
+    # Use Fixed joint to signal rigid structure for physics
+    foot_angle = _compute_fixed_angle(coords['Hip'], coords['Knee'], coords['Foot'])
+    Foot = Fixed(
         x=coords['Foot'][0], y=coords['Foot'][1],
         joint0=Hip, joint1=Knee,
-        distance0=d['hip_foot'], distance1=d['knee_foot'],
+        distance=d['hip_foot'],
+        angle=foot_angle,
         name="Foot"
     )
 
@@ -302,7 +331,7 @@ def main():
     print("6-bar Stephenson III mechanism (US Patent 6,260,862)")
     print()
 
-    walker = create_klann_walker(n_legs=3)
+    walker = create_klann_walker(n_legs=2)
 
     # Run the visualization
     ls.video(walker, duration=15, dynamic_camera=True)

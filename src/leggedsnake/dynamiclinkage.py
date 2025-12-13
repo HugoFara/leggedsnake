@@ -712,7 +712,6 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
 
         # Build load body (the frame/chassis)
         load_body = self.build_load(self.joints[0].coord(), load)
-        load_body.density = load
         self.body = load_body
 
         # Convert kinematic linkage to hypergraph representation
@@ -906,8 +905,22 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         self.joints = tuple(dynajoints)
 
     def build_load(self, position: pm.Vec2d, load_mass: float) -> pm.Body:
-        """Create the load this linkage has to carry."""
-        load = pm.Body(load_mass)
+        """Create the load this linkage has to carry.
+
+        Parameters
+        ----------
+        position : pm.Vec2d
+            Initial position of the load body.
+        load_mass : float
+            Mass of the load. If 0 or negative, mass is calculated from
+            shape density. Otherwise, this mass is used directly.
+
+        Returns
+        -------
+        pm.Body
+            The load body with the specified mass.
+        """
+        load = pm.Body()
         load.position = position
         vertices = (-.5, -.5), (-.5, .5), (.5, .5), (.5, -.5)
         segs: list[pm.Segment] = []
@@ -921,6 +934,15 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
             segment.filter = self.filter
             segs.append(segment)
         self.space.add(load, *segs)
+
+        # If load_mass is specified, override the density-calculated mass
+        # This ensures the frame/chassis has the expected mass for stability
+        if load_mass > 0:
+            load.mass = load_mass
+            # Set moment proportional to mass for a square shape
+            # moment = m * (w^2 + h^2) / 12 for a rectangle
+            load.moment = load_mass * (1.0 + 1.0) / 12.0
+
         return load
 
 

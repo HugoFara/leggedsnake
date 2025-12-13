@@ -203,6 +203,9 @@ class World:
         for s in self.space.shapes:
             s.friction = params["ground"]["friction"]
 
+        # Auto-tune solver after adding linkage for stability
+        self.tune_solver()
+
     def tune_solver(self) -> None:
         """
         Auto-tune solver parameters for stability.
