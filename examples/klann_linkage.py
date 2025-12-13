@@ -5,13 +5,16 @@ Klann Linkage walking mechanism.
 The Klann linkage is a 6-bar planar mechanism (Stephenson III topology)
 designed by Joe Klann in 1994 and patented in 2001 (US Patent 6,260,862).
 
-Topology:
+Topology (6-bar, 7 joints, DOF=1):
 - Frame with 3 grounded pivots: O1 (crank), O2 (upper rocker), O3 (lower rocker)
 - Crank: O1 -> A
-- Upper rocker: O2 -> B
-- Coupler: A -> B
-- Lower rocker: O3 -> C
-- Leg (ternary link): B -> C -> F (foot)
+- Coupler: A -> B (connects crank to hip)
+- Upper rocker: O2 -> B (connects frame to hip)
+- Lower rocker: O3 -> C (connects frame to knee)
+- Ternary leg link: B-C-F (hip-knee-foot triangle)
+
+The mechanism creates an approximately straight-line foot path during the
+stance phase, with a curved lift during the swing phase.
 
 References:
     - https://en.wikipedia.org/wiki/Klann_linkage
@@ -25,32 +28,50 @@ from pylinkage import Static, Crank, Revolute
 import leggedsnake as ls
 
 # Simulation parameters
-LAP_POINTS = 48  # More steps for numerical stability
+LAP_POINTS = 48  # Steps per crank revolution
 
-# Klann linkage dimensions derived from patent US 6,260,862
-# Scaled so crank radius = 1.0
-KLANN_DIMENSIONS = {
-    # Frame pivot positions (relative to O1 at origin)
-    'O2_x': -0.87,      # Upper rocker pivot X
-    'O2_y': 2.30,       # Upper rocker pivot Y
-    'O3_x': -2.20,      # Lower rocker pivot X
-    'O3_y': -0.66,      # Lower rocker pivot Y
-    # Link lengths
-    'crank': 1.0,       # O1 to A (crank radius)
-    'upper_rocker': 1.93,  # O2 to B
-    'coupler': 3.29,    # A to B
-    'lower_rocker': 3.10,  # O3 to C
-    'leg_BC': 3.35,     # B to C (leg segment)
-    'leg_CF': 3.35,     # C to F (leg to foot)
+# Klann linkage dimensions from US Patent 6,260,862
+# Extracted from Wikipedia coordinates table
+#
+# CORRECT TOPOLOGY: The Klann is a 6-bar mechanism with TWO ternary links:
+# - Links: Frame, Crank, Ternary-Coupler, Lower-Rocker, Upper-Rocker, Ternary-Leg
+# - Ternary-Coupler: A → Elbow → Knee (rigid triangle attached to crank)
+# - Ternary-Leg: Hip → Knee → Foot (rigid triangle for the leg)
+#
+# Connectivity:
+# - Crank rotates at O_crank, endpoint A
+# - Ternary-Coupler has A, Elbow, Knee as vertices (A fixed to crank)
+# - Lower-Rocker: O_lower → Elbow (constrains Elbow position)
+# - Upper-Rocker: O_upper → Hip (constrains Hip position)
+# - Ternary-Leg connects Hip, Knee, Foot (Knee shared with coupler)
+KLANN_PATENT = {
+    # Frame pivot positions (relative to O_crank at origin)
+    'O_upper_x': -0.233,        # First rocker arm axle (point 9)
+    'O_upper_y': 0.616,
+    'O_lower_x': -0.590,        # Second rocker arm axle (point 11)
+    'O_lower_y': -0.176,
+    # Link lengths from patent (verified constant between positions X and Y)
+    'crank': 0.268,             # O_crank to A
+    # Ternary coupler (A-Elbow-Knee triangle)
+    'A_elbow': 0.590,           # A to Elbow
+    'A_knee': 1.105,            # A to Knee (KEY: this is rigid!)
+    'elbow_knee': 0.522,        # Elbow to Knee
+    # Rockers
+    'lower_rocker': 0.321,      # O_lower to Elbow
+    'upper_rocker': 0.518,      # O_upper to Hip
+    # Ternary leg (Hip-Knee-Foot triangle)
+    'hip_knee': 0.897,          # Hip to Knee
+    'knee_foot': 0.897,         # Knee to Foot
+    'hip_foot': 1.732,          # Hip to Foot
 }
 
 # Scale factor for simulation
-SCALE = 0.5
+SCALE = 3.0  # Scale up for better visualization
 
 
 def get_scaled_dimensions():
     """Get dimensions scaled for simulation."""
-    return {k: v * SCALE for k, v in KLANN_DIMENSIONS.items()}
+    return {k: v * SCALE for k, v in KLANN_PATENT.items()}
 
 
 def _solve_intersection(p1, r1, p2, r2):
@@ -63,7 +84,10 @@ def _solve_intersection(p1, r1, p2, r2):
         return None, None
 
     a_val = (r1**2 - r2**2 + d**2) / (2 * d)
-    h_val = np.sqrt(max(0, r1**2 - a_val**2))
+    h_sq = r1**2 - a_val**2
+    if h_sq < 0:
+        return None, None
+    h_val = np.sqrt(h_sq)
 
     mx = p1[0] + a_val * dx / d
     my = p1[1] + a_val * dy / d
@@ -74,52 +98,108 @@ def _solve_intersection(p1, r1, p2, r2):
     return sol1, sol2
 
 
+def compute_frame_positions(d):
+    """
+    Get frame pivot positions from dimension dictionary.
+
+    O_crank (crank pivot) is at origin.
+    O_upper and O_lower positions are specified in the dimensions.
+    """
+    O_crank = (0.0, 0.0)
+    O_upper = (d['O_upper_x'], d['O_upper_y'])
+    O_lower = (d['O_lower_x'], d['O_lower_y'])
+    return O_crank, O_upper, O_lower
+
+
+def _compute_ternary_third_point(p1, p2, d12, d13, d23, lower=True):
+    """
+    Compute third point of a ternary link given two points and all three distances.
+
+    Parameters
+    ----------
+    p1, p2 : tuple
+        Known positions of first two points
+    d12 : float
+        Distance between p1 and p2 (for verification)
+    d13 : float
+        Distance from p1 to third point
+    d23 : float
+        Distance from p2 to third point
+    lower : bool
+        If True, choose solution with lower Y coordinate
+
+    Returns
+    -------
+    tuple
+        Position of third point
+    """
+    p3_1, p3_2 = _solve_intersection(p1, d13, p2, d23)
+    if p3_1 is None:
+        return None
+    return p3_1 if (p3_1[1] < p3_2[1]) == lower else p3_2
+
+
 def compute_initial_coords(d, angle=0):
     """
     Compute initial joint coordinates for a given crank angle.
 
-    Uses branch selections determined empirically for full-revolution stability.
-    """
-    # Fixed frame pivots
-    O1 = (0, 0)
-    O2 = (d['O2_x'], d['O2_y'])
-    O3 = (d['O3_x'], d['O3_y'])
+    The Klann mechanism has two ternary links:
+    1. Ternary-Coupler: A → Elbow → Knee (rigid triangle rotating with crank)
+    2. Ternary-Leg: Hip → Knee → Foot (rigid triangle for leg)
 
-    # Crank point A
+    Uses fixed branch selection that produces full 360° rotation:
+    - Elbow: higher Y (above crank axis)
+    - Knee: lower Y
+    - Hip: higher Y
+    - Foot: lower Y
+    """
+    O_crank, O_upper, O_lower = compute_frame_positions(d)
+
+    # Step 1: Crank endpoint A
     A = (d['crank'] * np.cos(angle), d['crank'] * np.sin(angle))
 
-    # B: intersection of circles from A (coupler) and O2 (upper rocker)
-    B1, B2 = _solve_intersection(A, d['coupler'], O2, d['upper_rocker'])
-    # Choose B with lower Y (hip should be below upper rocker pivot in most configs)
-    B = B1 if B1[1] < B2[1] else B2
+    # Step 2: Elbow - choose HIGHER Y for full rotation
+    E1, E2 = _solve_intersection(A, d['A_elbow'], O_lower, d['lower_rocker'])
+    if E1 is None:
+        raise ValueError(f"Cannot compute Elbow at angle {angle}")
+    Elbow = E1 if E1[1] > E2[1] else E2
 
-    # C: intersection of circles from B (leg) and O3 (lower rocker)
-    C1, C2 = _solve_intersection(B, d['leg_BC'], O3, d['lower_rocker'])
-    # Choose C with lower Y (knee should be below hip)
-    C = C1 if C1[1] < C2[1] else C2
+    # Step 3: Knee - choose LOWER Y
+    K1, K2 = _solve_intersection(A, d['A_knee'], Elbow, d['elbow_knee'])
+    if K1 is None:
+        raise ValueError(f"Cannot compute Knee at angle {angle}")
+    Knee = K1 if K1[1] < K2[1] else K2
 
-    # F (foot): intersection of circles from B (leg_BF) and C (leg_CF)
-    # For ternary link BCF, we need the distance B-F
-    # In a rigid triangle, B-F is fixed. Calculate from geometry.
-    # Using law of cosines: BF^2 = BC^2 + CF^2 - 2*BC*CF*cos(angle_BCF)
-    # For Klann, the foot extends below the knee, so we use leg_CF from C
-    F1, F2 = _solve_intersection(C, d['leg_CF'], B, d['leg_BC'] + d['leg_CF'] * 0.5)
-    # Choose F with lower Y (foot should be lowest point)
+    # Step 4: Hip - choose HIGHER Y
+    H1, H2 = _solve_intersection(O_upper, d['upper_rocker'], Knee, d['hip_knee'])
+    if H1 is None:
+        raise ValueError(f"Cannot compute Hip at angle {angle}")
+    Hip = H1 if H1[1] > H2[1] else H2
+
+    # Step 5: Foot - choose LOWER Y
+    F1, F2 = _solve_intersection(Hip, d['hip_foot'], Knee, d['knee_foot'])
     if F1 is None:
-        # If intersection fails, use alternative approach
-        # F is directly below C at distance leg_CF
-        F = (C[0], C[1] - d['leg_CF'])
-    else:
-        F = F1 if F1[1] < F2[1] else F2
+        raise ValueError(f"Cannot compute Foot at angle {angle}")
+    Foot = F1 if F1[1] < F2[1] else F2
 
-    return {'O1': O1, 'O2': O2, 'O3': O3, 'A': A, 'B': B, 'C': C, 'F': F}
+    return {
+        'O_crank': O_crank, 'O_upper': O_upper, 'O_lower': O_lower,
+        'A': A, 'Elbow': Elbow, 'Knee': Knee, 'Hip': Hip, 'Foot': Foot
+    }
 
 
 def create_klann_linkage():
     """
     Create a single Klann leg unit.
 
-    The Klann linkage is a 6-bar Stephenson III mechanism.
+    The Klann linkage is a 6-bar Stephenson III mechanism with:
+    - 6 links: frame, crank, coupler, lower-ternary, upper-rocker, leg-ternary
+    - 7 revolute joints (3 grounded)
+    - 1 degree of freedom
+
+    The two ternary links are:
+    - Lower-ternary: O_lower → Elbow → Knee (rigid triangle)
+    - Leg-ternary: Hip → Knee → Foot (rigid triangle)
 
     Returns
     -------
@@ -130,47 +210,54 @@ def create_klann_linkage():
     coords = compute_initial_coords(d, angle=0)
 
     # Create frame joints (Static)
-    O1 = Static(x=coords['O1'][0], y=coords['O1'][1], name="O1 (crank center)")
-    O2 = Static(x=coords['O2'][0], y=coords['O2'][1], name="O2 (upper rocker)")
-    O3 = Static(x=coords['O3'][0], y=coords['O3'][1], name="O3 (lower rocker)")
-    O2.joint0 = O1
-    O3.joint0 = O1
+    O_crank = Static(x=coords['O_crank'][0], y=coords['O_crank'][1], name="Frame")
+    O_upper = Static(x=coords['O_upper'][0], y=coords['O_upper'][1], name="Upper")
+    O_lower = Static(x=coords['O_lower'][0], y=coords['O_lower'][1], name="Frame2")
+    O_upper.joint0 = O_crank
+    O_lower.joint0 = O_crank
 
-    # Crank joint
+    # Crank endpoint (rotates around O_crank)
     A = Crank(
         x=coords['A'][0], y=coords['A'][1],
-        joint0=O1,
+        joint0=O_crank,
         distance=d['crank'],
         angle=-2 * np.pi / LAP_POINTS,
-        name="A (crank)"
+        name="Crank"
     )
 
-    # B (hip): on coupler from A, on upper rocker from O2
-    B = Revolute(
-        x=coords['B'][0], y=coords['B'][1],
-        joint0=A, joint1=O2,
-        distance0=d['coupler'], distance1=d['upper_rocker'],
-        name="B (hip)"
+    # Elbow: connects ternary coupler (from A) and lower_rocker (from O_lower)
+    Elbow = Revolute(
+        x=coords['Elbow'][0], y=coords['Elbow'][1],
+        joint0=A, joint1=O_lower,
+        distance0=d['A_elbow'], distance1=d['lower_rocker'],
+        name="Elbow"
     )
 
-    # C (knee): on leg from B, on lower rocker from O3
-    C = Revolute(
-        x=coords['C'][0], y=coords['C'][1],
-        joint0=B, joint1=O3,
-        distance0=d['leg_BC'], distance1=d['lower_rocker'],
-        name="C (knee)"
+    # Knee: part of ternary coupler, connects to A and Elbow
+    Knee = Revolute(
+        x=coords['Knee'][0], y=coords['Knee'][1],
+        joint0=A, joint1=Elbow,
+        distance0=d['A_knee'], distance1=d['elbow_knee'],
+        name="Knee"
     )
 
-    # F (foot): on ternary leg link, distance from both B and C
-    # For a ternary link BCF where F extends from C
-    F = Revolute(
-        x=coords['F'][0], y=coords['F'][1],
-        joint0=C, joint1=B,
-        distance0=d['leg_CF'], distance1=d['leg_BC'] + d['leg_CF'] * 0.5,
-        name="F (foot)"
+    # Hip: connects upper_rocker (from O_upper) and hip_knee (from Knee)
+    Hip = Revolute(
+        x=coords['Hip'][0], y=coords['Hip'][1],
+        joint0=O_upper, joint1=Knee,
+        distance0=d['upper_rocker'], distance1=d['hip_knee'],
+        name="Hip"
     )
 
-    joints = [O1, O2, O3, A, B, C, F]
+    # Foot: part of leg-ternary, connects to Hip and Knee
+    Foot = Revolute(
+        x=coords['Foot'][0], y=coords['Foot'][1],
+        joint0=Hip, joint1=Knee,
+        distance0=d['hip_foot'], distance1=d['knee_foot'],
+        name="Foot"
+    )
+
+    joints = [O_crank, O_upper, O_lower, A, Elbow, Knee, Hip, Foot]
     walker = ls.Walker(
         joints=joints,
         order=joints,
