@@ -7,6 +7,7 @@ Created on Mon Jun 10 2019 14:30:05.
 @author: HugoFara
 """
 
+import argparse
 import json
 import matplotlib.pyplot as plt
 import numpy as np
@@ -101,5 +102,16 @@ def show_genetic_optimization(data=DATA):
 
 
 if __name__ == "__main__":
-    data = load_data("Population evolution.json")
+    parser = argparse.ArgumentParser(
+        description="Visualize genetic algorithm optimization data."
+    )
+    parser.add_argument(
+        "file",
+        nargs="?",
+        default="Population evolution.json",
+        help="Path to the JSON data file (default: Population evolution.json)"
+    )
+    args = parser.parse_args()
+
+    data = load_data(args.file)
     show_genetic_optimization(data)
