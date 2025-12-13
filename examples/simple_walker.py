@@ -12,12 +12,18 @@ from pylinkage import Static, Crank, Fixed, Revolute
 import leggedsnake as ls
 
 
-def create_klann_walker():
+def create_klann_walker(mirror: bool = True):
     """
     Create a simplified Klann-style walking linkage.
 
     The Klann linkage is a planar mechanism designed to simulate
     the gait of legged animals.
+
+    Parameters
+    ----------
+    mirror : bool, optional
+        If True, create a mirrored copy of the leg on the opposite side.
+        This creates symmetric left/right leg pairs. Default is True.
     """
     # Frame/chassis anchor point
     frame = Static(x=0, y=0, name="Frame")
@@ -55,13 +61,19 @@ def create_klann_walker():
     )
 
     # Create a Walker (extends Linkage with leg-specific methods)
+    joints = (frame, crank, frame2, upper, foot)
     walker = ls.Walker(
-        joints=(frame, crank, frame2, upper, foot),
+        joints=joints,
+        order=joints,
         name="SimpleWalker"
     )
 
     # Perform one kinematic step to solve initial joint positions
     list(walker.step())
+
+    # Optionally mirror the leg to create symmetric left/right pair
+    if mirror:
+        walker.mirror_leg()
 
     # Add a second leg offset by 180 degrees for alternating gait
     # add_legs(n) adds n additional legs with phase offsets

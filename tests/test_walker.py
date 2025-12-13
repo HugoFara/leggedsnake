@@ -98,5 +98,118 @@ class TestWalkerWithSimpleLinkage(unittest.TestCase):
         self.assertIn(crank, foots)
 
 
+class TestMirrorLeg(unittest.TestCase):
+    """Test suite for mirror_leg functionality."""
+
+    def setUp(self):
+        """Create a simple linkage for testing."""
+        # Create a simple four-bar linkage with explicit coordinates
+        self.base = Static(0, 0, name="base")
+        self.crank = Crank(1, 0, joint0=self.base, distance=1, angle=0.1, name="crank")
+        self.follower = Pivot(
+            x=0, y=2, joint0=self.base, joint1=self.crank,
+            distance0=2, distance1=1.5, name="follower"
+        )
+        self.output = Fixed(
+            x=1, y=1,  # Explicit initial coordinates
+            joint0=self.crank, joint1=self.follower,
+            distance=1, angle=-pi/2, name="output"
+        )
+        joints = (self.base, self.crank, self.follower, self.output)
+        self.walker = Walker(
+            joints=joints,
+            order=joints,  # Required for mirror_leg and add_legs
+            name="test_walker"
+        )
+        # Step to compute actual joint positions
+        list(self.walker.step())
+
+    def test_mirror_leg_doubles_joints(self):
+        """Test that mirror_leg doubles the number of joints."""
+        initial_count = len(self.walker.joints)
+        self.walker.mirror_leg()
+        # Should double the joints (mirrored copy)
+        self.assertEqual(len(self.walker.joints), initial_count * 2)
+
+    def test_mirror_leg_coordinates_reflected(self):
+        """Test that mirrored joints have reflected X coordinates."""
+        self.walker.mirror_leg(axis_x=0.0)
+
+        # Find original and mirrored crank
+        original_crank = self.crank
+        mirrored_crank = None
+        for j in self.walker.joints:
+            if "crank" in j.name.lower() and "(mirrored)" in j.name:
+                mirrored_crank = j
+                break
+
+        self.assertIsNotNone(mirrored_crank)
+        # X coordinate should be negated (mirrored across x=0)
+        self.assertEqual(mirrored_crank.x, -original_crank.x)
+        # Y coordinate should be the same
+        self.assertEqual(mirrored_crank.y, original_crank.y)
+
+    def test_mirror_leg_custom_axis(self):
+        """Test that mirror_leg works with custom axis."""
+        self.walker.mirror_leg(axis_x=2.0)
+
+        # Find mirrored crank
+        mirrored_crank = None
+        for j in self.walker.joints:
+            if "crank" in j.name.lower() and "(mirrored)" in j.name:
+                mirrored_crank = j
+                break
+
+        self.assertIsNotNone(mirrored_crank)
+        # Original crank at x=1, mirrored across x=2 should be at x=3
+        self.assertEqual(mirrored_crank.x, 2 * 2.0 - self.crank.x)
+
+    def test_mirror_leg_fixed_angle_negated(self):
+        """Test that Fixed joints have negated angles when mirrored."""
+        original_angle = self.output.angle
+        self.walker.mirror_leg()
+
+        # Find mirrored output (Fixed joint)
+        mirrored_output = None
+        for j in self.walker.joints:
+            if "output" in j.name.lower() and "(mirrored)" in j.name:
+                mirrored_output = j
+                break
+
+        self.assertIsNotNone(mirrored_output)
+        # Angle should be negated
+        self.assertEqual(mirrored_output.angle, -original_angle)
+
+    def test_mirror_leg_names_have_mirrored_suffix(self):
+        """Test that all mirrored joints have '(mirrored)' in name."""
+        initial_count = len(self.walker.joints)
+        self.walker.mirror_leg()
+
+        mirrored_count = sum(
+            1 for j in self.walker.joints if "(mirrored)" in j.name
+        )
+        # Number of mirrored joints should equal original count
+        self.assertEqual(mirrored_count, initial_count)
+
+    def test_mirror_leg_solve_order_updated(self):
+        """Test that solve order is updated after mirroring."""
+        initial_solve_count = len(self.walker._solve_order)
+        self.walker.mirror_leg()
+        # Solve order should also double
+        self.assertEqual(len(self.walker._solve_order), initial_solve_count * 2)
+
+    def test_mirror_then_add_legs(self):
+        """Test that mirror_leg and add_legs can be combined."""
+        # Mirror first to create left/right legs
+        self.walker.mirror_leg()
+        mirrored_count = len(self.walker.joints)
+
+        # Then add phase-offset copies
+        self.walker.add_legs(1)
+
+        # Should have more joints after adding legs
+        self.assertGreater(len(self.walker.joints), mirrored_count)
+
+
 if __name__ == "__main__":
     unittest.main()

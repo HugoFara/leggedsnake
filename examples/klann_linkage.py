@@ -180,7 +180,7 @@ def create_klann_linkage():
     return walker
 
 
-def create_klann_walker(n_legs: int = 3):
+def create_klann_walker(n_legs: int = 3, mirror: bool = True):
     """
     Create a multi-legged Klann walker.
 
@@ -190,7 +190,11 @@ def create_klann_walker(n_legs: int = 3):
     Parameters
     ----------
     n_legs : int, optional
-        Number of additional legs. Default is 3 (4 legs total).
+        Number of additional legs per side. Default is 3 (4 legs total without
+        mirroring, or 8 legs total with mirroring).
+    mirror : bool, optional
+        If True, create a mirrored copy of the leg on the opposite side.
+        This creates symmetric left/right leg pairs. Default is True.
 
     Returns
     -------
@@ -198,6 +202,8 @@ def create_klann_walker(n_legs: int = 3):
         Multi-legged Klann walking mechanism.
     """
     walker = create_klann_linkage()
+    if mirror:
+        walker.mirror_leg()
     if n_legs > 0:
         walker.add_legs(n_legs)
     return walker
