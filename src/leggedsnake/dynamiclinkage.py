@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import abc
 from math import atan2
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pymunk as pm
 from pylinkage import (
@@ -21,7 +21,16 @@ from pylinkage import (
 )
 from pylinkage.geometry import cyl_to_cart
 from pylinkage.geometry.core import dist
+from pylinkage.hypergraph import NodeRole, from_linkage
 from pylinkage.joints.joint import Joint
+
+from .hypergraph_physics import (
+    PhysicsMapping,
+    create_bodies_from_hypergraph,
+)
+
+if TYPE_CHECKING:
+    from pylinkage.hypergraph import HypergraphLinkage
 
 
 class DynamicJoint(abc.ABC):
@@ -637,7 +646,8 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
     __slots__ = [
         'joint_to_rigidbodies', 'rigidbodies', 'body', 'height',
         'mechanical_energy', 'mass', 'space', 'density',
-        '_thickness', 'filter', '_cranks', 'joints'
+        '_thickness', 'filter', '_cranks', 'joints', '_physics_mapping',
+        '_hypergraph'
     ]
 
     joint_to_rigidbodies: list[list[pm.Body] | None]
@@ -652,6 +662,8 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
     filter: pm.ShapeFilter
     _cranks: tuple[Motor, ...]
     joints: tuple[DynamicJoint, ...]
+    _physics_mapping: PhysicsMapping
+    _hypergraph: HypergraphLinkage
 
     def __init__(
         self,
@@ -689,28 +701,140 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
 
         """
         super().__init__(joints=joints, name=name)
-        self.joint_to_rigidbodies = [None] * len(self.joints)
         self.density = density
         self._thickness = thickness
         self.space = space
         self.filter = pm.ShapeFilter(group=1)
-        # Add the rigidbody linked to the frame to the first frame's joint
+
+        # Build load body (the frame/chassis)
         load_body = self.build_load(self.joints[0].coord(), load)
         load_body.density = load
-        self.rigidbodies = [load_body]
         self.body = load_body
-        convert = False
-        for i, j in enumerate(self.joints):
-            if isinstance(j, Static):
-                self.joint_to_rigidbodies[i] = [load_body]
-            if isinstance(j, DynamicJoint):
-                j.space = self.space
-            else:
-                convert = True
-        if convert:
-            self.convert_to_dynamic_joints(self.joints)
-        self.mass = sum(map(lambda x: x.mass, self.rigidbodies))
+
+        # Convert kinematic linkage to hypergraph representation
+        self._hypergraph = from_linkage(self)
+
+        # Generate physics bodies from hypergraph
+        self._physics_mapping = create_bodies_from_hypergraph(
+            self._hypergraph,
+            space,
+            load_body,
+            density,
+            thickness,
+            self.filter,
+        )
+
+        # Create dynamic joint wrappers for coordinate tracking
+        self.joints = self._wrap_joints_for_tracking()
+
+        # Collect all rigidbodies
+        self.rigidbodies = [load_body]
+        for body in self._physics_mapping.edge_to_body.values():
+            if body is not load_body and body not in self.rigidbodies:
+                self.rigidbodies.append(body)
+
+        # Initialize joint_to_rigidbodies mapping
+        self.joint_to_rigidbodies = [None] * len(self.joints)
+        for i, joint in enumerate(self.joints):
+            if hasattr(joint, 'name') and joint.name:
+                bodies = self._physics_mapping.node_to_bodies.get(joint.name)
+                if bodies:
+                    self.joint_to_rigidbodies[i] = list(bodies)
+
+        self.mass = sum(b.mass for b in self.rigidbodies)
         self._cranks = tuple(j for j in self.joints if isinstance(j, Motor))
+
+    def _wrap_joints_for_tracking(self) -> tuple[DynamicJoint, ...]:
+        """Create DynamicJoint wrappers for coordinate tracking.
+
+        Uses the hypergraph and physics mapping to create appropriate
+        wrapper joints that track positions from the physics bodies.
+
+        Returns
+        -------
+        tuple[DynamicJoint, ...]
+            Dynamic joint wrappers for all nodes in the hypergraph.
+        """
+        wrapped_joints: list[DynamicJoint] = []
+        hg = self._hypergraph
+        mapping = self._physics_mapping
+
+        for node_id, node in hg.nodes.items():
+            # Get position and bodies for this node
+            pos = node.position
+            x = pos[0] if pos[0] is not None else 0.0
+            y = pos[1] if pos[1] is not None else 0.0
+            bodies = mapping.node_to_bodies.get(node_id, set())
+            anchors = mapping.node_to_anchors.get(node_id, {})
+
+            # Common kwargs for all joint types
+            common = {
+                'x': x,
+                'y': y,
+                'name': node_id,
+                'space': self.space,
+                'radius': self._thickness,
+                'density': self.density,
+                'shape_filter': self.filter,
+            }
+
+            djoint: DynamicJoint
+            if node.role == NodeRole.GROUND:
+                # Ground nodes become Nails attached to load body
+                djoint = Nail(body=self.body, **common)
+            elif node.role == NodeRole.DRIVER:
+                # Driver nodes become Motors
+                # Find the motor in the physics mapping
+                motor_idx = None
+                for i, motor in enumerate(mapping.motors):
+                    # Check if this motor is associated with this driver
+                    if i < len(list(hg.driver_nodes())):
+                        driver_list = list(hg.driver_nodes())
+                        if i < len(driver_list) and driver_list[i].id == node_id:
+                            motor_idx = i
+                            break
+
+                djoint = Motor(
+                    joint0=wrapped_joints[0] if wrapped_joints else None,
+                    distance=node.angle if node.angle else 1.0,
+                    angle=node.angle if node.angle else 0.0,
+                    **common,
+                )
+                # Attach the existing motor and pivot from mapping
+                if motor_idx is not None and motor_idx < len(mapping.motors):
+                    djoint.actuator = mapping.motors[motor_idx]
+                    if motor_idx < len(mapping.motor_pivots):
+                        djoint.pivot = mapping.motor_pivots[motor_idx]
+
+                # Set body references
+                if bodies:
+                    body = next(b for b in bodies if b is not self.body)
+                    djoint._a = djoint._b = body
+                    if body in anchors:
+                        djoint._anchor_a = djoint._anchor_b = anchors[body]
+            else:
+                # Driven nodes - determine if Pivot or Fixed based on connections
+                # For simplicity, create DynamicPivot wrappers
+                djoint = DynamicPivot(**common)
+
+                # Set body references from mapping
+                if bodies:
+                    body_list = list(bodies)
+                    if len(body_list) >= 1:
+                        djoint._a = body_list[0]
+                        if body_list[0] in anchors:
+                            djoint._anchor_a = anchors[body_list[0]]
+                    if len(body_list) >= 2:
+                        djoint._b = body_list[1]
+                        if body_list[1] in anchors:
+                            djoint._anchor_b = anchors[body_list[1]]
+                    elif len(body_list) == 1:
+                        djoint._b = body_list[0]
+                        djoint._anchor_b = djoint._anchor_a
+
+            wrapped_joints.append(djoint)
+
+        return tuple(wrapped_joints)
 
     def convert_to_dynamic_joints(self, joints: tuple[Joint, ...]) -> None:
         """Convert a kinematic joint in its dynamic counterpart."""
