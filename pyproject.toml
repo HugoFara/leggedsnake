@@ -77,6 +77,7 @@ dev-dependencies = [
     "bump2version>=1.0.0",
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "ruff>=0.14.9",
 ]
 
 [tool.bumpversion]
