@@ -10,6 +10,10 @@ Created on Sat Nov 17 2018 20:35:39.
 
 @author: HugoFara
 """
+from __future__ import annotations
+
+from typing import TypeAlias
+
 from pylinkage import bounding_box
 
 try:
@@ -20,8 +24,13 @@ except ModuleNotFoundError as err:
     print(err)
     print("You won't be able to use the GeoGebra interface.")
 
+# Type alias for a 2D point (x, y)
+Point: TypeAlias = tuple[float, float]
+# Type alias for a list of points (locus)
+Locus: TypeAlias = list[Point]
 
-def ggb_extractor(file_path):
+
+def ggb_extractor(file_path: str) -> dict[str, dict[str, float | Point]]:
     """
     Take data from GeoGebra file, and return them as a dictionary.
 
@@ -32,24 +41,38 @@ def ggb_extractor(file_path):
         root = ET.parse(file).getroot()
         # Allowed object types
         types = ("numeric", "point", 'angle')
-        elts = {}
+        elts: dict[str, dict[str, float | Point]] = {}
         for i in types:
             elts[i] = {}
-        for i in root.findall("construction/element"):
-            if i.get("type") in types:
-                if i.get("type") in "angle numeric":
+        for elem in root.findall("construction/element"):
+            elem_type = elem.get("type")
+            if elem_type in types:
+                coco: float | Point
+                if elem_type in "angle numeric":
                     # If this is a slider, it has a value
-                    coco = float(i.find("value").get("val"))
-                elif i.get("type") == "point":
+                    value_elem = elem.find("value")
+                    assert value_elem is not None
+                    val = value_elem.get("val")
+                    assert val is not None
+                    coco = float(val)
+                elif elem_type == "point":
                     # Points have cartesian coordinates
-                    coco = (float(i.find("coords").get("x")),
-                            float(i.find("coords").get("y")))
-                # We keep element name (i.get("label"))
-                elts[i.get("type")][i.get("label")] = coco
+                    coords_elem = elem.find("coords")
+                    assert coords_elem is not None
+                    x_val = coords_elem.get("x")
+                    y_val = coords_elem.get("y")
+                    assert x_val is not None and y_val is not None
+                    coco = (float(x_val), float(y_val))
+                else:
+                    continue
+                # We keep element name (elem.get("label"))
+                label = elem.get("label")
+                assert label is not None and elem_type is not None
+                elts[elem_type][label] = coco
     return elts
 
 
-def stride(point, height):
+def stride(point: Locus, height: float) -> Locus:
     """
     Return length of higher "step" in the locus.
 
@@ -78,7 +101,14 @@ def stride(point, height):
     return point[left:] + point[:right % n_points]
 
 
-def step(points, height, width, return_res=False, y_min=None, acc=[]):
+def step(
+    points: Locus,
+    height: float,
+    width: float,
+    return_res: bool = False,
+    y_min: float | None = None,
+    acc: list[Locus] | None = None,
+) -> bool | list[Locus]:
     """
     Return if a step can cross an obstacle during locus.
 
@@ -107,6 +137,8 @@ def step(points, height, width, return_res=False, y_min=None, acc=[]):
         If `return_res` is True, return the subset of point that is able to cross,
         and False if we can't cross.
     """
+    if acc is None:
+        acc = []
     if not points:
         return acc
     # We compute the locus bounding box
@@ -118,6 +150,7 @@ def step(points, height, width, return_res=False, y_min=None, acc=[]):
     if y_min is None:
         y_min = bb[0]
     # Index of a first point passing obstacle
+    i = 0
     for i, point in enumerate(points):
         if point[1] - y_min >= height:
             break
@@ -125,6 +158,7 @@ def step(points, height, width, return_res=False, y_min=None, acc=[]):
     ok = False
     # Index of the first point passing the obstacle, or the last one that have
     # the good height
+    k = 0
     for k, point in enumerate(points[i:]):
         if point[1] - y_min < height:
             break

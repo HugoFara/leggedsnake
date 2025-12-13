@@ -10,15 +10,19 @@ Created on Thu Jun 10 2021 21:13:12.
 
 @author: HugoFara
 """
+from __future__ import annotations
+
 from math import tau
+
 import pylinkage.linkage as lk
 from pylinkage import Static, Crank, Fixed, Pivot
+from pylinkage.joints.joint import Joint
 
 
-class Walker(lk.Linkage):
+class Walker(lk.Linkage):  # type: ignore[misc]
     """A Walker, or a leg mechanism is a Linkage with some useful methods."""
 
-    def add_legs(self, number=2):
+    def add_legs(self, number: int = 2) -> None:
         """
         Add legs to a linkage, mostly for a dynamic simulation.
 
@@ -34,7 +38,7 @@ class Walker(lk.Linkage):
         None.
 
         """
-        new_joints = []
+        new_joints: list[Joint] = []
         iterations_factor = int(12 / (number + 1)) + 1
         # We use at least 12 steps to avoid bad initial positions
         new_positions = tuple(
@@ -45,15 +49,16 @@ class Walker(lk.Linkage):
         )[iterations_factor - 1:-1:iterations_factor]
         # Because we have per-leg iterations,
         # we have to save crank information
-        crank_memory = dict(zip(self._cranks, self._cranks))
+        crank_memory: dict[Joint, Joint] = dict(zip(self._cranks, self._cranks))
         # For each leg
         for i, positions in enumerate(new_positions):
-            equiv = {None: None}
+            equiv: dict[Joint | None, Joint | None] = {None: None}
             # For each new joint
+            new_j: Joint
             for pos, j in zip(positions, self._solve_order):
                 if isinstance(j.joint0, Static) and j.joint0 not in equiv:
                     equiv[j.joint0] = j.joint0
-                common = {
+                common: dict[str, float | Joint | None | str] = {
                     'x': pos[0], 'y': pos[1],
                     'joint0': equiv[j.joint0],
                     'name': j.name + ' ({})'.format(i)
@@ -63,7 +68,8 @@ class Walker(lk.Linkage):
                 elif isinstance(j, Crank):
                     common['joint1'] = crank_memory[j]
                     new_j = Fixed(
-                        **common, distance=j.r,
+                        **common,
+                        distance=j.r,
                         angle=tau / (number + 1)
                     )
                     crank_memory[j] = new_j
@@ -76,18 +82,20 @@ class Walker(lk.Linkage):
 
                     if isinstance(j, Fixed):
                         new_j = Fixed(
-                            **common, distance=j.r, angle=j.angle
+                            **common,
+                            distance=j.r, angle=j.angle
                         )
                     elif isinstance(j, Pivot):
                         new_j = Pivot(
-                            **common, distance0=j.r0, distance1=j.r1
+                            **common,
+                            distance0=j.r0, distance1=j.r1
                         )
                     new_joints.append(new_j)
                 equiv[j] = new_j
         self.joints += tuple(new_joints)
         self._solve_order += tuple(new_joints)
 
-    def get_foots(self):
+    def get_foots(self) -> list[Joint]:
         """
         Return the list of foot joints, joints that should be used as foots.
 

@@ -10,6 +10,7 @@ Created on Thu Jun 10 20:35:00 2021
 
 @author: HugoFara
 """
+from __future__ import annotations
 
 # Pylinkage is a sister project and some kind of backend for leggedsnake
 from pylinkage import (

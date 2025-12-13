@@ -24,6 +24,9 @@ uv run pytest --cov=leggedsnake
 # Lint with ruff
 uv run ruff check src/
 
+# Type check with mypy
+uv run mypy
+
 # Build documentation (from docs_src/)
 sphinx-build -b html source docs
 

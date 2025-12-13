@@ -10,16 +10,26 @@ Created on Thu Jun 10 21:20:47 2021.
 
 @author: HugoFara
 """
+from __future__ import annotations
+
 import os.path
 import json
 import multiprocessing as mp
+from typing import Any, Callable, TypeAlias
+
 import numpy as np
 import numpy.random as nprand
 # Progress bar
 import tqdm
 
+# Type aliases for DNA structure
+# DNA format: [fitness_score, dimensions_list, coordinates_list]
+DNA: TypeAlias = list[Any]  # [float, list[float], list[tuple[float, float]]]
+Population: TypeAlias = list[DNA]
+FitnessFunc: TypeAlias = Callable[..., tuple[float, list[tuple[float, float]]]]
 
-def kwargs_switcher(arg_name, kwargs, default=None):
+
+def kwargs_switcher(arg_name: str, kwargs: dict[str, Any], default: Any = None) -> Any:
     """Simple function to return the good element from a kwargs dict."""
     out = default
     if arg_name in kwargs:
@@ -27,15 +37,20 @@ def kwargs_switcher(arg_name, kwargs, default=None):
     return out
 
 
-def load_population(file_path):
+def load_population(file_path: str) -> Population:
     """Return a population from a given file."""
     with open(file_path, 'r') as file:
         data = json.load(file)
-        pop = data[-1]['population']
+        pop: Population = data[-1]['population']
     return pop
 
 
-def save_population(file_path, population, verbose=False, data_descriptors=None):
+def save_population(
+    file_path: str,
+    population: Population,
+    verbose: bool = False,
+    data_descriptors: dict[str, Any] | None = None,
+) -> None:
     """
     Save the population to a json file.
 
@@ -70,12 +85,22 @@ def save_population(file_path, population, verbose=False, data_descriptors=None)
 
 
 class GeneticOptimization:
+    dna: DNA
+    fitness: FitnessFunc
+    iters: int
+    prob: float
+    kwargs: dict[str, Any]
+    pop: Population
+    max_pop: int
+    verbosity: int
+    startnstop: str | bool
+
     def __init__(
-            self, 
-            dna,
-            fitness,
-            prob=.07,
-            **kwargs
+        self,
+        dna: DNA,
+        fitness: FitnessFunc,
+        prob: float = 0.07,
+        **kwargs: Any,
     ) -> None:
         """
 
@@ -112,17 +137,16 @@ class GeneticOptimization:
         self.iters = 0
         self.prob = prob
         self.kwargs = kwargs
-        self.pop = None
         self.max_pop = kwargs_switcher('max_pop', self.kwargs, 11)
         self.verbosity = kwargs_switcher('verbose', self.kwargs, 1)
         self.startnstop = kwargs_switcher('startnstop', self.kwargs, False)
-        if self.startnstop and os.path.exists(self.startnstop):
-            self.pop = load_population(self.startnstop)
+        if self.startnstop and os.path.exists(str(self.startnstop)):
+            self.pop = load_population(str(self.startnstop))
         else:
             # At least two parents to begin with
             self.pop = [[self.dna[0], list(self.dna[1]), list(self.dna[2])]]
 
-    def birth(self, par1, par2):
+    def birth(self, par1: DNA, par2: DNA) -> DNA:
         """
         Return a new individual with par1 and par2 as parents (two sequences).
 
@@ -144,14 +168,16 @@ class GeneticOptimization:
             Dna of the child.
 
         """
-        child = [0, [], []]
+        child: DNA = [0, [], []]
         for gene1, gene2 in zip(par1[1], par2[1]):
             child[1].append(nprand.normal((gene1 if nprand.rand() < .5 else gene2), self.prob))
         for pos1, pos2 in zip(par1[2], par2[2]):
             child[2].append(pos1 if nprand.rand() < .5 else pos2)
         return child
 
-    def evaluate_individual(self, dna, fitness_args):
+    def evaluate_individual(
+        self, dna: DNA, fitness_args: tuple[Any, ...] | None
+    ) -> tuple[float, list[tuple[float, float]]]:
         """Simple evaluation for a single individual.
 
         Parameters
@@ -180,7 +206,9 @@ class GeneticOptimization:
         # Don't change initial positions for unbuildable individuals.
         return fit[0], dna[2]
 
-    def evaluate_population(self, fitness_args, verbose=True, processes=1):
+    def evaluate_population(
+        self, fitness_args: tuple[Any, ...] | None, verbose: bool = True, processes: int = 1
+    ) -> None:
         """
         Evaluate the whole population, attribute scores.
 
@@ -221,19 +249,19 @@ class GeneticOptimization:
             print("Scores:", [dna[1] for dna in self.pop])
             print("Genetic diversity: ", diversity)
 
-    def select_parents(self, verbose=True):
+    def select_parents(self, verbose: bool = True) -> Population:
         """Selection 1/4 of the population as parents."""
         median = np.median([dna[0] for dna in self.pop])
         # Index of the best individual
         best_index, best_dna = max(enumerate(self.pop), key=lambda x: x[1][0])
         # Parents selection, 1/4 of population
-        parents = []
-        indexes = []
+        parents: Population = []
+        indexes: list[int] = []
         for j, individual in enumerate(self.pop):
             # Parents whose score is above median.
             # Individuals with the best fitness are more likely to be selected
             if best_dna[0] == median:
-                score = 1
+                score = 1.0
             else:
                 score = .5 * (individual[0] - best_dna[0]) / (best_dna[0] - median)
             if score + 1 > max(nprand.rand(), .5):
@@ -254,8 +282,10 @@ class GeneticOptimization:
             print(f"Median score: {median}, {len(parents)} parents")
         return parents
 
-    def make_children(self, parents, max_genetic_dist=float('inf')):
-        children = []
+    def make_children(
+        self, parents: Population, max_genetic_dist: float = float('inf')
+    ) -> Population:
+        children: Population = []
         j = 0
         while len(parents) > 1 and j < 100:
             par1 = parents.pop(nprand.randint(len(parents) - 1))
@@ -268,7 +298,7 @@ class GeneticOptimization:
             j += 1
         return children
 
-    def reduce_population(self):
+    def reduce_population(self) -> Population:
         """
         Reduce the population down to max_pop.
 
@@ -281,7 +311,7 @@ class GeneticOptimization:
         sorted_pop = sorted(self.pop, key=lambda x: x[0], reverse=True)
         return sorted_pop[:self.max_pop]
 
-    def run(self, iters, processes=1):
+    def run(self, iters: int, processes: int = 1) -> Population:
         """
         Optimization by genetic algorithm (GA).
 
@@ -340,7 +370,7 @@ class GeneticOptimization:
                 "average score": np.mean([x[0] for x in self.pop])
             })
             iterations.set_postfix(postfix)
-            if self.startnstop:
+            if self.startnstop and isinstance(self.startnstop, str):
                 save_population(
                     self.startnstop, self.pop, self.verbosity > 1,
                     {

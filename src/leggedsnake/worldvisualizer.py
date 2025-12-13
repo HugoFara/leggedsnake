@@ -1,26 +1,50 @@
 """
 This file contains class and method to see the walkers in action.
 """
+from __future__ import annotations
+
 from functools import partial
+from typing import Any, TypedDict
+
 import matplotlib.pyplot as plt
+from matplotlib.artist import Artist
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 import numpy as np
+import numpy.typing as npt
+import pymunk as pm
 import pymunk.matplotlib_util
 import matplotlib.animation as animation
 from pymunk import Space
+from pylinkage import Static, Crank, Fixed, Pivot
+from pylinkage.linkage import Linkage
 
 from . import physicsengine as pe
 from . import dynamiclinkage
 
+
+class CameraSettings(TypedDict):
+    dynamic_camera: bool
+    fps: int
+
 # Display settings
-CAMERA = {
+CAMERA: CameraSettings = {
     # Do you want to follow a system of view whole scene?
     "dynamic_camera": False,
     # Required frames per second
     "fps": 20,
 }
 
+# Type alias for bounds
+Bounds = tuple[tuple[float, float], tuple[float, float]]
 
-def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
+
+def smooth_transition(
+    target: Bounds,
+    prev_view: Bounds,
+    dampers: Bounds = ((-10, -5), (10, 5)),
+) -> list[list[float]]:
     """
     Create a smooth transition between a camera view (prev_view) and a target view.
 
@@ -37,10 +61,10 @@ def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
     -------
         New bounds : tuple of tuple of float
     """
-    new_bounds = [list(target[0]), list(target[1])]
+    new_bounds: list[list[float]] = [list(target[0]), list(target[1])]
     # Below this reactivity, we won't resize the window. Does not seem to work.
     reactivity_threshold = 0.5
-    reactivity = [[0, 0], [0, 0]]
+    reactivity: list[list[float]] = [[0.0, 0.0], [0.0, 0.0]]
     for i in range(2):
         for j in range(2):
             operator = max if j else min
@@ -48,23 +72,23 @@ def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
                 # We are in-bounds
                 # do not change anything
                 if operator(target[i][j] - dampers[i][j], prev_view[i][j]) == prev_view[i][j]:
-                    reactivity[i][j] = np.interp(
+                    reactivity[i][j] = float(np.interp(
                         target[i][j],
                         (prev_view[i][j], prev_view[i][j] + dampers[i][j]),
                         [0, 1]
-                    )
+                    ))
                 else:
-                    reactivity[i][j] = 0
+                    reactivity[i][j] = 0.0
             elif operator(target[i][j] + dampers[i][j], prev_view[i][j]) == prev_view[i][j]:
                 # Damper zone, initiate a smooth transition
-                reactivity[i][j] = np.interp(
+                reactivity[i][j] = float(np.interp(
                     target[i][j],
                     (prev_view[i][j], prev_view[i][j] - dampers[i][j]),
                     [0, 1]
-                )
+                ))
             else:
                 # Out-of-bounds, move a quick as possible
-                reactivity[i][j] = 1
+                reactivity[i][j] = 1.0
     if any(reac[0] > reactivity_threshold or reac[1] > reactivity_threshold for reac in reactivity):
         for i in range(2):
             for j in range(2):
@@ -75,7 +99,12 @@ def smooth_transition(target, prev_view, dampers=((-10, -5), (10, 5))):
 class VisualWorld(pe.World):
     """Same as parent class World, but with matplotlib objects."""
 
-    def __init__(self, space=None, road_y=-5):
+    fig: Figure
+    ax: Axes
+    linkage_im: list[list[Line2D]]
+    road_im: list[Line2D]
+
+    def __init__(self, space: pm.Space | None = None, road_y: float = -5) -> None:
         """
         Instantiate the world and objects to be displayed.
 
@@ -94,7 +123,9 @@ class VisualWorld(pe.World):
         # Same for the road
         self.road_im = self.ax.plot([], [], 'k-', animated=False)
 
-    def add_linkage(self, linkage, load=0):
+    def add_linkage(
+        self, linkage: Linkage | dynamiclinkage.DynamicLinkage, load: float = 0
+    ) -> None:
         """
         Add a linkage to the simulation, and create the appropriate Artist objects.
 
@@ -117,24 +148,26 @@ class VisualWorld(pe.World):
         linkage_im = []
         for j in self.linkages[-1].joints:
             if (
-                    isinstance(j, pe.Static)
+                    isinstance(j, Static)
                     and hasattr(j, 'joint0')
                     and j.joint0 is not None
             ):
                 linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
                 if hasattr(j, 'joint1') and j.joint1 is not None:
                     linkage_im.append(self.ax.plot([], [], 'k-', animated=False)[0])
-            elif isinstance(j, pe.Crank):
+            elif isinstance(j, Crank):
                 linkage_im.append(self.ax.plot([], [], 'g-', animated=False)[0])
-            elif isinstance(j, pe.Fixed):
+            elif isinstance(j, Fixed):
                 linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
                 linkage_im.append(self.ax.plot([], [], 'r-', animated=False)[0])
-            elif isinstance(j, pe.Pivot):
+            elif isinstance(j, Pivot):
                 linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
                 linkage_im.append(self.ax.plot([], [], 'b-', animated=False)[0])
         self.linkage_im.append(linkage_im)
 
-    def draw_linkage(self, linkage_im, joints):
+    def draw_linkage(
+        self, linkage_im: list[Line2D], joints: tuple[Any, ...]
+    ) -> list[Line2D]:
         """Draw the linkage at his current state."""
         a = 0
         for j in joints:
@@ -150,18 +183,20 @@ class VisualWorld(pe.World):
                 a += 1
         return linkage_im
 
-    def init_visuals(self, colors=None):
+    def init_visuals(
+        self, colors: list[float] | list[list[float]] | npt.NDArray[np.floating[Any]] | None = None
+    ) -> list[Any]:
         if colors is not None:
             for im, color in zip(self.linkage_im, colors):
                 for line in im:
-                    if np.isscalar(color):
-                        line.set_alpha(color)
+                    if isinstance(color, (int, float, np.floating)):
+                        line.set_alpha(float(color))
                     else:
                         line.set_color(color)
 
         return self.road_im + [im for im in self.linkage_im]
 
-    def reload_visuals(self):
+    def reload_visuals(self) -> list[Line2D]:
         """Reload the visual components only."""
         center = np.mean([linkage.joints[0].coord() for linkage in self.linkages], axis=0)
         self.fig.suptitle(f"Position: {tuple(map(int, center))}")
@@ -170,20 +205,21 @@ class VisualWorld(pe.World):
             [i[0] for i in self.road],
             [i[1] for i in self.road]
         )
-        prev_view = self.ax.get_xlim(), self.ax.get_ylim()
+        prev_view: Bounds = self.ax.get_xlim(), self.ax.get_ylim()
+        target: Bounds
         if CAMERA["dynamic_camera"]:
-            target = (center[0] - 10, center[0] + 10), (center[1] - 10, center[1] + 10)
+            target = (float(center[0]) - 10, float(center[0]) + 10), (float(center[1]) - 10, float(center[1]) + 10)
         else:
             target = (
-                min([0] + [min(i.x for i in linkage.joints) for linkage in self.linkages]) - 10,
-                max([0] + [max(i.x for i in linkage.joints) for linkage in self.linkages]) + 10
+                min([0.0] + [min(float(i.x) for i in linkage.joints) for linkage in self.linkages]) - 10,
+                max([0.0] + [max(float(i.x) for i in linkage.joints) for linkage in self.linkages]) + 10
             ), (
-                min([0] + [min(i.y for i in linkage.joints) for linkage in self.linkages]) - 5,
-                max([0] + [max(i.y for i in linkage.joints) for linkage in self.linkages]) + 5
+                min([0.0] + [min(float(i.y) for i in linkage.joints) for linkage in self.linkages]) - 5,
+                max([0.0] + [max(float(i.y) for i in linkage.joints) for linkage in self.linkages]) + 5
             )
-        target = smooth_transition(target, prev_view)
-        self.ax.set_xlim(*target[0])
-        self.ax.set_ylim(*target[1])
+        new_bounds = smooth_transition(target, prev_view)
+        self.ax.set_xlim(*new_bounds[0])
+        self.ax.set_ylim(*new_bounds[1])
         # Return modified objects for animation optimization
         visual_objects = []
         for linkage, im in zip(self.linkages, self.linkage_im):
@@ -191,7 +227,9 @@ class VisualWorld(pe.World):
         visual_objects += self.road_im
         return visual_objects
 
-    def visual_update(self, time=None):
+    def visual_update(
+        self, time: list[float] | float | None = None
+    ) -> tuple[float, float] | None:
         """
         Update simulation and draw it.
 
@@ -202,29 +240,37 @@ class VisualWorld(pe.World):
             Using a float, only delta-time for physics, fps is set with CAMERA_SETTINGS["fps"]
             Setting to None set physics dt to pe.params["simul"]["physics_period"] and fps to CAMERA_SETTINGS["fps"]
         """
+        dt: float
+        fps: int
         if time is None:
             dt = pe.params["simul"]["physics_period"]
             fps = CAMERA["fps"]
         elif isinstance(time, int) or isinstance(time, float):
-            dt = time
+            dt = float(time)
             fps = CAMERA["fps"]
         else:
-            dt, fps = time
+            dt, fps = float(time[0]), int(time[1])
         div = 1 // (dt * fps)
+        update_ret: tuple[float, float] | None
         if div >= 1:
-            update_ret = [0, 0]
+            update_list: list[float] = [0.0, 0.0]
             for _ in range(int(div)):
-                for i, step_update in enumerate(self.update(dt)):
-                    update_ret[i] += step_update
-            for i, step_update in enumerate(self.update(1 / fps - dt * div)):
-                update_ret[i] += step_update
+                result = self.update(dt)
+                if result is not None:
+                    for i, step_update in enumerate(result):
+                        update_list[i] += step_update
+            result = self.update(1 / fps - dt * div)
+            if result is not None:
+                for i, step_update in enumerate(result):
+                    update_list[i] += step_update
+            update_ret = (update_list[0], update_list[1])
         else:
             update_ret = self.update(dt)
         self.reload_visuals()
         return update_ret
 
 
-def im_debug(world, linkage):
+def im_debug(world: VisualWorld, linkage: dynamiclinkage.DynamicLinkage) -> None:
     """Use pymunk debugging for visual debugging."""
     bbox = pe.linkage_bb(linkage)
     world.ax.clear()
@@ -241,11 +287,13 @@ def im_debug(world, linkage):
             end = j._a.local_to_world(shape.b)
             world.ax.plot([begin[0], end[0]], [begin[1], end[1]])
     options = pymunk.matplotlib_util.DrawOptions(world.ax)
-    options.constraint_color = (.1, .1, .1, .0)
+    options.constraint_color = (.1, .1, .1, .0)  # type: ignore[assignment]
     world.space.debug_draw(options)
 
 
-def video_debug(linkage):
+def video_debug(
+    linkage: Linkage | dynamiclinkage.DynamicLinkage,
+) -> None:
     """Launch the simulation frame by frame, useful for debug."""
     road_y = pe.linkage_bb(linkage)[0] - 1
     if isinstance(linkage, dynamiclinkage.DynamicLinkage):
@@ -262,7 +310,13 @@ def video_debug(linkage):
         plt.pause(.2)
 
 
-def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_camera=False):
+def all_linkages_video(
+    linkages: list[Linkage | dynamiclinkage.DynamicLinkage],
+    duration: float = 30,
+    save: bool = False,
+    colors: npt.NDArray[np.floating[Any]] | list[float] | list[list[float]] | None = None,
+    dynamic_camera: bool = False,
+) -> None:
     """
     Give the rigidbody a dynamic model and launch simulation with video.
 
@@ -308,7 +362,7 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
     previous_camera = CAMERA["dynamic_camera"]
     CAMERA["dynamic_camera"] = dynamic_camera
     ani = animation.FuncAnimation(
-        world.fig, world.visual_update,
+        world.fig, world.visual_update,  # type: ignore[arg-type]
         frames=[None] * (n_frames - 1),
         init_func=partial(world.init_visuals, colors),
         interval=int(1000 / CAMERA["fps"]),
@@ -324,7 +378,12 @@ def all_linkages_video(linkages, duration=30, save=False, colors=None, dynamic_c
     CAMERA["dynamic_camera"] = previous_camera
 
 
-def video(linkage, duration=30, save=False, dynamic_camera=True):
+def video(
+    linkage: Linkage | dynamiclinkage.DynamicLinkage,
+    duration: float = 30,
+    save: bool = False,
+    dynamic_camera: bool = True,
+) -> None:
     """
     Give the rigidbody a dynamic model and launch simulation with video.
 
@@ -345,13 +404,13 @@ def video(linkage, duration=30, save=False, dynamic_camera=True):
 
 
 if __name__ == "__main__":
-    base = pe.Static(0, 0, name="Main trick")
-    crank = pe.Crank(1, 0, name="The crank", angle=1, joint0=base)
-    follower = pe.Pivot(
+    base = Static(0, 0, name="Main trick")
+    crank = Crank(1, 0, name="The crank", angle=1, joint0=base)
+    follower = Pivot(
         0, 2, joint0=base, joint1=crank, distance0=2, distance1=1
     )
-    frame = pe.Fixed(joint0=crank, joint1=follower, distance=1, angle=-np.pi/2)
-    demo_linkage = pe.dynamiclinkage.DynamicLinkage(
+    frame = Fixed(joint0=crank, joint1=follower, distance=1, angle=-np.pi/2)
+    demo_linkage = dynamiclinkage.DynamicLinkage(
         name='Some tricky linkage',
         joints=(base, crank, follower, frame),
         space=Space()
