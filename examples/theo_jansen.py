@@ -126,7 +126,7 @@ def create_theo_jansen_linkage():
         x=coords['A'][0], y=coords['A'][1],
         joint0=O,
         distance=h['m'],
-        angle=-2 * np.pi / LAP_POINTS,
+        angle=-2 * np.pi / LAP_POINTS,  # Angular step for kinematic iteration
         name="A (crank)"
     )
 
@@ -211,6 +211,8 @@ def main():
     print()
 
     walker = create_theo_jansen_walker(n_legs=3)
+    # Motor rate: negative for clockwise rotation (walking forward)
+    walker.motor_rate = -4.0
 
     # Run the visualization
     ls.video(walker, duration=15, dynamic_camera=True)

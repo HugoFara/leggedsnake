@@ -526,7 +526,8 @@ def all_linkages_video(
         list of pylinkage.linkage.Linkage,
         list of leggedsnake.dynamiclinkage.DynamicLinkage
     ]
-        The Linkage you want to simulate.
+        The Linkage you want to simulate. If the linkage is a Walker with
+        a motor_rate attribute, that rate is used for the motor speed.
     duration : float, optional
         Duration (in seconds) of the simulation. The default is 30.
     save : bool, optional
@@ -586,7 +587,8 @@ def video(
     ----------
     linkage : Union[pylinkage.linkage.Linkage,
     leggedsnake.dynamiclinkage.DynamicLinkage]
-        The Linkage you want to simulate.
+        The Linkage you want to simulate. If the linkage is a Walker with
+        a motor_rate attribute, that rate is used for the motor speed.
     duration : float, optional
         Duration (in seconds) of the simulation. The default is 30.
     save : bool, optional

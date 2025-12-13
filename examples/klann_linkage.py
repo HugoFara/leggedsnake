@@ -244,7 +244,7 @@ def create_klann_linkage():
         x=coords['A'][0], y=coords['A'][1],
         joint0=O_crank,
         distance=d['crank'],
-        angle=-2 * np.pi / LAP_POINTS,
+        angle=2 * np.pi / LAP_POINTS,  # Angular step for kinematic iteration
         name="Crank"
     )
 
@@ -332,6 +332,8 @@ def main():
     print()
 
     walker = create_klann_walker(n_legs=2)
+    # Motor rate: positive for counterclockwise rotation (walking forward)
+    walker.motor_rate = 4.0
 
     # Run the visualization
     ls.video(walker, duration=15, dynamic_camera=True)

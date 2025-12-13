@@ -278,6 +278,7 @@ def create_bodies_from_hypergraph(
     thickness: float,
     shape_filter: pm.ShapeFilter | None,
     joints: tuple[Any, ...] | None = None,
+    motor_rate: float | None = None,
 ) -> PhysicsMapping:
     """Create pymunk bodies from a hypergraph representation.
 
@@ -302,6 +303,9 @@ def create_bodies_from_hypergraph(
     joints : tuple[Joint, ...] | None
         Optional original linkage joints for detecting Fixed joints with
         static parents. Enables proper detection of frame-fixed nodes.
+    motor_rate : float | None
+        Motor angular velocity in rad/s. If None, falls back to kinematic
+        angle from the Crank joints (not recommended).
 
     Returns
     -------
@@ -421,7 +425,7 @@ def create_bodies_from_hypergraph(
     _create_pivot_constraints(hg, mapping, space, effective_ground, load_body)
 
     # Create motors for driver nodes
-    _create_motor_constraints(hg, mapping, space, load_body)
+    _create_motor_constraints(hg, mapping, space, load_body, motor_rate)
 
     return mapping
 
@@ -469,11 +473,26 @@ def _create_motor_constraints(
     mapping: PhysicsMapping,
     space: pm.Space,
     load_body: pm.Body,
+    motor_rate: float | None = None,
 ) -> None:
     """Create SimpleMotor constraints for driver (crank) nodes.
 
     Note: The pivot constraint at the ground connection point is already
     created by _create_pivot_constraints. We only need to add the motor here.
+
+    Parameters
+    ----------
+    hg : HypergraphLinkage
+        The hypergraph representation.
+    mapping : PhysicsMapping
+        The physics mapping to update.
+    space : pm.Space
+        The pymunk space.
+    load_body : pm.Body
+        The frame/chassis body.
+    motor_rate : float | None
+        Motor angular velocity in rad/s. If None, falls back to node angle
+        (not recommended - that's the kinematic step size, not motor rate).
     """
     for driver_node in hg.driver_nodes():
         driver_id = driver_node.id
@@ -500,10 +519,13 @@ def _create_motor_constraints(
             # Crank edge might be entirely on load_body (both ends ground)
             continue
 
-        # Create motor - rate comes from node angle attribute
-        # The pivot constraint is already created by _create_pivot_constraints
-        angle = driver_node.angle if driver_node.angle is not None else 0.0
-        motor = pm.SimpleMotor(driver_body, load_body, angle)
+        # Create motor - use provided motor_rate, or fall back to node angle
+        # Note: node.angle is the kinematic step size, not an ideal motor rate
+        if motor_rate is not None:
+            rate = motor_rate
+        else:
+            rate = driver_node.angle if driver_node.angle is not None else 0.0
+        motor = pm.SimpleMotor(driver_body, load_body, rate)
         space.add(motor)
         mapping.motors.append(motor)
 

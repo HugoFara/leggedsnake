@@ -218,6 +218,8 @@ def main():
     print()
 
     walker = create_chebyshev_walker(n_legs=3)
+    # Motor rate: negative for clockwise rotation (walking forward)
+    walker.motor_rate = -4.0
 
     # Run the visualization
     ls.video(walker, duration=15, dynamic_camera=True)

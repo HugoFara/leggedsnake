@@ -20,7 +20,18 @@ from pylinkage.joints.joint import Joint
 
 
 class Walker(lk.Linkage):  # type: ignore[misc]
-    """A Walker, or a leg mechanism is a Linkage with some useful methods."""
+    """A Walker, or a leg mechanism is a Linkage with some useful methods.
+
+    Attributes
+    ----------
+    motor_rate : float
+        Motor angular velocity in rad/s for dynamic simulation.
+        Positive = counterclockwise, negative = clockwise.
+        Default is -4.0 rad/s (~38 RPM clockwise, typical walking speed).
+        This is separate from the kinematic angle used for stepping.
+    """
+
+    motor_rate: float = -4.0  # Default walking speed in rad/s
 
     def add_legs(self, number: int = 2) -> None:
         """

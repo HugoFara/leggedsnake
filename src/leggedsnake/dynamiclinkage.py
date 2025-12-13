@@ -674,6 +674,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         load: float = 0,
         name: str | None = None,
         thickness: float = 0.1,
+        motor_rate: float | None = None,
     ) -> None:
         """
         Instanciate a new DynamicLinkage.
@@ -695,6 +696,9 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         thickness : float, optional
             ratio bar length/width for each bar (radius in pymunk).
             The default is .1.
+        motor_rate : float, optional
+            Motor angular velocity in rad/s for dynamic simulation.
+            If None, falls back to kinematic angle from Crank joints.
 
         Returns
         -------
@@ -727,6 +731,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
             thickness,
             self.filter,
             joints=original_joints,
+            motor_rate=motor_rate,
         )
 
         # Create dynamic joint wrappers for coordinate tracking
@@ -951,9 +956,34 @@ def convert_to_dynamic_linkage(
     space: pm.Space,
     density: float = 1,
     load: float = 1,
+    motor_rate: float | None = None,
 ) -> DynamicLinkage:
-    """Convert a classic Linkage to its dynamic counterpart."""
+    """Convert a classic Linkage to its dynamic counterpart.
+
+    Parameters
+    ----------
+    kinematic_linkage : Linkage
+        The kinematic linkage to convert.
+    space : pm.Space
+        The pymunk space.
+    density : float, optional
+        Density for body mass calculation. Default is 1.
+    load : float, optional
+        Mass of the load to carry. Default is 1.
+    motor_rate : float | None, optional
+        Motor angular velocity in rad/s. If None and the linkage has a
+        motor_rate attribute (like Walker), that value is used.
+
+    Returns
+    -------
+    DynamicLinkage
+        The dynamic equivalent of the kinematic linkage.
+    """
+    # Get motor_rate from linkage if it has one (e.g., Walker) and not overridden
+    if motor_rate is None and hasattr(kinematic_linkage, 'motor_rate'):
+        motor_rate = kinematic_linkage.motor_rate
+
     return DynamicLinkage(
         kinematic_linkage.joints, space, density=density,
-        load=load, name=kinematic_linkage.name
+        load=load, name=kinematic_linkage.name, motor_rate=motor_rate
     )
