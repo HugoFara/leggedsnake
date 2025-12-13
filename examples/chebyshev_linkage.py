@@ -29,21 +29,21 @@ import leggedsnake as ls
 # Simulation parameters
 LAP_POINTS = 48  # Steps per revolution
 
-# Chebyshev Lambda linkage dimensions
-# Using the standard proportions where coupler = rocker = 1.0
-# Ground link: 100*(5-sqrt(7))/3 / 100 ≈ 0.785
-# Crank: 100*(3-sqrt(7)) / 100 ≈ 0.354
+# Chebyshev Lambda linkage dimensions for walking
+# This is a crank-rocker mechanism that allows full 360° rotation
+# Based on ground=1, crank short, coupler=rocker (creates the λ shape)
+# The coupler point traces an approximate straight line during ground contact
 CHEBYSHEV_DIMENSIONS = {
     # Frame positions (O1 at origin)
-    'O2_x': 0.785,      # Ground link length (distance between pivots)
+    'O2_x': 2.0,        # Ground link
     'O2_y': 0.0,        # O2 on same horizontal level
-    # Link lengths
-    'crank': 0.354,     # O1 to A
-    'coupler': 1.0,     # A to B
-    'rocker': 1.0,      # O2 to B
-    # Foot point (on rigid coupler, extended below)
-    'foot_dist': 1.5,   # Distance from A along coupler direction + extension
-    'foot_angle': -np.pi/3,  # Angle below coupler line (toward foot)
+    # Link lengths for Lambda configuration (crank is the shortest link)
+    'crank': 0.5,       # O1 to A (short crank for full rotation)
+    'coupler': 2.5,     # A to B
+    'rocker': 2.5,      # O2 to B
+    # Foot point: extended along coupler for walking
+    'foot_dist': 1.0,   # Ratio along coupler (1.0 = at point B)
+    'foot_angle': 0,    # Along the coupler direction (A→B)
 }
 
 # Scale factor for simulation
@@ -95,32 +95,17 @@ def compute_initial_coords(d, angle=0):
 
     # B: intersection of circles from A (coupler) and O2 (rocker)
     B1, B2 = _solve_intersection(A, d['coupler'], O2, d['rocker'])
-    # Choose B with lower Y for Lambda shape (rocker swings below)
+    # Choose B with LOWER Y - this puts the foot below the frame for walking
     if B1 is None:
         # Fallback if no intersection
         B = (O2[0] - d['rocker'], O2[1])
     else:
         B = B1 if B1[1] < B2[1] else B2
 
-    # Foot point P: on rigid coupler, below the A-B line
-    # Calculate direction from A to B
-    AB_dx = B[0] - A[0]
-    AB_dy = B[1] - A[1]
-    AB_len = np.sqrt(AB_dx**2 + AB_dy**2)
-
-    if AB_len > 0:
-        # Unit vector along coupler
-        ux = AB_dx / AB_len
-        uy = AB_dy / AB_len
-        # Rotate by foot_angle to get foot direction
-        cos_a = np.cos(d['foot_angle'])
-        sin_a = np.sin(d['foot_angle'])
-        foot_dx = ux * cos_a - uy * sin_a
-        foot_dy = ux * sin_a + uy * cos_a
-        # Foot position
-        P = (A[0] + d['foot_dist'] * foot_dx, A[1] + d['foot_dist'] * foot_dy)
-    else:
-        P = (A[0], A[1] - d['foot_dist'])
+    # Foot point P: on the coupler line A-B
+    # foot_dist is a ratio (0.5 = midpoint, which traces the straight line)
+    ratio = d['foot_dist']
+    P = (A[0] + ratio * (B[0] - A[0]), A[1] + ratio * (B[1] - A[1]))
 
     return {'O1': O1, 'O2': O2, 'A': A, 'B': B, 'P': P}
 
@@ -163,11 +148,12 @@ def create_chebyshev_linkage():
     )
 
     # P (foot): fixed point on the rigid coupler link
-    # The foot is attached to A and oriented relative to B
+    # foot_dist is a ratio (0.5 = midpoint), convert to absolute distance
+    foot_distance = d['foot_dist'] * d['coupler']
     P = Fixed(
         x=coords['P'][0], y=coords['P'][1],
         joint0=A, joint1=B,
-        distance=d['foot_dist'],
+        distance=foot_distance,
         angle=d['foot_angle'],
         name="P (foot)"
     )
