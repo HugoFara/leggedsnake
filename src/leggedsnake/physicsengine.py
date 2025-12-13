@@ -99,17 +99,32 @@ params: Params = {
 
 
 def set_space_constraints(space: pm.Space) -> None:
-    """Set the solver if they are many constraints."""
+    """
+    Auto-tune solver parameters based on constraint count.
+
+    More constraints require more solver iterations for stability,
+    especially when linkages make ground contact.
+    """
     constraints = space.constraints
-    len_c = len(space.constraints)
-    # Number of iterations can be adapted
-    space.iterations = int(10 * np.exp(len_c / 60))
+    len_c = len(constraints)
+    if len_c == 0:
+        return
+
+    # Scale iterations with constraint count for stability
+    # Base: 20 iterations, scaling up for complex linkages
+    # For 68 constraints: ~50 iterations
+    space.iterations = max(20, int(15 + len_c * 0.5))
+
+    # Error bias controls constraint correction rate per step
+    # Lower values = faster correction but can cause jitter
+    # Higher values = slower correction but more stable
+    # Scale: more constraints → higher error_bias (softer, more stable)
+    # For 68 constraints: ~0.2, for 100: ~0.4
+    correction_rate = 0.1 * np.exp(-len_c / 50)
+    error_bias = pow(1 - correction_rate, 60)
+
     for constraint in constraints:
-        if not isinstance(constraint, pm.SimpleMotor) and False:
-            constraint.max_force = params["physics"]["max_force"] * (
-                    np.exp(- len_c / 25) / 2 + .5
-            )
-        constraint.error_bias = (1 - .1 * np.exp(-len_c / 60)) ** 60
+        constraint.error_bias = error_bias
 
 
 class World:
@@ -187,7 +202,16 @@ class World:
         self.linkages.append(dynamic_linkage)
         for s in self.space.shapes:
             s.friction = params["ground"]["friction"]
-        # set_space_constraints(self.space)
+
+    def tune_solver(self) -> None:
+        """
+        Auto-tune solver parameters for stability.
+
+        Call this after adding all linkages if you experience jittery physics
+        when the mechanism contacts the ground. This increases solver iterations
+        and softens constraint correction based on the constraint count.
+        """
+        set_space_constraints(self.space)
 
     def __update_linkage__(
         self, linkage: dynamiclinkage.DynamicLinkage, power: float

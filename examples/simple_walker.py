@@ -12,7 +12,7 @@ from pylinkage import Static, Crank, Fixed, Revolute
 import leggedsnake as ls
 
 
-def create_klann_walker(mirror: bool = True):
+def create_klann_walker(opposite: bool = True):
     """
     Create a simplified Klann-style walking linkage.
 
@@ -21,9 +21,9 @@ def create_klann_walker(mirror: bool = True):
 
     Parameters
     ----------
-    mirror : bool, optional
-        If True, create a mirrored copy of the leg on the opposite side.
-        This creates symmetric left/right leg pairs. Default is True.
+    opposite : bool, optional
+        If True, create an antisymmetric copy of the leg on the opposite side.
+        This creates left/right leg pairs. Default is True.
     """
     # Frame/chassis anchor point
     frame = Static(x=0, y=0, name="Frame")
@@ -71,9 +71,9 @@ def create_klann_walker(mirror: bool = True):
     # Perform one kinematic step to solve initial joint positions
     list(walker.step())
 
-    # Optionally mirror the leg to create symmetric left/right pair
-    if mirror:
-        walker.mirror_leg()
+    # Optionally add opposite leg to create left/right pair
+    if opposite:
+        walker.add_opposite_leg()
 
     # Add a second leg offset by 180 degrees for alternating gait
     # add_legs(n) adds n additional legs with phase offsets

@@ -98,8 +98,8 @@ class TestWalkerWithSimpleLinkage(unittest.TestCase):
         self.assertIn(crank, foots)
 
 
-class TestMirrorLeg(unittest.TestCase):
-    """Test suite for mirror_leg functionality."""
+class TestAddOppositeLeg(unittest.TestCase):
+    """Test suite for add_opposite_leg functionality."""
 
     def setUp(self):
         """Create a simple linkage for testing."""
@@ -118,97 +118,118 @@ class TestMirrorLeg(unittest.TestCase):
         joints = (self.base, self.crank, self.follower, self.output)
         self.walker = Walker(
             joints=joints,
-            order=joints,  # Required for mirror_leg and add_legs
+            order=joints,  # Required for add_opposite_leg and add_legs
             name="test_walker"
         )
         # Step to compute actual joint positions
         list(self.walker.step())
 
-    def test_mirror_leg_doubles_joints(self):
-        """Test that mirror_leg doubles the number of joints."""
+    def test_add_opposite_leg_increases_joints(self):
+        """Test that add_opposite_leg adds new joints."""
         initial_count = len(self.walker.joints)
-        self.walker.mirror_leg()
-        # Should double the joints (mirrored copy)
-        self.assertEqual(len(self.walker.joints), initial_count * 2)
+        self.walker.add_opposite_leg()
+        # Should add joints (base at x=0 is shared, so not doubled)
+        self.assertGreater(len(self.walker.joints), initial_count)
 
-    def test_mirror_leg_coordinates_reflected(self):
-        """Test that mirrored joints have reflected X coordinates."""
-        self.walker.mirror_leg(axis_x=0.0)
+    def test_add_opposite_leg_coordinates_reflected(self):
+        """Test that opposite joints have reflected X coordinates."""
+        self.walker.add_opposite_leg(axis_x=0.0)
 
-        # Find original and mirrored crank
+        # Find original and opposite crank
         original_crank = self.crank
-        mirrored_crank = None
+        opposite_crank = None
         for j in self.walker.joints:
-            if "crank" in j.name.lower() and "(mirrored)" in j.name:
-                mirrored_crank = j
+            if "crank" in j.name.lower() and "(opposite)" in j.name:
+                opposite_crank = j
                 break
 
-        self.assertIsNotNone(mirrored_crank)
+        self.assertIsNotNone(opposite_crank)
         # X coordinate should be negated (mirrored across x=0)
-        self.assertEqual(mirrored_crank.x, -original_crank.x)
+        self.assertEqual(opposite_crank.x, -original_crank.x)
         # Y coordinate should be the same
-        self.assertEqual(mirrored_crank.y, original_crank.y)
+        self.assertEqual(opposite_crank.y, original_crank.y)
 
-    def test_mirror_leg_custom_axis(self):
-        """Test that mirror_leg works with custom axis."""
-        self.walker.mirror_leg(axis_x=2.0)
+    def test_add_opposite_leg_custom_axis(self):
+        """Test that add_opposite_leg works with custom axis."""
+        self.walker.add_opposite_leg(axis_x=2.0)
 
-        # Find mirrored crank
-        mirrored_crank = None
+        # Find opposite crank
+        opposite_crank = None
         for j in self.walker.joints:
-            if "crank" in j.name.lower() and "(mirrored)" in j.name:
-                mirrored_crank = j
+            if "crank" in j.name.lower() and "(opposite)" in j.name:
+                opposite_crank = j
                 break
 
-        self.assertIsNotNone(mirrored_crank)
+        self.assertIsNotNone(opposite_crank)
         # Original crank at x=1, mirrored across x=2 should be at x=3
-        self.assertEqual(mirrored_crank.x, 2 * 2.0 - self.crank.x)
+        self.assertEqual(opposite_crank.x, 2 * 2.0 - self.crank.x)
 
-    def test_mirror_leg_fixed_angle_negated(self):
+    def test_add_opposite_leg_fixed_angle_negated(self):
         """Test that Fixed joints have negated angles when mirrored."""
         original_angle = self.output.angle
-        self.walker.mirror_leg()
+        self.walker.add_opposite_leg()
 
-        # Find mirrored output (Fixed joint)
-        mirrored_output = None
+        # Find opposite output (Fixed joint)
+        opposite_output = None
         for j in self.walker.joints:
-            if "output" in j.name.lower() and "(mirrored)" in j.name:
-                mirrored_output = j
+            if "output" in j.name.lower() and "(opposite)" in j.name:
+                opposite_output = j
                 break
 
-        self.assertIsNotNone(mirrored_output)
+        self.assertIsNotNone(opposite_output)
         # Angle should be negated
-        self.assertEqual(mirrored_output.angle, -original_angle)
+        self.assertEqual(opposite_output.angle, -original_angle)
 
-    def test_mirror_leg_names_have_mirrored_suffix(self):
-        """Test that all mirrored joints have '(mirrored)' in name."""
-        initial_count = len(self.walker.joints)
-        self.walker.mirror_leg()
+    def test_add_opposite_leg_names_have_opposite_suffix(self):
+        """Test that opposite joints have '(opposite)' in name."""
+        self.walker.add_opposite_leg()
 
-        mirrored_count = sum(
-            1 for j in self.walker.joints if "(mirrored)" in j.name
+        opposite_count = sum(
+            1 for j in self.walker.joints if "(opposite)" in j.name
         )
-        # Number of mirrored joints should equal original count
-        self.assertEqual(mirrored_count, initial_count)
+        # Should have some opposite joints (not all, as base is shared)
+        self.assertGreater(opposite_count, 0)
 
-    def test_mirror_leg_solve_order_updated(self):
-        """Test that solve order is updated after mirroring."""
+    def test_add_opposite_leg_solve_order_updated(self):
+        """Test that solve order is updated after adding opposite leg."""
         initial_solve_count = len(self.walker._solve_order)
-        self.walker.mirror_leg()
-        # Solve order should also double
-        self.assertEqual(len(self.walker._solve_order), initial_solve_count * 2)
+        self.walker.add_opposite_leg()
+        # Solve order should increase
+        self.assertGreater(len(self.walker._solve_order), initial_solve_count)
 
-    def test_mirror_then_add_legs(self):
-        """Test that mirror_leg and add_legs can be combined."""
-        # Mirror first to create left/right legs
-        self.walker.mirror_leg()
-        mirrored_count = len(self.walker.joints)
+    def test_add_opposite_then_add_legs(self):
+        """Test that add_opposite_leg and add_legs can be combined."""
+        # Add opposite first to create left/right legs
+        self.walker.add_opposite_leg()
+        opposite_count = len(self.walker.joints)
 
         # Then add phase-offset copies
         self.walker.add_legs(1)
 
         # Should have more joints after adding legs
-        self.assertGreater(len(self.walker.joints), mirrored_count)
+        self.assertGreater(len(self.walker.joints), opposite_count)
+
+    def test_static_joints_on_axis_are_shared(self):
+        """Test that Static joints on the mirror axis are not duplicated."""
+        # Base is at x=0, which is on the default axis
+        initial_base_count = sum(
+            1 for j in self.walker.joints
+            if isinstance(j, Static) and j.name == "base"
+        )
+        self.walker.add_opposite_leg(axis_x=0.0)
+
+        # Base should still only appear once (not duplicated)
+        final_base_count = sum(
+            1 for j in self.walker.joints
+            if isinstance(j, Static) and j.name == "base"
+        )
+        self.assertEqual(initial_base_count, final_base_count)
+
+    def test_mirror_leg_alias_works(self):
+        """Test that mirror_leg is an alias for add_opposite_leg."""
+        initial_count = len(self.walker.joints)
+        self.walker.mirror_leg()  # Should work as alias
+        self.assertGreater(len(self.walker.joints), initial_count)
 
 
 if __name__ == "__main__":

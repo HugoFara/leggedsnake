@@ -175,7 +175,7 @@ def create_theo_jansen_linkage():
     return walker
 
 
-def create_theo_jansen_walker(n_legs: int = 3, mirror: bool = True):
+def create_theo_jansen_walker(n_legs: int = 3, opposite: bool = True):
     """
     Create a multi-legged Theo Jansen walker.
 
@@ -186,10 +186,10 @@ def create_theo_jansen_walker(n_legs: int = 3, mirror: bool = True):
     ----------
     n_legs : int, optional
         Number of additional legs per side. Default is 3 (4 legs total without
-        mirroring, or 8 legs total with mirroring).
-    mirror : bool, optional
-        If True, create a mirrored copy of the leg on the opposite side.
-        This creates symmetric left/right leg pairs. Default is True.
+        opposite leg, or 8 legs total with opposite leg).
+    opposite : bool, optional
+        If True, create an antisymmetric copy of the leg on the opposite side.
+        This creates left/right leg pairs. Default is True.
 
     Returns
     -------
@@ -197,8 +197,8 @@ def create_theo_jansen_walker(n_legs: int = 3, mirror: bool = True):
         Multi-legged Theo Jansen walking mechanism.
     """
     walker = create_theo_jansen_linkage()
-    if mirror:
-        walker.mirror_leg()
+    if opposite:
+        walker.add_opposite_leg()
     if n_legs > 0:
         walker.add_legs(n_legs)
     return walker

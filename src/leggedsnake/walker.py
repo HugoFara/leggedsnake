@@ -116,16 +116,17 @@ class Walker(lk.Linkage):  # type: ignore[misc]
                 candidates.remove(j.joint1)
         return candidates
 
-    def mirror_leg(self, axis_x: float = 0.0) -> None:
+    def add_opposite_leg(self, axis_x: float = 0.0) -> None:
         """
-        Create a mirrored copy of the leg across a vertical axis.
+        Create an opposite (antisymmetric) copy of the leg across a vertical axis.
 
-        This is useful for creating symmetric walkers with left and right legs.
-        The mirrored leg has its X-coordinates reflected and angles negated
-        to produce a geometrically mirrored version.
+        This creates a contralateral leg on the opposite side of the body,
+        commonly used in bipedal and quadrupedal walking mechanisms.
+        The opposite leg has its X-coordinates reflected and angles negated
+        to produce a geometrically antisymmetric version.
 
         Unlike add_legs() which creates phase-offset copies along the same axis,
-        mirror_leg() creates a symmetric copy on the opposite side of the body.
+        add_opposite_leg() creates a copy on the opposite side of the body.
 
         Parameters
         ----------
@@ -140,13 +141,15 @@ class Walker(lk.Linkage):  # type: ignore[misc]
         Examples
         --------
         >>> walker = create_single_leg_linkage()
-        >>> walker.mirror_leg()  # Creates symmetric left/right pair
+        >>> walker.add_opposite_leg()  # Creates left/right leg pair
         >>> walker.add_legs(1)   # Add phase-offset copies of both legs
         """
         new_joints: list[Joint] = []
         new_cranks: list[Crank] = []
         # Map original joints to their mirrored counterparts
         equiv: dict[Joint | None, Joint | None] = {None: None}
+        # Tolerance for detecting joints on the mirror axis
+        axis_tolerance = 1e-9
 
         for j in self._solve_order:
             # Mirror X coordinate across the axis
@@ -156,14 +159,18 @@ class Walker(lk.Linkage):  # type: ignore[misc]
                 'x': mirrored_x,
                 'y': j.y,
                 'joint0': equiv.get(j.joint0, j.joint0),
-                'name': j.name + ' (mirrored)'
+                'name': j.name + ' (opposite)'
             }
 
             if isinstance(j, Static):
-                # Static joints are shared frame points; create mirrored copy
+                # Static joints on the axis are shared; don't duplicate
+                if abs(j.x - axis_x) < axis_tolerance:
+                    equiv[j] = j
+                    continue
+                # Create opposite copy for off-axis static joints
                 new_j = Static(
                     x=mirrored_x, y=j.y,
-                    name=j.name + ' (mirrored)'
+                    name=j.name + ' (opposite)'
                 )
                 # Preserve drawing linkage
                 if hasattr(j, 'joint0') and j.joint0 is not None:
@@ -184,7 +191,7 @@ class Walker(lk.Linkage):  # type: ignore[misc]
                 new_j = Fixed(
                     **common,
                     distance=j.r,
-                    angle=-j.angle  # Negate angle for mirror effect
+                    angle=-j.angle  # Negate angle for antisymmetric effect
                 )
                 new_joints.append(new_j)
             elif isinstance(j, Revolute):
@@ -196,7 +203,7 @@ class Walker(lk.Linkage):  # type: ignore[misc]
                 )
                 new_joints.append(new_j)
             else:
-                # Unknown joint type, try generic copy
+                # Unknown joint type, skip
                 continue
 
             equiv[j] = new_j
@@ -205,3 +212,6 @@ class Walker(lk.Linkage):  # type: ignore[misc]
         self._solve_order += tuple(new_joints)
         # Also update cranks list for compatibility with add_legs
         self._cranks = tuple(list(self._cranks) + new_cranks)
+
+    # Backwards compatibility alias
+    mirror_leg = add_opposite_leg
