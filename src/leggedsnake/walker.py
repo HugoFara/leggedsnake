@@ -15,7 +15,7 @@ from __future__ import annotations
 from math import tau
 
 import pylinkage.linkage as lk
-from pylinkage import Static, Crank, Fixed, Pivot
+from pylinkage import Static, Crank, Fixed, Pivot, Revolute
 from pylinkage.joints.joint import Joint
 
 
@@ -85,8 +85,8 @@ class Walker(lk.Linkage):  # type: ignore[misc]
                             **common,
                             distance=j.r, angle=j.angle
                         )
-                    elif isinstance(j, Pivot):
-                        new_j = Pivot(
+                    elif isinstance(j, Revolute):
+                        new_j = Revolute(
                             **common,
                             distance0=j.r0, distance1=j.r1
                         )

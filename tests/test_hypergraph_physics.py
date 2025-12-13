@@ -127,8 +127,8 @@ class TestCreateBodiesFromHypergraph(unittest.TestCase):
 
         # Should have a motor for the crank
         self.assertEqual(len(mapping.motors), 1)
-        # Should have a pivot for the motor
-        self.assertEqual(len(mapping.motor_pivots), 1)
+        # Motor pivot is now created by _create_pivot_constraints (not separately)
+        # The pivot at the ground connection is included in mapping.constraints
 
 
 class TestGetNodeWorldPosition(unittest.TestCase):

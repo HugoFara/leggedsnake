@@ -701,6 +701,9 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         None.
 
         """
+        # Store original joints before super().__init__ may modify them
+        original_joints = joints
+
         super().__init__(joints=joints, name=name)
         self.density = density
         self._thickness = thickness
@@ -716,6 +719,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         self._hypergraph = from_linkage(self)
 
         # Generate physics bodies from hypergraph
+        # Pass original joints to detect Fixed joints with static parents
         self._physics_mapping = create_bodies_from_hypergraph(
             self._hypergraph,
             space,
@@ -723,6 +727,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
             density,
             thickness,
             self.filter,
+            joints=original_joints,
         )
 
         # Create dynamic joint wrappers for coordinate tracking
@@ -833,6 +838,8 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
                         djoint._b = body_list[0]
                         djoint._anchor_b = djoint._anchor_a
 
+            # Update joint coordinates from physics bodies
+            djoint.reload()
             wrapped_joints.append(djoint)
 
         return tuple(wrapped_joints)
