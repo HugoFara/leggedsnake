@@ -34,7 +34,7 @@ classifiers = [
 dependencies = [
     "numpy>=1.20.2",
     "tqdm>=4.40.0",
-    "pylinkage>=0.5.0",
+    "pylinkage>=0.8.0",
     "pymunk>=6.0.0",
     "pyglet>=2.0.0",
 ]
