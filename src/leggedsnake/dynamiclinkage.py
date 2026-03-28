@@ -30,6 +30,7 @@ with warnings.catch_warnings():
     from pylinkage.joints.joint import Joint
 
 from pylinkage.components import Ground
+from pylinkage.dimensions import Dimensions
 from pylinkage.dyads import FixedDyad, RRRDyad
 from pylinkage.geometry import cyl_to_cart
 from pylinkage.geometry.core import dist
@@ -676,7 +677,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
     joints: tuple[DynamicJoint, ...]
     _physics_mapping: PhysicsMapping
     _hypergraph: HypergraphLinkage
-    _dimensions: Any  # pylinkage.dimensions.Dimensions
+    _dimensions: Dimensions
 
     def __init__(
         self,
