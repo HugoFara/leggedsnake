@@ -29,6 +29,8 @@ with warnings.catch_warnings():
     )
     from pylinkage.joints.joint import Joint
 
+from pylinkage.components import Ground
+from pylinkage.dyads import FixedDyad, RRRDyad
 from pylinkage.geometry import cyl_to_cart
 from pylinkage.geometry.core import dist
 from pylinkage.hypergraph import NodeRole, from_linkage
@@ -881,42 +883,41 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
             djoint: DynamicJoint
             if isinstance(joint, DynamicJoint):
                 djoint = joint
-            elif isinstance(joint, Static):
+            elif isinstance(joint, (Static, Ground)):
                 djoint = Nail(body=self.body, **common)
             # Joints with at least one reference
             else:
-                """
-                Useless while we don't support quick joint definition
-                if (
-                        isinstance(joint.joint0, Static)
-                        and joint.joint0 not in conversion_dict
-                ):
-                    conversion_dict[joint.joint0] = joint.joint0
-                if (
-                        hasattr(joint, "joint1")
-                        and isinstance(joint.joint1, Static)
-                        and joint.joint1 not in conversion_dict
-                ):
-                    conversion_dict[joint.joint1] = joint.joint1
-                """
-                if isinstance(joint, Fixed):
+                if isinstance(joint, (Fixed, FixedDyad)):
+                    # Legacy: joint0/joint1/r/angle; New: anchor1/anchor2/distance/angle
+                    j0 = getattr(joint, 'joint0', None) or getattr(joint, 'anchor1', None)
+                    j1 = getattr(joint, 'joint1', None) or getattr(joint, 'anchor2', None)
+                    dist_val = getattr(joint, 'r', None) or getattr(joint, 'distance', None)
                     djoint = PinUp(
-                        distance=joint.r, angle=joint.angle,
-                        joint0=conversion_dict[joint.joint0],
-                        joint1=conversion_dict[joint.joint1],
+                        distance=dist_val, angle=joint.angle,
+                        joint0=conversion_dict[j0],
+                        joint1=conversion_dict[j1],
                         **common
                     )
                 elif isinstance(joint, Crank):
+                    # Legacy: joint0/r/angle; New (actuators.Crank): anchor/radius/angular_velocity
+                    j0 = getattr(joint, 'joint0', None) or getattr(joint, 'anchor', None)
+                    dist_val = getattr(joint, 'r', None) or getattr(joint, 'radius', None)
+                    ang_val = getattr(joint, 'angle', None) or getattr(joint, 'angular_velocity', None)
                     djoint = Motor(
-                        joint0=conversion_dict[joint.joint0],
-                        distance=joint.r, angle=joint.angle,
+                        joint0=conversion_dict[j0],
+                        distance=dist_val, angle=ang_val,
                         **common
                     )
-                elif isinstance(joint, Pivot):
+                elif isinstance(joint, (Pivot, RRRDyad)):
+                    # Legacy: joint0/joint1/r0/r1; New: anchor1/anchor2/distance1/distance2
+                    j0 = getattr(joint, 'joint0', None) or getattr(joint, 'anchor1', None)
+                    j1 = getattr(joint, 'joint1', None) or getattr(joint, 'anchor2', None)
+                    d0 = getattr(joint, 'r0', None) or getattr(joint, 'distance1', None)
+                    d1 = getattr(joint, 'r1', None) or getattr(joint, 'distance2', None)
                     djoint = DynamicPivot(
-                        joint0=conversion_dict[joint.joint0],
-                        joint1=conversion_dict[joint.joint1],
-                        distance0=joint.r0, distance1=joint.r1,
+                        joint0=conversion_dict[j0],
+                        joint1=conversion_dict[j1],
+                        distance0=d0, distance1=d1,
                         **common
                     )
                 else:

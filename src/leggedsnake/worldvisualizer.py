@@ -24,6 +24,8 @@ with warnings.catch_warnings():
     )
     from pylinkage import Static, Crank, Fixed, Pivot
 
+from pylinkage.components import Ground
+from pylinkage.dyads import FixedDyad, RRRDyad
 from pylinkage.linkage import Linkage
 
 from . import physicsengine as pe
@@ -227,10 +229,12 @@ class VisualWorld(pe.World):
         """Get the color for a joint based on its type."""
         if isinstance(joint, Crank):
             return COLORS["crank"]
-        elif isinstance(joint, Fixed):
+        elif isinstance(joint, (Fixed, FixedDyad)):
             return COLORS["fixed"]
-        elif isinstance(joint, Pivot):
+        elif isinstance(joint, (Pivot, RRRDyad)):
             return COLORS["pivot"]
+        elif isinstance(joint, (Static, Ground)):
+            return COLORS["static"]
         else:
             return COLORS["static"]
 

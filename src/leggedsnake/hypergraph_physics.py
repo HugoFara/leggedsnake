@@ -72,6 +72,42 @@ def _create_segment(
     return seg
 
 
+def _get_parent_names(joint: Any) -> tuple[str | None, str | None]:
+    """Get parent joint/anchor names, handling both legacy and new API.
+
+    Legacy joints use ``joint0``/``joint1``; new dyads use ``anchor1``/``anchor2``.
+    """
+    if hasattr(joint, 'joint0') and joint.joint0:
+        j0_name: str | None = joint.joint0.name
+    elif hasattr(joint, 'anchor1') and joint.anchor1:
+        j0_name = joint.anchor1.name
+    else:
+        j0_name = None
+
+    if hasattr(joint, 'joint1') and joint.joint1:
+        j1_name: str | None = joint.joint1.name
+    elif hasattr(joint, 'anchor2') and joint.anchor2:
+        j1_name = joint.anchor2.name
+    else:
+        j1_name = None
+
+    return j0_name, j1_name
+
+
+def _is_ground_parent(joint: Any, parent_attr: str) -> bool:
+    """Check if a parent joint is a ground/static type (legacy or new API)."""
+    parent = getattr(joint, parent_attr, None)
+    if parent is None:
+        return False
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+        )
+        from pylinkage import Static
+    from pylinkage.components import Ground
+    return isinstance(parent, (Static, Ground))
+
+
 def _is_ground_node(hg: HypergraphLinkage, node_id: str) -> bool:
     """Check if a node is a ground node."""
     return bool(hg.nodes[node_id].role == NodeRole.GROUND)
@@ -115,37 +151,36 @@ def _find_effective_ground_nodes(
         warnings.filterwarnings(
             "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
         )
-        from pylinkage import Static, Fixed
+        from pylinkage import Fixed
+    from pylinkage.dyads import FixedDyad
 
     # Start with explicit ground nodes
     effective_ground: set[str] = {node.id for node in hg.ground_nodes()}
 
     # If we have the original joints, detect Fixed joints with both parents being ground
     if joints is not None:
-        # Build a map from joint name to joint object
-        joint_by_name: dict[str, Any] = {j.name: j for j in joints if j.name}
-
-        # Iteratively find Fixed joints where both parents are effective ground
+        # Iteratively find Fixed/FixedDyad joints where both parents are effective ground
         changed = True
         while changed:
             changed = False
             for joint in joints:
-                if not isinstance(joint, Fixed):
+                if not isinstance(joint, (Fixed, FixedDyad)):
                     continue
                 if joint.name in effective_ground:
                     continue
 
                 # Check if both parent joints are effective ground
-                j0_name = joint.joint0.name if hasattr(joint, 'joint0') and joint.joint0 else None
-                j1_name = joint.joint1.name if hasattr(joint, 'joint1') and joint.joint1 else None
+                j0_name, j1_name = _get_parent_names(joint)
 
                 j0_is_ground = (
-                    j0_name in effective_ground or
-                    (hasattr(joint, 'joint0') and isinstance(joint.joint0, Static))
+                    j0_name in effective_ground
+                    or _is_ground_parent(joint, 'joint0')
+                    or _is_ground_parent(joint, 'anchor1')
                 )
                 j1_is_ground = (
-                    j1_name in effective_ground or
-                    (hasattr(joint, 'joint1') and isinstance(joint.joint1, Static))
+                    j1_name in effective_ground
+                    or _is_ground_parent(joint, 'joint1')
+                    or _is_ground_parent(joint, 'anchor2')
                 )
 
                 if j0_is_ground and j1_is_ground:
@@ -195,6 +230,7 @@ def _find_rigid_triangles(
             "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
         )
         from pylinkage import Fixed
+    from pylinkage.dyads import FixedDyad
 
     if joints is None:
         return []
@@ -208,15 +244,14 @@ def _find_rigid_triangles(
         edge_lookup[(edge.target, edge.source)] = edge_id
 
     for joint in joints:
-        if not isinstance(joint, Fixed):
+        if not isinstance(joint, (Fixed, FixedDyad)):
             continue
 
         fixed_id = joint.name
         if fixed_id is None:
             continue
 
-        j0_name = joint.joint0.name if hasattr(joint, 'joint0') and joint.joint0 else None
-        j1_name = joint.joint1.name if hasattr(joint, 'joint1') and joint.joint1 else None
+        j0_name, j1_name = _get_parent_names(joint)
 
         if j0_name is None or j1_name is None:
             continue
