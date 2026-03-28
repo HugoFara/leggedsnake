@@ -10,17 +10,29 @@ Created on Thu Jun 10 21:20:47 2021.
 
 @author: HugoFara
 """
+from __future__ import annotations
+
 import os.path
 import json
 import multiprocessing as mp
+from collections.abc import Sequence
+from typing import Any, Callable, TypeAlias
+
 import numpy as np
 import numpy.random as nprand
 # Progress bar
 import tqdm
-from pylinkage.geometry import dist
+
+from pylinkage.optimization.collections import Agent
+
+# Type aliases for DNA structure
+# DNA format: [fitness_score, dimensions_list, coordinates_list]
+DNA: TypeAlias = list[Any]  # [float, list[float], list[tuple[float, float]]]
+Population: TypeAlias = list[DNA]
+FitnessFunc: TypeAlias = Callable[..., tuple[float, list[tuple[float, float]]]]
 
 
-def kwargs_switcher(arg_name, kwargs, default=None):
+def kwargs_switcher(arg_name: str, kwargs: dict[str, Any], default: Any = None) -> Any:
     """Simple function to return the good element from a kwargs dict."""
     out = default
     if arg_name in kwargs:
@@ -28,15 +40,20 @@ def kwargs_switcher(arg_name, kwargs, default=None):
     return out
 
 
-def load_population(file_path):
+def load_population(file_path: str) -> Population:
     """Return a population from a given file."""
     with open(file_path, 'r') as file:
         data = json.load(file)
-        pop = data[-1]['population']
+        pop: Population = data[-1]['population']
     return pop
 
 
-def save_population(file_path, population, verbose=False, data_descriptors=None):
+def save_population(
+    file_path: str,
+    population: Population,
+    verbose: bool = False,
+    data_descriptors: dict[str, Any] | None = None,
+) -> None:
     """
     Save the population to a json file.
 
@@ -71,12 +88,22 @@ def save_population(file_path, population, verbose=False, data_descriptors=None)
 
 
 class GeneticOptimization:
+    dna: DNA
+    fitness: FitnessFunc
+    iters: int
+    prob: float
+    kwargs: dict[str, Any]
+    pop: Population
+    max_pop: int
+    verbosity: int
+    startnstop: str | bool
+
     def __init__(
-            self, 
-            dna,
-            fitness,
-            prob=.07,
-            **kwargs
+        self,
+        dna: DNA,
+        fitness: FitnessFunc,
+        prob: float = 0.07,
+        **kwargs: Any,
     ) -> None:
         """
 
@@ -113,17 +140,16 @@ class GeneticOptimization:
         self.iters = 0
         self.prob = prob
         self.kwargs = kwargs
-        self.pop = None
         self.max_pop = kwargs_switcher('max_pop', self.kwargs, 11)
         self.verbosity = kwargs_switcher('verbose', self.kwargs, 1)
         self.startnstop = kwargs_switcher('startnstop', self.kwargs, False)
-        if self.startnstop and os.path.exists(self.startnstop):
-            self.pop = load_population(self.startnstop)
+        if self.startnstop and os.path.exists(str(self.startnstop)):
+            self.pop = load_population(str(self.startnstop))
         else:
             # At least two parents to begin with
             self.pop = [[self.dna[0], list(self.dna[1]), list(self.dna[2])]]
 
-    def birth(self, par1, par2):
+    def birth(self, par1: DNA, par2: DNA) -> DNA:
         """
         Return a new individual with par1 and par2 as parents (two sequences).
 
@@ -145,14 +171,16 @@ class GeneticOptimization:
             Dna of the child.
 
         """
-        child = [0, [], []]
+        child: DNA = [0, [], []]
         for gene1, gene2 in zip(par1[1], par2[1]):
             child[1].append(nprand.normal((gene1 if nprand.rand() < .5 else gene2), self.prob))
         for pos1, pos2 in zip(par1[2], par2[2]):
             child[2].append(pos1 if nprand.rand() < .5 else pos2)
         return child
 
-    def evaluate_individual(self, dna, fitness_args):
+    def evaluate_individual(
+        self, dna: DNA, fitness_args: tuple[Any, ...] | None
+    ) -> tuple[float, list[tuple[float, float]]]:
         """Simple evaluation for a single individual.
 
         Parameters
@@ -181,7 +209,9 @@ class GeneticOptimization:
         # Don't change initial positions for unbuildable individuals.
         return fit[0], dna[2]
 
-    def evaluate_population(self, fitness_args, verbose=True, processes=1):
+    def evaluate_population(
+        self, fitness_args: tuple[Any, ...] | None, verbose: bool = True, processes: int = 1
+    ) -> None:
         """
         Evaluate the whole population, attribute scores.
 
@@ -222,19 +252,19 @@ class GeneticOptimization:
             print("Scores:", [dna[1] for dna in self.pop])
             print("Genetic diversity: ", diversity)
 
-    def select_parents(self, verbose=True):
+    def select_parents(self, verbose: bool = True) -> Population:
         """Selection 1/4 of the population as parents."""
         median = np.median([dna[0] for dna in self.pop])
         # Index of the best individual
         best_index, best_dna = max(enumerate(self.pop), key=lambda x: x[1][0])
         # Parents selection, 1/4 of population
-        parents = []
-        indexes = []
+        parents: Population = []
+        indexes: list[int] = []
         for j, individual in enumerate(self.pop):
             # Parents whose score is above median.
             # Individuals with the best fitness are more likely to be selected
             if best_dna[0] == median:
-                score = 1
+                score = 1.0
             else:
                 score = .5 * (individual[0] - best_dna[0]) / (best_dna[0] - median)
             if score + 1 > max(nprand.rand(), .5):
@@ -255,13 +285,15 @@ class GeneticOptimization:
             print(f"Median score: {median}, {len(parents)} parents")
         return parents
 
-    def make_children(self, parents, max_genetic_dist=float('inf')):
-        children = []
+    def make_children(
+        self, parents: Population, max_genetic_dist: float = float('inf')
+    ) -> Population:
+        children: Population = []
         j = 0
         while len(parents) > 1 and j < 100:
             par1 = parents.pop(nprand.randint(len(parents) - 1))
             par2 = parents.pop(int(nprand.rand() * len(parents)))
-            if dist(par1[1], par2[1]) < max_genetic_dist:
+            if np.linalg.norm(np.array(par1[1]) - np.array(par2[1])) < max_genetic_dist:
                 children.append(self.birth(par1, par2))
             elif parents:
                 parents.append(par1)
@@ -269,7 +301,7 @@ class GeneticOptimization:
             j += 1
         return children
 
-    def reduce_population(self):
+    def reduce_population(self) -> Population:
         """
         Reduce the population down to max_pop.
 
@@ -282,7 +314,7 @@ class GeneticOptimization:
         sorted_pop = sorted(self.pop, key=lambda x: x[0], reverse=True)
         return sorted_pop[:self.max_pop]
 
-    def run(self, iters, processes=1):
+    def run(self, iters: int, processes: int = 1) -> list[Agent]:
         """
         Optimization by genetic algorithm (GA).
 
@@ -295,9 +327,10 @@ class GeneticOptimization:
 
         Returns
         -------
-        list[float, tuple[float], tuple[tuple[float]]]
-            List of 3-tuples: best score, best dimensions and initial positions.
-            The list is sorted by score order.
+        list[Agent]
+            List of Agent(score, dimensions, init_positions) sorted by
+            score in descending order. Compatible with pylinkage's
+            chain_optimizers pipeline.
         """
 
         max_genetic_dist = kwargs_switcher('max_genetic_dist', self.kwargs, 10)
@@ -341,7 +374,7 @@ class GeneticOptimization:
                 "average score": np.mean([x[0] for x in self.pop])
             })
             iterations.set_postfix(postfix)
-            if self.startnstop:
+            if self.startnstop and isinstance(self.startnstop, str):
                 save_population(
                     self.startnstop, self.pop, self.verbosity > 1,
                     {
@@ -360,7 +393,109 @@ class GeneticOptimization:
                 processes=processes
             )
 
-        # Return (fitness, dimensions, initial positions)
-        out = [dna for dna in self.pop]
-        out.sort(key=lambda x: x[0], reverse=True)
-        return out
+        # Return as Agent namedtuples, sorted by score descending
+        sorted_pop = sorted(self.pop, key=lambda x: x[0], reverse=True)
+        return [
+            Agent(score=dna[0], dimensions=dna[1], init_positions=dna[2])
+            for dna in sorted_pop
+        ]
+
+
+def genetic_algorithm_optimization(
+    eval_func: Callable[..., float],
+    linkage: Any,
+    center: Sequence[float] | None = None,
+    bounds: tuple[Sequence[float], Sequence[float]] | None = None,
+    order_relation: Callable[[float, float], float] = max,
+    max_pop: int = 30,
+    iters: int = 100,
+    prob: float = 0.07,
+    max_genetic_dist: float = 10.0,
+    processes: int = 1,
+    startnstop: str | bool = False,
+    verbose: bool = True,
+    **kwargs: Any,
+) -> list[Agent]:
+    """Genetic algorithm optimization with the standard pylinkage interface.
+
+    This wrapper bridges leggedsnake's ``GeneticOptimization`` to pylinkage's
+    optimizer contract, making it usable with ``chain_optimizers`` and
+    interchangeable with PSO, DE, etc.
+
+    The evaluation function receives ``(linkage, dimensions, init_positions)``
+    and returns a scalar score — exactly like pylinkage optimizers.
+
+    Parameters
+    ----------
+    eval_func : callable
+        Evaluation function with signature
+        ``(linkage, dimensions, init_positions) -> float``.
+    linkage : Linkage
+        The linkage to optimize.
+    center : sequence of float, optional
+        Initial dimensions. If *None*, read from ``linkage``.
+        ``chain_optimizers`` injects the previous stage's best here.
+    bounds : tuple of (lower, upper), optional
+        Not directly used by the GA, but accepted for API compatibility.
+        When provided, initial random children are clamped to these bounds.
+    order_relation : callable, optional
+        ``max`` (default) for maximization, ``min`` for minimization.
+    max_pop : int
+        Maximum population size. Default 30.
+    iters : int
+        Number of generations. Default 100.
+    prob : float
+        Mutation standard deviation. Default 0.07.
+    max_genetic_dist : float
+        Speciation threshold. Default 10.0.
+    processes : int
+        Number of parallel processes for evaluation. Default 1.
+    startnstop : str or bool
+        Path to checkpoint file, or False to disable. Default False.
+    verbose : bool
+        Show progress bar. Default True.
+
+    Returns
+    -------
+    list[Agent]
+        Population sorted by score (best first), as ``Agent`` namedtuples.
+    """
+    minimize = order_relation is min
+    dims = list(center) if center is not None else linkage.get_num_constraints()
+    init_pos = list(linkage.get_coords())
+
+    # Bridge eval_func from pylinkage's (linkage, dims, pos) -> float
+    # to GeneticOptimization's (dna, linkage) -> (score, positions) contract.
+    def _ga_fitness(dna: DNA, lk: Any) -> tuple[float, list[Any]]:
+        lk.set_num_constraints(dna[1])
+        lk.set_coords(dna[2])
+        raw_score = eval_func(lk, dna[1], dna[2])
+        score = -raw_score if minimize else raw_score
+        return score, list(lk.get_coords())
+
+    # Seed DNA
+    seed_score = eval_func(linkage, dims, init_pos)
+    if minimize:
+        seed_score = -seed_score
+    dna: DNA = [seed_score, list(dims), list(init_pos)]
+
+    optimizer = GeneticOptimization(
+        dna=dna,
+        fitness=_ga_fitness,
+        prob=prob,
+        max_pop=max_pop,
+        max_genetic_dist=max_genetic_dist,
+        startnstop=startnstop,
+        fitness_args=(linkage,),
+        verbose=1 if verbose else 0,
+    )
+    results = optimizer.run(iters, processes=processes)
+
+    if minimize:
+        # Flip scores back to original sign
+        results = [
+            Agent(score=-a.score, dimensions=a.dimensions, init_positions=a.init_positions)
+            for a in results
+        ]
+        results.sort(key=lambda a: a.score)
+    return results

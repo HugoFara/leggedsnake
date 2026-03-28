@@ -6,40 +6,48 @@ Created on Mon Jun 10 2019 14:30:05.
 
 @author: HugoFara
 """
+from __future__ import annotations
 
 import argparse
 import json
+from typing import Any, Callable
+
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 import numpy as np
 
-DATA = []
+DATA: list[dict[str, Any]] = []
 
 
-def draw_any_func(axis, scores, func):
+def draw_any_func(
+    axis: Axes,
+    scores: list[list[float]],
+    func: Callable[[list[float]], float],
+) -> None:
     """Draw any kind of function."""
     vector = tuple(map(func, scores))
     axis.plot(vector)
 
 
-def draw_median_score(axis, scores):
+def draw_median_score(axis: Axes, scores: list[list[float]]) -> None:
     """Compute a median vector from a score matrix and draw it."""
     median = tuple(map(np.nanmedian, scores))
     axis.plot(median, label="Median score")
 
 
-def draw_best_score(axis, scores):
+def draw_best_score(axis: Axes, scores: list[list[float]]) -> None:
     """Compute the best score vector form a score matrix and draw it."""
     best = tuple(map(np.nanmax, scores))
     axis.plot(best, label="Best score")
 
 
-def draw_standard_deviation(axis, scores):
+def draw_standard_deviation(axis: Axes, scores: list[list[float]]) -> None:
     """Draw the standard deviation of scores from a score matrix."""
     std = tuple(map(np.nanstd, scores))
     axis.plot(std, label="Standard deviation")
 
 
-def draw_population(axis, populations):
+def draw_population(axis: Axes, populations: list[list[Any]]) -> None:
     """Just draw the number of individuals in the population."""
     pop_vector = tuple(map(len, populations))
     axis.plot(pop_vector, label="Population")
@@ -47,20 +55,20 @@ def draw_population(axis, populations):
     axis.tick_params(direction="in")
 
 
-def draw_diversity(axis, dimensions):
+def draw_diversity(axis: Axes, dimensions: list[list[list[float]]]) -> None:
     """Draw the standard deviation in the dimensions."""
     diversity_vector = tuple(map(np.nanstd, dimensions))
     axis.plot(diversity_vector, label="Genetic diversity")
 
 
-def load_data(json_file):
+def load_data(json_file: str) -> list[dict[str, Any]]:
     """Load the population from a JSON file, and return it."""
     with open(json_file) as file:
-        data = json.load(file)
+        data: list[dict[str, Any]] = json.load(file)
         return data
 
 
-def show_genetic_optimization(data=DATA):
+def show_genetic_optimization(data: list[dict[str, Any]] = DATA) -> None:
     """
     Show a graph representing an optimization with a genetic algorithm.
 

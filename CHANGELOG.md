@@ -7,67 +7,138 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `add_opposite_leg` adds the ability to mirror a leg instantly.
+- Using `uv` instead of raw Python.
+- Re-exports of pylinkage 0.8.0 new API classes: ``Ground``, ``FixedDyad``,
+  ``RRRDyad``.
+- Re-exports of pylinkage optimization pipeline:
+  - ``Agent``, ``MutableAgent`` return types for uniform optimizer output.
+  - ``differential_evolution_optimization`` (scipy DE).
+  - ``dual_annealing_optimization`` (scipy SA).
+  - ``minimize_linkage`` (scipy local methods: Nelder-Mead, L-BFGS-B, etc.).
+  - ``chain_optimizers`` for multi-stage pipelines (e.g. PSO → DE → polish).
+  - ``multi_objective_optimization`` (NSGA-II/III via pymoo).
+  - ``ParetoFront``, ``ParetoSolution``, ``OptimizationProgress`` types.
+  - Async variants: ``*_async`` for DE, minimize, PSO, and grid search.
+- ``genetic_algorithm_optimization``: standard-signature wrapper for the
+  built-in GA, compatible with ``chain_optimizers`` (accepts ``center``
+  parameter, returns ``list[Agent]``).
+- New ``walking_objectives`` module with factory functions for multi-objective
+  walking optimization:
+  - ``stride_length_objective``: fast kinematic stride evaluation.
+  - ``energy_efficiency_objective``: physics-based efficiency metric.
+  - ``total_distance_objective``: physics-based distance metric.
+  - ``multi_objective_walking_optimization``: convenience wrapper for
+    NSGA-II/III with walking-specific objectives.
+
 ### Changed
 
+- ``GeneticOptimization.run()`` now returns ``list[Agent]`` instead of raw
+  lists. Existing index-based access (``result[0][0]``) still works since
+  ``Agent`` is a ``NamedTuple``; new code should use ``.score``,
+  ``.dimensions``, ``.init_positions``.
+- ``examples/strider.py`` updated with ``chained_optimizer()`` demonstrating
+  PSO → DE pipeline via ``chain_optimizers``.
 - ``examples/`` is now in the main folder. It was in ``docs/`` previously.
+- Minimum Python version is now 3.10 (was 3.7).
+- Support for Python 3.12, 3.13, and 3.14.
+- Compatibility with pylinkage 0.8.0 (was 0.7.0):
+  - Adapted to topology/geometry split: ``from_linkage()`` now returns
+    ``(HypergraphLinkage, Dimensions)``; ``Node`` no longer carries position.
+  - Threaded ``Dimensions`` through ``hypergraph_physics`` and ``dynamiclinkage``.
+  - Suppressed ``pylinkage.joints`` deprecation warnings (legacy classes still
+    required for ``DynamicJoint`` inheritance).
+  - Added forward-compatible ``isinstance`` checks for new API types
+    (``Ground``, ``FixedDyad``, ``RRRDyad``) alongside legacy types.
+  - ``convert_to_dynamic_joints`` now bridges both legacy and new attribute
+    names (``joint0``/``anchor1``, ``r``/``distance``, etc.).
+  - Requires ``pylinkage>=0.8.0``.
 
 ### Fixed
 
 - Project links fixed in pyproject.toml.
-- Documentation should be directly under ``docs/`` but the recommended method was placing it in ``docs/html``.
+- Documentation should be directly under ``docs/`` but the recommended
+  method was placing it in ``docs/html``.
+
+### Removed
+
+- Removed ``setup.cfg`` (replaced by ``pyproject.toml``).
+- Removed ``setup.py`` (no longer needed with modern packaging).
+- Removed ``requirements.txt`` and ``requirements-dev.txt``
+  (dependencies now in ``pyproject.toml``).
+- Removed conda support and ``environment.yml``.
 
 ## [0.4.0] - 2023-06-21
 
 ### Added in 0.4.0
 
 - View all walkers!
-  - ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all walkers in one simulation!
+  - ``show_all_walkers`` in ``docs/examples/strider.py`` let you see all
+    walkers in one simulation!
   - You can set the color of walkers during display.
 - Genetic optimization:
-  - ``GeneticOptimization`` class in ``geneticoptimizer.py`` that will replace the previous functional paradigm.
+  - ``GeneticOptimization`` class in ``geneticoptimizer.py`` that will
+    replace the previous functional paradigm.
   - The average score is now displayed.
 - ``VisualWorld`` has a new method called ``reload_visuals``.
-- ``show_evolution.py`` is a new script plotting various data about the Walkers population's evolution during 
-genetic optimization.
-- In ``docs/examples/strider.py`` we recommend to use ``total_distance`` as the fitness function.
+- ``show_evolution.py`` is a new script plotting various data about the
+  Walkers population's evolution during genetic optimization.
+- In ``docs/examples/strider.py`` we recommend to use ``total_distance``
+  as the fitness function.
 
 ### Changed in 0.4.0
 
 - Genetic optimization:
-  - During genetic optimization, population is now stable at max_pop (it used to fluctuate a lot).
-  - Genetic optimization do no longer display all dimensions in the progress bar.
-  - ``startnstop`` argument may now be the name of the file to use (a string).
-  - ``max_genetic_distance`` was changed from 0.7 to 10. Results are much better now!
+  - During genetic optimization, population is now stable at max_pop
+    (it used to fluctuate a lot).
+  - Genetic optimization do no longer display all dimensions in the
+    progress bar.
+  - ``startnstop`` argument may now be the name of the file to use
+    (a string).
+  - ``max_genetic_distance`` was changed from 0.7 to 10.
+    Results are much better now!
 - Visuals:
-  - ``update`` method of ``VisualWorld`` replaced by ``visual_update``. It clearly separates physics and display time.
+  - ``update`` method of ``VisualWorld`` replaced by ``visual_update``.
+    It clearly separates physics and display time.
   - Frame rate and physics speed are now independent parameters.
   - Visuals go to a new file ``worldvisualizer.py``.
-  - Camera parameters should now be accessed from ``CAMERA`` instead of ``params["camera"]``.
+  - Camera parameters should now be accessed from ``CAMERA`` instead of
+    ``params["camera"]``.
   - The camera feels more cinematic.
-- You can define a custom load when using ``World.add_linkage`` or ``VisualWorld.add_linkage``. The default is 0.
-- ``pyproject.toml`` updated with the data of ``setup.cfg``. This is now the recommended metadata for the project. 
-- In ``docs/example/strider.py``, simulation time was increased from 30 seconds to 40. It was just not enough.
+- You can define a custom load when using ``World.add_linkage`` or
+  ``VisualWorld.add_linkage``. The default is 0.
+- ``pyproject.toml`` updated with the data of ``setup.cfg``.
+  This is now the recommended metadata for the project.
+- In ``docs/example/strider.py``, simulation time was increased from 30
+  seconds to 40. It was just not enough.
 
 ### Fixed in 0.4.0
 
-- Documentation of ``evolutionary_optimization_builtin`` was wrong: returned data were in order (fitness, dimensions, position),
-but (fitness, position, dimensions) was indicated.
-- After a genetic optimization, the example script was assigning wrong data to the demo walker.
-- ``kwargs_switcher`` from ``geneticoptimizer.py`` do no longer pop (destroy) argument from the input dictionary.
+- Documentation of ``evolutionary_optimization_builtin`` was wrong: returned
+  data were in order (fitness, dimensions, position), but
+  (fitness, position, dimensions) was indicated.
+- After a genetic optimization, the example script was assigning wrong data
+  to the demo walker.
+- ``kwargs_switcher`` from ``geneticoptimizer.py`` do no longer pop (destroy)
+  argument from the input dictionary.
 
 ### Deprecated in 0.4.0
 
-- ``setup.cfg`` should no longer be used, as it is replaced by ``pyproject.toml``. 
+- ``setup.cfg`` should no longer be used, as it is replaced by ``pyproject.toml``.
 
 ### Removed in 0.4.0
 
-- ``evolutionary_optimization`` function is removed. Use  ``GeneticOptimization`` class instead.
-  - You can no longer use the argument "init_pop" to change the size of the initial population. 
-  It now always set to max_pop.
-- ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of ``params["simul"]`` replaced by a unique 
-``physics_period`` set to 0.02 (s).
-- ``leggedsnake/Population evolution.json`` removed. 
-It contained data about an evolution run and is not relevant for users.
+- ``evolutionary_optimization`` function is removed.
+  Use ``GeneticOptimization`` class instead.
+  - You can no longer use the argument "init_pop" to change the size of
+    the initial population. It now always set to max_pop.
+- ``time_coef``, ``calc_rate`` and ``max_sub`` parameters of
+  ``params["simul"]`` replaced by a unique ``physics_period`` set to
+  0.02 (s).
+- ``leggedsnake/Population evolution.json`` removed. It contained data
+  about an evolution run and is not relevant for users.
 
 ## [0.3.1] - 2023-06-14
 
@@ -92,7 +163,8 @@ This file is now considered an executable.
 - ``data_descriptors`` were not save for the first line of data only in
   ``geneticoptimizer``.
 - Multiple grammar corrections.
-- The ``video`` function of ``physicsengine.py`` now effectively launches the video (no call to plt.show required).
+- The ``video`` function of ``physicsengine.py`` now effectively launches
+  the video (no call to plt.show required).
 - The ``video`` function of ``physicsengine.py`` using ``debug=True`` was crashing.
 
 ## [0.3.0-beta] - 2021-07-21

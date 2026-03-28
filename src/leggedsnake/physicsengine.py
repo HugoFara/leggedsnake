@@ -12,15 +12,60 @@ Created on Sat May 25 2019 14:56:01.
 
 @author: HugoFara
 """
+from __future__ import annotations
+
+import warnings
+from typing import Any, TypedDict
+
 import numpy as np
 import pymunk as pm
-from pylinkage.geometry import norm, cyl_to_cart, bounding_box
-from pylinkage.linkage import Static, Crank, Fixed, Pivot
+
+# Legacy joint classes used for isinstance checks in simulation loop.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+    )
+    from pylinkage import bounding_box, Static, Crank, Fixed, Pivot
+
+from pylinkage.geometry import norm, cyl_to_cart
+from pylinkage.linkage import Linkage
 
 from . import dynamiclinkage
 
+
+class GroundParams(TypedDict):
+    slope: float
+    max_step: float
+    step_freq: float
+    noise: float
+    section_len: float
+    friction: float
+
+
+class LinkageParams(TypedDict):
+    torque: float
+    crank_len: float
+    masses: float
+    load: float
+
+
+class PhysicsParams(TypedDict):
+    gravity: tuple[float, float]
+    max_force: float
+
+
+class SimulParams(TypedDict):
+    physics_period: float
+
+
+class Params(TypedDict):
+    ground: GroundParams
+    linkage: LinkageParams
+    physics: PhysicsParams
+    simul: SimulParams
+
 # Simulation parameters
-params = {
+params: Params = {
     # Ground parameters
     "ground": {
         # Nominal slope (radian)
@@ -61,18 +106,33 @@ params = {
 }
 
 
-def set_space_constraints(space):
-    """Set the solver if they are many constraints."""
+def set_space_constraints(space: pm.Space) -> None:
+    """
+    Auto-tune solver parameters based on constraint count.
+
+    More constraints require more solver iterations for stability,
+    especially when linkages make ground contact.
+    """
     constraints = space.constraints
-    len_c = len(space.constraints)
-    # Number of iterations can be adapted
-    space.iterations = int(10 * np.exp(len_c / 60))
+    len_c = len(constraints)
+    if len_c == 0:
+        return
+
+    # Scale iterations with constraint count for stability
+    # Base: 20 iterations, scaling up for complex linkages
+    # For 68 constraints: ~50 iterations
+    space.iterations = max(20, int(15 + len_c * 0.5))
+
+    # Error bias controls constraint correction rate per step
+    # Lower values = faster correction but can cause jitter
+    # Higher values = slower correction but more stable
+    # Scale: more constraints → higher error_bias (softer, more stable)
+    # For 68 constraints: ~0.2, for 100: ~0.4
+    correction_rate = 0.1 * np.exp(-len_c / 50)
+    error_bias = pow(1 - correction_rate, 60)
+
     for constraint in constraints:
-        if not isinstance(constraint, pm.SimpleMotor) and False:
-            constraint.max_force = params["physics"]["max_force"] * (
-                    np.exp(- len_c / 25) / 2 + .5
-            )
-        constraint.error_bias = (1 - .1 * np.exp(-len_c / 60)) ** 60
+        constraint.error_bias = error_bias
 
 
 class World:
@@ -83,7 +143,11 @@ class World:
     this purpose.
     """
 
-    def __init__(self, space=None, road_y=-5):
+    space: pm.Space
+    road: list[tuple[float, float]]
+    linkages: list[dynamiclinkage.DynamicLinkage]
+
+    def __init__(self, space: pm.Space | None = None, road_y: float = -5) -> None:
         """
         Initiate rigidbodies and simulation.
 
@@ -116,7 +180,9 @@ class World:
         self.space.add(seg)
         self.linkages = []
 
-    def add_linkage(self, linkage, load=0):
+    def add_linkage(
+        self, linkage: Linkage | dynamiclinkage.DynamicLinkage, load: float = 0
+    ) -> None:
         """
         Add a DynamicLinkage to the simulation.
 
@@ -144,26 +210,45 @@ class World:
         self.linkages.append(dynamic_linkage)
         for s in self.space.shapes:
             s.friction = params["ground"]["friction"]
-        # set_space_constraints(self.space)
 
-    def __update_linkage__(self, linkage, power):
+        # Auto-tune solver after adding linkage for stability
+        self.tune_solver()
+
+    def tune_solver(self) -> None:
+        """
+        Auto-tune solver parameters for stability.
+
+        Call this after adding all linkages if you experience jittery physics
+        when the mechanism contacts the ground. This increases solver iterations
+        and softens constraint correction based on the constraint count.
+        """
+        set_space_constraints(self.space)
+
+    def __update_linkage__(
+        self, linkage: dynamiclinkage.DynamicLinkage, power: float
+    ) -> tuple[float, float]:
         """Update a specific linkage."""
-        linkage_crank = next(j for j in linkage.joints if isinstance(j, Crank))
-        if (
-                linkage_crank.actuator.max_force == 0
-                and norm(linkage.body.velocity) < .1
-        ):
-            linkage_crank.actuator.max_force = params["linkage"]["torque"]
-            linkage.height = linkage.body.position.y
-            linkage.mechanical_energy = (
-                    .5 * linkage.mass * norm(linkage.body.velocity) ** 2
-            )
+        # Get all crank joints (there may be multiple for mechanisms with
+        # opposite legs or multiple independent motors)
+        linkage_cranks = [j for j in linkage.joints if isinstance(j, Crank)]
+        vel = linkage.body.velocity
+        # Check if any motor needs enabling (use first crank as reference)
+        if linkage_cranks and linkage_cranks[0].actuator.max_force == 0:
+            if norm(vel.x, vel.y) < .1:
+                # Enable ALL crank motors when linkage settles
+                for crank in linkage_cranks:
+                    crank.actuator.max_force = params["linkage"]["torque"]
+                linkage.height = linkage.body.position.y
+                linkage.mechanical_energy = (
+                        .5 * linkage.mass * norm(vel.x, vel.y) ** 2
+                )
 
         # Energy from the motor in this step
         energy = power * params["simul"]["physics_period"]
         if hasattr(linkage, 'height') and energy != 0.:
-            v = norm(linkage.body.velocity)
-            g = norm(params["physics"]["gravity"])
+            vel = linkage.body.velocity
+            v = norm(vel.x, vel.y)
+            g = norm(*params["physics"]["gravity"])
             m = linkage.mass
             new_mechanical_energy = m * (
                 .5 * v ** 2 + g * (linkage.body.position.y - linkage.height)
@@ -175,10 +260,10 @@ class World:
             return energy, efficiency
         return 0, 0
 
-    def update(self, dt=None):
+    def update(self, dt: float | None = None) -> tuple[float, float] | None:
         """
         Update simulation.
-        
+
         Parameters
         ----------
         dt : float | None
@@ -204,19 +289,19 @@ class World:
                 w -= linkage.body.angular_velocity
                 powers[i][index] += abs(w) * crank.actuator.impulse / dt
 
-        bounds = (0, 0)
-        energies = [0] * len(self.linkages)
-        efficiencies = [0] * len(self.linkages)
-        for i, linkage, power in zip(
+        bounds: tuple[float, float] = (0.0, 0.0)
+        energies: list[float] = [0.0] * len(self.linkages)
+        efficiencies: list[float] = [0.0] * len(self.linkages)
+        for idx, linkage, power in zip(
                 range(len(self.linkages)), self.linkages, powers
         ):
             recalc_linkage(linkage)
-            energies[i], efficiencies[i] = self.__update_linkage__(
+            energies[idx], efficiencies[idx] = self.__update_linkage__(
                 linkage, power[0]
             )
             bounds = (
-                min(bounds[0], *(i.x for i in linkage.joints)),
-                max(bounds[1], *(i.x for i in linkage.joints))
+                min(bounds[0], *(float(j.x) for j in linkage.joints)),
+                max(bounds[1], *(float(j.x) for j in linkage.joints))
             )
         while self.road[-1][0] < bounds[1] + 10:
             self.build_road(True)
@@ -229,8 +314,9 @@ class World:
                 self.linkages, energies, efficiencies
         ):
             return efficiency, energy * dt
+        return None
 
-    def __build_road_step__(self, ground, index):
+    def __build_road_step__(self, ground: GroundParams, index: int) -> None:
         """Add a step (two points)."""
         high = np.random.rand() * ground["max_step"]
         a = self.road[index][0], self.road[index][1] + high
@@ -249,7 +335,7 @@ class World:
         self.road.insert(-index * len(self.road), a)
         self.road.insert(-index * len(self.road), b)
 
-    def __build_road_segment__(self, ground, index):
+    def __build_road_segment__(self, ground: GroundParams, index: int) -> None:
         """Add a segment (one point)."""
         # Add noise for more chaotic terrain."""
         angle = np.random.normal(
@@ -259,13 +345,13 @@ class World:
         if not index:
             angle = np.pi - angle
         a = pm.Vec2d(*cyl_to_cart(ground["section_len"], angle,
-                                  self.road[index]))
+                                  *self.road[index]))
         s = pm.Segment(self.space.static_body, a, self.road[index], .1)
         s.friction = ground["friction"]
         self.space.add(s)
         self.road.insert(-index * len(self.road), a)
 
-    def build_road(self, positive=False):
+    def build_road(self, positive: bool = False) -> None:
         """
         Build a road part.
 
@@ -281,13 +367,15 @@ class World:
             self.__build_road_segment__(ground, -positive)
 
 
-def recalc_linkage(linkage):
+def recalc_linkage(linkage: dynamiclinkage.DynamicLinkage) -> None:
     """Assign a good position to all joints."""
     for j in linkage.joints:
         j.reload()
 
 
-def linkage_bb(linkage):
+def linkage_bb(
+    linkage: Linkage | dynamiclinkage.DynamicLinkage,
+) -> tuple[float, float, float, float]:
     """
     Return the bounding box for this linkage.
 
@@ -301,7 +389,8 @@ def linkage_bb(linkage):
     data = [i.coord() for i in linkage.joints]
     if isinstance(linkage, dynamiclinkage.DynamicLinkage):
         data.extend(tuple(i.position) for i in linkage.rigidbodies)
-    return bounding_box(data)
+    bbox = bounding_box(data)
+    return (float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3]))
 
 
 if __name__ == "__main__":

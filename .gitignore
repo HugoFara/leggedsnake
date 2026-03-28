@@ -1,6 +1,6 @@
 # Data from optimizer
 leggedsnake/*.txt
-leggedsnake/Population evolution*.json
+**/Population evolution*.json
 # Project generate several videos
 *.mp4
 

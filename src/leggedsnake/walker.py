@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+The walker module gives a simple interface between a generic linkage and a Walker.
+
+A generic linkage should be understood as a pylinkage.linkage.Linkage. Thus a
+Walker is a kinematic mechanism (not dynamic).
+
+Created on Thu Jun 10 2021 21:13:12.
+
+@author: HugoFara
+"""
+from __future__ import annotations
+
+import warnings
+from math import tau
+
+import pylinkage.linkage as lk
+
+# Legacy joint classes required for construction and isinstance checks.
+# Suppress pylinkage 0.8.0 deprecation until full migration to new API.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+    )
+    from pylinkage import Static, Crank, Fixed, Pivot, Revolute
+    from pylinkage.joints.joint import Joint
+
+
+class Walker(lk.Linkage):  # type: ignore[misc]
+    """A Walker, or a leg mechanism is a Linkage with some useful methods.
+
+    Attributes
+    ----------
+    motor_rate : float
+        Motor angular velocity in rad/s for dynamic simulation.
+        Positive = counterclockwise, negative = clockwise.
+        Default is -4.0 rad/s (~38 RPM clockwise, typical walking speed).
+        This is separate from the kinematic angle used for stepping.
+    """
+
+    motor_rate: float = -4.0  # Default walking speed in rad/s
+
+    def add_legs(self, number: int = 2) -> None:
+        """
+        Add legs to a linkage, mostly for a dynamic simulation.
+
+        The leg is a subset a joints whose position inherits from a crank.
+
+        Parameters
+        ----------
+        number : int, optional
+            Number of legs to add. The default is 2.
+
+        Returns
+        -------
+        None.
+
+        """
+        new_joints: list[Joint] = []
+        iterations_factor = int(12 / (number + 1)) + 1
+        # We use at least 12 steps to avoid bad initial positions
+        new_positions = tuple(
+            self.step(
+                (number + 1) * iterations_factor,
+                self.get_rotation_period() / (number + 1) / iterations_factor
+            )
+        )[iterations_factor - 1:-1:iterations_factor]
+        # Because we have per-leg iterations,
+        # we have to save crank information
+        crank_memory: dict[Joint, Joint] = dict(zip(self._cranks, self._cranks))
+        # For each leg
+        for i, positions in enumerate(new_positions):
+            equiv: dict[Joint | None, Joint | None] = {None: None}
+            # For each new joint
+            new_j: Joint
+            for pos, j in zip(positions, self._solve_order):
+                if isinstance(j.joint0, Static) and j.joint0 not in equiv:
+                    equiv[j.joint0] = j.joint0
+                common: dict[str, float | Joint | None | str] = {
+                    'x': pos[0], 'y': pos[1],
+                    'joint0': equiv[j.joint0],
+                    'name': j.name + ' ({})'.format(i)
+                }
+                if isinstance(j, Static):
+                    new_j = j
+                elif isinstance(j, Crank):
+                    common['joint1'] = crank_memory[j]
+                    new_j = Fixed(
+                        **common,
+                        distance=j.r,
+                        angle=tau / (number + 1)
+                    )
+                    crank_memory[j] = new_j
+                    new_joints.append(new_j)
+                else:
+                    # Static joints not always included in joints
+                    if isinstance(j.joint1, Static) and j.joint1 not in equiv:
+                        equiv[j.joint1] = j.joint1
+                    common['joint1'] = equiv[j.joint1]
+
+                    if isinstance(j, Fixed):
+                        new_j = Fixed(
+                            **common,
+                            distance=j.r, angle=j.angle
+                        )
+                    elif isinstance(j, Revolute):
+                        new_j = Revolute(
+                            **common,
+                            distance0=j.r0, distance1=j.r1
+                        )
+                    new_joints.append(new_j)
+                equiv[j] = new_j
+        self.joints += tuple(new_joints)
+        self._solve_order += tuple(new_joints)
+
+    def get_foots(self) -> list[Joint]:
+        """
+        Return the list of foot joints, joints that should be used as foots.
+
+        Formally, they are joints without children; their positions do not
+        influence other joints.
+
+        Returns
+        -------
+        candidates : list
+            List of terminal joints, feet.
+
+        """
+        candidates = list(self.joints)
+        for j in self.joints:
+            if j.joint0 in candidates:
+                candidates.remove(j.joint0)
+            if hasattr(j, 'joint1') and j.joint1 in candidates:
+                candidates.remove(j.joint1)
+        return candidates
+
+    def add_opposite_leg(self, axis_x: float = 0.0) -> None:
+        """
+        Create an opposite (antisymmetric) copy of the leg across a vertical axis.
+
+        This creates a contralateral leg on the opposite side of the body,
+        commonly used in bipedal and quadrupedal walking mechanisms.
+        The opposite leg has its X-coordinates reflected and angles negated
+        to produce a geometrically antisymmetric version.
+
+        Unlike add_legs() which creates phase-offset copies along the same axis,
+        add_opposite_leg() creates a copy on the opposite side of the body.
+
+        Parameters
+        ----------
+        axis_x : float, optional
+            X-coordinate of the vertical mirror axis. The default is 0.0,
+            which mirrors across the Y-axis.
+
+        Returns
+        -------
+        None.
+
+        Examples
+        --------
+        >>> walker = create_single_leg_linkage()
+        >>> walker.add_opposite_leg()  # Creates left/right leg pair
+        >>> walker.add_legs(1)   # Add phase-offset copies of both legs
+        """
+        new_joints: list[Joint] = []
+        new_cranks: list[Crank] = []
+        # Map original joints to their mirrored counterparts
+        equiv: dict[Joint | None, Joint | None] = {None: None}
+        # Tolerance for detecting joints on the mirror axis
+        axis_tolerance = 1e-9
+
+        for j in self._solve_order:
+            # Mirror X coordinate across the axis
+            mirrored_x = 2 * axis_x - j.x
+
+            common: dict[str, float | Joint | None | str] = {
+                'x': mirrored_x,
+                'y': j.y,
+                'joint0': equiv.get(j.joint0, j.joint0),
+                'name': j.name + ' (opposite)'
+            }
+
+            if isinstance(j, Static):
+                # Static joints on the axis are shared; don't duplicate
+                if abs(j.x - axis_x) < axis_tolerance:
+                    equiv[j] = j
+                    continue
+                # Create opposite copy for off-axis static joints
+                new_j = Static(
+                    x=mirrored_x, y=j.y,
+                    name=j.name + ' (opposite)'
+                )
+                # Preserve drawing linkage
+                if hasattr(j, 'joint0') and j.joint0 is not None:
+                    new_j.joint0 = equiv.get(j.joint0, j.joint0)
+                new_joints.append(new_j)
+            elif isinstance(j, Crank):
+                # Use Fixed joint to share the motor with the original crank
+                # (models a common shaft connecting both sides)
+                # angle=tau/2 (180°) creates phase opposition for stable gait
+                new_j = Fixed(
+                    x=mirrored_x,
+                    y=j.y,
+                    joint0=equiv.get(j.joint0, j.joint0),  # Ground
+                    joint1=j,  # Original crank - creates mechanical link
+                    distance=j.r,
+                    angle=tau / 2,  # 180° phase opposition
+                    name=j.name + ' (opposite)'
+                )
+                new_joints.append(new_j)
+                # Don't add to new_cranks - Fixed joints share the original motor
+            elif isinstance(j, Fixed):
+                # Mirror angle by negating it
+                common['joint1'] = equiv.get(j.joint1, j.joint1)
+                new_j = Fixed(
+                    **common,
+                    distance=j.r,
+                    angle=-j.angle  # Negate angle for antisymmetric effect
+                )
+                new_joints.append(new_j)
+            elif isinstance(j, Revolute):
+                common['joint1'] = equiv.get(j.joint1, j.joint1)
+                new_j = Revolute(
+                    **common,
+                    distance0=j.r0,
+                    distance1=j.r1
+                )
+                new_joints.append(new_j)
+            else:
+                # Unknown joint type, skip
+                continue
+
+            equiv[j] = new_j
+
+        self.joints += tuple(new_joints)
+        self._solve_order += tuple(new_joints)
+        # Also update cranks list for compatibility with add_legs
+        self._cranks = tuple(list(self._cranks) + new_cranks)
+
+    # Backwards compatibility alias
+    mirror_leg = add_opposite_leg
