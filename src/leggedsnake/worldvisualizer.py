@@ -5,6 +5,7 @@ Uses Pyglet for hardware-accelerated rendering with pymunk integration.
 """
 from __future__ import annotations
 
+import warnings
 from typing import Any, TypedDict
 
 import numpy as np
@@ -15,7 +16,14 @@ from pyglet.window import key
 import pymunk as pm
 import pymunk.pyglet_util
 from pymunk import Space
-from pylinkage import Static, Crank, Fixed, Pivot
+
+# Legacy joint classes used for isinstance-based color mapping.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+    )
+    from pylinkage import Static, Crank, Fixed, Pivot
+
 from pylinkage.linkage import Linkage
 
 from . import physicsengine as pe

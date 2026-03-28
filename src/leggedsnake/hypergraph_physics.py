@@ -9,14 +9,13 @@ a rigid body (bar), and nodes where multiple bodies meet get PivotJoint constrai
 """
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 import pymunk as pm
+from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole
-
-if TYPE_CHECKING:
-    from pylinkage.hypergraph import Node
 
 
 @dataclass
@@ -47,11 +46,12 @@ class PhysicsMapping:
     motor_pivots: list[pm.PivotJoint] = field(default_factory=list)
 
 
-def _get_node_position(node: Node) -> pm.Vec2d:
-    """Get node position as Vec2d, handling None values."""
-    x = node.position[0] if node.position[0] is not None else 0.0
-    y = node.position[1] if node.position[1] is not None else 0.0
-    return pm.Vec2d(x, y)
+def _get_node_position(node_id: str, dimensions: Dimensions) -> pm.Vec2d:
+    """Get node position as Vec2d from Dimensions, defaulting to (0, 0)."""
+    pos = dimensions.get_node_position(node_id)
+    if pos is None:
+        return pm.Vec2d(0.0, 0.0)
+    return pm.Vec2d(pos[0], pos[1])
 
 
 def _create_segment(
@@ -110,7 +110,12 @@ def _find_effective_ground_nodes(
     set[str]
         Set of node IDs that should be treated as ground nodes.
     """
-    from pylinkage import Static, Fixed
+    # Import legacy classes with deprecation suppressed
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+        )
+        from pylinkage import Static, Fixed
 
     # Start with explicit ground nodes
     effective_ground: set[str] = {node.id for node in hg.ground_nodes()}
@@ -185,7 +190,11 @@ def _find_rigid_triangles(
     Returns a list of edge ID sets, where each set contains edges
     that should be merged into a single body.
     """
-    from pylinkage import Fixed
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+        )
+        from pylinkage import Fixed
 
     if joints is None:
         return []
@@ -272,6 +281,7 @@ def _merge_overlapping_sets(sets: list[set[str]]) -> list[set[str]]:
 
 def create_bodies_from_hypergraph(
     hg: HypergraphLinkage,
+    dimensions: Dimensions,
     space: pm.Space,
     load_body: pm.Body,
     density: float,
@@ -290,6 +300,8 @@ def create_bodies_from_hypergraph(
     ----------
     hg : HypergraphLinkage
         The hypergraph representation of the linkage.
+    dimensions : Dimensions
+        Geometric data (positions, distances, angles) for the hypergraph.
     space : pm.Space
         The pymunk space to add bodies to.
     load_body : pm.Body
@@ -319,9 +331,8 @@ def create_bodies_from_hypergraph(
 
     # Initialize effective ground nodes with load_body
     for node_id in effective_ground:
-        node = hg.nodes[node_id]
         mapping.node_to_bodies.setdefault(node_id, set()).add(load_body)
-        pos = _get_node_position(node)
+        pos = _get_node_position(node_id, dimensions)
         mapping.node_to_anchors.setdefault(node_id, {})[load_body] = (
             load_body.world_to_local(pos)
         )
@@ -343,8 +354,8 @@ def create_bodies_from_hypergraph(
         source_is_ground = edge.source in effective_ground
         target_is_ground = edge.target in effective_ground
 
-        source_pos = _get_node_position(hg.nodes[edge.source])
-        target_pos = _get_node_position(hg.nodes[edge.target])
+        source_pos = _get_node_position(edge.source, dimensions)
+        target_pos = _get_node_position(edge.target, dimensions)
 
         if source_is_ground and target_is_ground:
             # Both endpoints are ground - add segment to load_body
@@ -368,7 +379,7 @@ def create_bodies_from_hypergraph(
                     triangle_nodes.add(te.target)
 
                 # Calculate center of mass
-                positions = [_get_node_position(hg.nodes[n]) for n in triangle_nodes]
+                positions = [_get_node_position(n, dimensions) for n in triangle_nodes]
                 center = sum(positions, pm.Vec2d(0, 0)) / len(positions)
 
                 body = pm.Body()
@@ -422,16 +433,17 @@ def create_bodies_from_hypergraph(
             )
 
     # Create pivot constraints at shared nodes
-    _create_pivot_constraints(hg, mapping, space, effective_ground, load_body)
+    _create_pivot_constraints(hg, dimensions, mapping, space, effective_ground, load_body)
 
     # Create motors for driver nodes
-    _create_motor_constraints(hg, mapping, space, load_body, motor_rate)
+    _create_motor_constraints(hg, dimensions, mapping, space, load_body, motor_rate)
 
     return mapping
 
 
 def _create_pivot_constraints(
     hg: HypergraphLinkage,
+    dimensions: Dimensions,
     mapping: PhysicsMapping,
     space: pm.Space,
     effective_ground: set[str],
@@ -447,7 +459,7 @@ def _create_pivot_constraints(
         if len(bodies) < 2:
             continue
 
-        node_pos = _get_node_position(hg.nodes[node_id])
+        node_pos = _get_node_position(node_id, dimensions)
 
         # Use chain topology to avoid over-constraining
         body_list = list(bodies)
@@ -470,6 +482,7 @@ def _create_pivot_constraints(
 
 def _create_motor_constraints(
     hg: HypergraphLinkage,
+    dimensions: Dimensions,
     mapping: PhysicsMapping,
     space: pm.Space,
     load_body: pm.Body,
@@ -484,6 +497,8 @@ def _create_motor_constraints(
     ----------
     hg : HypergraphLinkage
         The hypergraph representation.
+    dimensions : Dimensions
+        Geometric data for the linkage.
     mapping : PhysicsMapping
         The physics mapping to update.
     space : pm.Space
@@ -491,8 +506,8 @@ def _create_motor_constraints(
     load_body : pm.Body
         The frame/chassis body.
     motor_rate : float | None
-        Motor angular velocity in rad/s. If None, falls back to node angle
-        (not recommended - that's the kinematic step size, not motor rate).
+        Motor angular velocity in rad/s. If None, falls back to driver
+        angular velocity from dimensions (not recommended).
     """
     for driver_node in hg.driver_nodes():
         driver_id = driver_node.id
@@ -519,12 +534,13 @@ def _create_motor_constraints(
             # Crank edge might be entirely on load_body (both ends ground)
             continue
 
-        # Create motor - use provided motor_rate, or fall back to node angle
-        # Note: node.angle is the kinematic step size, not an ideal motor rate
+        # Create motor - use provided motor_rate, or fall back to driver angle
+        # Note: driver angular_velocity is the kinematic step size, not an ideal motor rate
         if motor_rate is not None:
             rate = motor_rate
         else:
-            rate = driver_node.angle if driver_node.angle is not None else 0.0
+            driver_angle = dimensions.get_driver_angle(driver_id)
+            rate = driver_angle.angular_velocity if driver_angle is not None else 0.0
         motor = pm.SimpleMotor(driver_body, load_body, rate)
         space.add(motor)
         mapping.motors.append(motor)

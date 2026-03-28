@@ -12,15 +12,27 @@ Created on Thu Jun 10 20:35:00 2021
 """
 from __future__ import annotations
 
-# Pylinkage is a sister project and some kind of backend for leggedsnake
+import warnings
+
+# Pylinkage is a sister project and some kind of backend for leggedsnake.
+# pylinkage 0.8.0 deprecated the joints module in favor of components/actuators/dyads.
+# leggedsnake still requires legacy joint classes for DynamicJoint inheritance;
+# suppress the deprecation warning until the dynamic layer is fully migrated.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+    )
+    from pylinkage import (
+        Crank,
+        Fixed,
+        Pivot,  # Deprecated, use Revolute instead
+        Revolute,
+        Static,
+    )
+
 from pylinkage import (
-    Crank,
-    Fixed,
     HypostaticError,
     Linkage,
-    Pivot,  # Deprecated, use Revolute instead
-    Revolute,
-    Static,
     UnbuildableError,
     bounding_box,
     generate_bounds,
@@ -30,6 +42,10 @@ from pylinkage import (
     show_linkage,
     trials_and_errors_optimization,
 )
+
+# New pylinkage 0.8.0 API re-exports for forward compatibility
+from pylinkage.components import Ground
+from pylinkage.dyads import FixedDyad, RRRDyad
 
 from .dynamiclinkage import (
     DynamicLinkage,
@@ -55,7 +71,7 @@ from .worldvisualizer import (
 __version__ = "0.4.0"
 
 __all__ = [
-    # pylinkage re-exports
+    # pylinkage re-exports (legacy joint names)
     "bounding_box",
     "generate_bounds",
     "Static",
@@ -71,6 +87,10 @@ __all__ = [
     "UnbuildableError",
     "HypostaticError",
     "show_linkage",
+    # pylinkage 0.8.0 new API re-exports
+    "Ground",
+    "FixedDyad",
+    "RRRDyad",
     # utility
     "step",
     "stride",

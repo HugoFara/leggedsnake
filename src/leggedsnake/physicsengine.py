@@ -14,11 +14,19 @@ Created on Sat May 25 2019 14:56:01.
 """
 from __future__ import annotations
 
+import warnings
 from typing import Any, TypedDict
 
 import numpy as np
 import pymunk as pm
-from pylinkage import bounding_box, Static, Crank, Fixed, Pivot
+
+# Legacy joint classes used for isinstance checks in simulation loop.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+    )
+    from pylinkage import bounding_box, Static, Crank, Fixed, Pivot
+
 from pylinkage.geometry import norm, cyl_to_cart
 from pylinkage.linkage import Linkage
 

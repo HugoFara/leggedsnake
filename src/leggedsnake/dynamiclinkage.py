@@ -12,17 +12,26 @@ DynamicLinkage from a pylinkage.Linkage.
 from __future__ import annotations
 
 import abc
+import warnings
 from math import atan2
 from typing import TYPE_CHECKING, Any
 
 import pymunk as pm
-from pylinkage import (
-    Crank, Fixed, Linkage, Pivot, Static, UnbuildableError
-)
+
+# Legacy joint classes required for DynamicJoint inheritance (Nail, PinUp,
+# DynamicPivot, Motor all extend these).  Suppress pylinkage 0.8.0 deprecation.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+    )
+    from pylinkage import (
+        Crank, Fixed, Linkage, Pivot, Static, UnbuildableError
+    )
+    from pylinkage.joints.joint import Joint
+
 from pylinkage.geometry import cyl_to_cart
 from pylinkage.geometry.core import dist
 from pylinkage.hypergraph import NodeRole, from_linkage
-from pylinkage.joints.joint import Joint
 
 from .hypergraph_physics import (
     PhysicsMapping,
@@ -648,7 +657,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         'joint_to_rigidbodies', 'rigidbodies', 'body', 'height',
         'mechanical_energy', 'mass', 'space', 'density',
         '_thickness', 'filter', '_cranks', 'joints', '_physics_mapping',
-        '_hypergraph'
+        '_hypergraph', '_dimensions'
     ]
 
     joint_to_rigidbodies: list[list[pm.Body] | None]
@@ -665,6 +674,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
     joints: tuple[DynamicJoint, ...]
     _physics_mapping: PhysicsMapping
     _hypergraph: HypergraphLinkage
+    _dimensions: Any  # pylinkage.dimensions.Dimensions
 
     def __init__(
         self,
@@ -719,12 +729,14 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         self.body = load_body
 
         # Convert kinematic linkage to hypergraph representation
-        self._hypergraph = from_linkage(self)
+        # pylinkage 0.8.0: from_linkage returns (HypergraphLinkage, Dimensions)
+        self._hypergraph, self._dimensions = from_linkage(self)
 
         # Generate physics bodies from hypergraph
         # Pass original joints to detect Fixed joints with static parents
         self._physics_mapping = create_bodies_from_hypergraph(
             self._hypergraph,
+            self._dimensions,
             space,
             load_body,
             density,
@@ -767,13 +779,14 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
         """
         wrapped_joints: list[DynamicJoint] = []
         hg = self._hypergraph
+        dims = self._dimensions
         mapping = self._physics_mapping
 
         for node_id, node in hg.nodes.items():
-            # Get position and bodies for this node
-            pos = node.position
-            x = pos[0] if pos[0] is not None else 0.0
-            y = pos[1] if pos[1] is not None else 0.0
+            # Get position from dimensions (topology/geometry split in 0.8.0)
+            pos = dims.get_node_position(node_id)
+            x = pos[0] if pos is not None else 0.0
+            y = pos[1] if pos is not None else 0.0
             bodies = mapping.node_to_bodies.get(node_id, set())
             anchors = mapping.node_to_anchors.get(node_id, {})
 
@@ -804,10 +817,13 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
                             motor_idx = i
                             break
 
+                driver_angle = dims.get_driver_angle(node_id)
+                driver_dist = driver_angle.angular_velocity if driver_angle else 1.0
+                driver_ang = driver_angle.angular_velocity if driver_angle else 0.0
                 djoint = Motor(
                     joint0=wrapped_joints[0] if wrapped_joints else None,
-                    distance=node.angle if node.angle else 1.0,
-                    angle=node.angle if node.angle else 0.0,
+                    distance=driver_dist,
+                    angle=driver_ang,
                     **common,
                 )
                 # Attach the existing motor and pivot from mapping

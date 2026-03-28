@@ -69,6 +69,9 @@ include = ["leggedsnake*"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 
+[tool.uv.sources]
+pylinkage = { path = "../pylinkage", editable = true }
+
 [tool.uv]
 dev-dependencies = [
     "sphinx>=6.2.1",

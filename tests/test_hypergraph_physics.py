@@ -49,10 +49,10 @@ class TestCreateBodiesFromHypergraph(unittest.TestCase):
         crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
 
         linkage = Linkage(joints=(base, crank), name="simple_crank")
-        hg = from_linkage(linkage)
+        hg, dims = from_linkage(linkage)
 
         mapping = create_bodies_from_hypergraph(
-            hg, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
         )
 
         # Should have one edge (base -> crank) which creates one body
@@ -79,10 +79,10 @@ class TestCreateBodiesFromHypergraph(unittest.TestCase):
         )
 
         linkage = Linkage(joints=(base, crank, follower, output), name="fourbar")
-        hg = from_linkage(linkage)
+        hg, dims = from_linkage(linkage)
 
         mapping = create_bodies_from_hypergraph(
-            hg, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
         )
 
         # Should have edges for each bar connection
@@ -103,10 +103,10 @@ class TestCreateBodiesFromHypergraph(unittest.TestCase):
         )
 
         linkage = Linkage(joints=(base, crank, follower), name="test")
-        hg = from_linkage(linkage)
+        hg, dims = from_linkage(linkage)
 
         mapping = create_bodies_from_hypergraph(
-            hg, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
         )
 
         # Should have pivot constraints where multiple bodies meet
@@ -119,10 +119,10 @@ class TestCreateBodiesFromHypergraph(unittest.TestCase):
         crank = Crank(1, 0, joint0=base, distance=1, angle=0.5, name="crank")
 
         linkage = Linkage(joints=(base, crank), name="test")
-        hg = from_linkage(linkage)
+        hg, dims = from_linkage(linkage)
 
         mapping = create_bodies_from_hypergraph(
-            hg, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
         )
 
         # Should have a motor for the crank
@@ -145,10 +145,10 @@ class TestGetNodeWorldPosition(unittest.TestCase):
         crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
 
         linkage = Linkage(joints=(base, crank), name="test")
-        hg = from_linkage(linkage)
+        hg, dims = from_linkage(linkage)
 
         mapping = create_bodies_from_hypergraph(
-            hg, space, load_body, density=1, thickness=0.1, shape_filter=None
+            hg, dims, space, load_body, density=1, thickness=0.1, shape_filter=None
         )
 
         # Get position of base node

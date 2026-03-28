@@ -12,11 +12,19 @@ Created on Thu Jun 10 2021 21:13:12.
 """
 from __future__ import annotations
 
+import warnings
 from math import tau
 
 import pylinkage.linkage as lk
-from pylinkage import Static, Crank, Fixed, Pivot, Revolute
-from pylinkage.joints.joint import Joint
+
+# Legacy joint classes required for construction and isinstance checks.
+# Suppress pylinkage 0.8.0 deprecation until full migration to new API.
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
+    )
+    from pylinkage import Static, Crank, Fixed, Pivot, Revolute
+    from pylinkage.joints.joint import Joint
 
 
 class Walker(lk.Linkage):  # type: ignore[misc]
