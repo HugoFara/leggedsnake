@@ -15,12 +15,15 @@ from __future__ import annotations
 import os.path
 import json
 import multiprocessing as mp
+from collections.abc import Sequence
 from typing import Any, Callable, TypeAlias
 
 import numpy as np
 import numpy.random as nprand
 # Progress bar
 import tqdm
+
+from pylinkage.optimization.collections import Agent
 
 # Type aliases for DNA structure
 # DNA format: [fitness_score, dimensions_list, coordinates_list]
@@ -311,7 +314,7 @@ class GeneticOptimization:
         sorted_pop = sorted(self.pop, key=lambda x: x[0], reverse=True)
         return sorted_pop[:self.max_pop]
 
-    def run(self, iters: int, processes: int = 1) -> Population:
+    def run(self, iters: int, processes: int = 1) -> list[Agent]:
         """
         Optimization by genetic algorithm (GA).
 
@@ -324,9 +327,10 @@ class GeneticOptimization:
 
         Returns
         -------
-        list[float, tuple[float], tuple[tuple[float]]]
-            List of 3-tuples: best score, best dimensions and initial positions.
-            The list is sorted by score order.
+        list[Agent]
+            List of Agent(score, dimensions, init_positions) sorted by
+            score in descending order. Compatible with pylinkage's
+            chain_optimizers pipeline.
         """
 
         max_genetic_dist = kwargs_switcher('max_genetic_dist', self.kwargs, 10)
@@ -389,7 +393,109 @@ class GeneticOptimization:
                 processes=processes
             )
 
-        # Return (fitness, dimensions, initial positions)
-        out = [dna for dna in self.pop]
-        out.sort(key=lambda x: x[0], reverse=True)
-        return out
+        # Return as Agent namedtuples, sorted by score descending
+        sorted_pop = sorted(self.pop, key=lambda x: x[0], reverse=True)
+        return [
+            Agent(score=dna[0], dimensions=dna[1], init_positions=dna[2])
+            for dna in sorted_pop
+        ]
+
+
+def genetic_algorithm_optimization(
+    eval_func: Callable[..., float],
+    linkage: Any,
+    center: Sequence[float] | None = None,
+    bounds: tuple[Sequence[float], Sequence[float]] | None = None,
+    order_relation: Callable[[float, float], float] = max,
+    max_pop: int = 30,
+    iters: int = 100,
+    prob: float = 0.07,
+    max_genetic_dist: float = 10.0,
+    processes: int = 1,
+    startnstop: str | bool = False,
+    verbose: bool = True,
+    **kwargs: Any,
+) -> list[Agent]:
+    """Genetic algorithm optimization with the standard pylinkage interface.
+
+    This wrapper bridges leggedsnake's ``GeneticOptimization`` to pylinkage's
+    optimizer contract, making it usable with ``chain_optimizers`` and
+    interchangeable with PSO, DE, etc.
+
+    The evaluation function receives ``(linkage, dimensions, init_positions)``
+    and returns a scalar score — exactly like pylinkage optimizers.
+
+    Parameters
+    ----------
+    eval_func : callable
+        Evaluation function with signature
+        ``(linkage, dimensions, init_positions) -> float``.
+    linkage : Linkage
+        The linkage to optimize.
+    center : sequence of float, optional
+        Initial dimensions. If *None*, read from ``linkage``.
+        ``chain_optimizers`` injects the previous stage's best here.
+    bounds : tuple of (lower, upper), optional
+        Not directly used by the GA, but accepted for API compatibility.
+        When provided, initial random children are clamped to these bounds.
+    order_relation : callable, optional
+        ``max`` (default) for maximization, ``min`` for minimization.
+    max_pop : int
+        Maximum population size. Default 30.
+    iters : int
+        Number of generations. Default 100.
+    prob : float
+        Mutation standard deviation. Default 0.07.
+    max_genetic_dist : float
+        Speciation threshold. Default 10.0.
+    processes : int
+        Number of parallel processes for evaluation. Default 1.
+    startnstop : str or bool
+        Path to checkpoint file, or False to disable. Default False.
+    verbose : bool
+        Show progress bar. Default True.
+
+    Returns
+    -------
+    list[Agent]
+        Population sorted by score (best first), as ``Agent`` namedtuples.
+    """
+    minimize = order_relation is min
+    dims = list(center) if center is not None else linkage.get_num_constraints()
+    init_pos = list(linkage.get_coords())
+
+    # Bridge eval_func from pylinkage's (linkage, dims, pos) -> float
+    # to GeneticOptimization's (dna, linkage) -> (score, positions) contract.
+    def _ga_fitness(dna: DNA, lk: Any) -> tuple[float, list[Any]]:
+        lk.set_num_constraints(dna[1])
+        lk.set_coords(dna[2])
+        raw_score = eval_func(lk, dna[1], dna[2])
+        score = -raw_score if minimize else raw_score
+        return score, list(lk.get_coords())
+
+    # Seed DNA
+    seed_score = eval_func(linkage, dims, init_pos)
+    if minimize:
+        seed_score = -seed_score
+    dna: DNA = [seed_score, list(dims), list(init_pos)]
+
+    optimizer = GeneticOptimization(
+        dna=dna,
+        fitness=_ga_fitness,
+        prob=prob,
+        max_pop=max_pop,
+        max_genetic_dist=max_genetic_dist,
+        startnstop=startnstop,
+        fitness_args=(linkage,),
+        verbose=1 if verbose else 0,
+    )
+    results = optimizer.run(iters, processes=processes)
+
+    if minimize:
+        # Flip scores back to original sign
+        results = [
+            Agent(score=-a.score, dimensions=a.dimensions, init_positions=a.init_positions)
+            for a in results
+        ]
+        results.sort(key=lambda a: a.score)
+    return results

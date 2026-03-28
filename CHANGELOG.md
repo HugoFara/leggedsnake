@@ -13,9 +13,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using `uv` instead of raw Python.
 - Re-exports of pylinkage 0.8.0 new API classes: ``Ground``, ``FixedDyad``,
   ``RRRDyad``.
+- Re-exports of pylinkage optimization pipeline:
+  - ``Agent``, ``MutableAgent`` return types for uniform optimizer output.
+  - ``differential_evolution_optimization`` (scipy DE).
+  - ``dual_annealing_optimization`` (scipy SA).
+  - ``minimize_linkage`` (scipy local methods: Nelder-Mead, L-BFGS-B, etc.).
+  - ``chain_optimizers`` for multi-stage pipelines (e.g. PSO → DE → polish).
+  - ``multi_objective_optimization`` (NSGA-II/III via pymoo).
+  - ``ParetoFront``, ``ParetoSolution``, ``OptimizationProgress`` types.
+  - Async variants: ``*_async`` for DE, minimize, PSO, and grid search.
+- ``genetic_algorithm_optimization``: standard-signature wrapper for the
+  built-in GA, compatible with ``chain_optimizers`` (accepts ``center``
+  parameter, returns ``list[Agent]``).
+- New ``walking_objectives`` module with factory functions for multi-objective
+  walking optimization:
+  - ``stride_length_objective``: fast kinematic stride evaluation.
+  - ``energy_efficiency_objective``: physics-based efficiency metric.
+  - ``total_distance_objective``: physics-based distance metric.
+  - ``multi_objective_walking_optimization``: convenience wrapper for
+    NSGA-II/III with walking-specific objectives.
 
 ### Changed
 
+- ``GeneticOptimization.run()`` now returns ``list[Agent]`` instead of raw
+  lists. Existing index-based access (``result[0][0]``) still works since
+  ``Agent`` is a ``NamedTuple``; new code should use ``.score``,
+  ``.dimensions``, ``.init_positions``.
+- ``examples/strider.py`` updated with ``chained_optimizer()`` demonstrating
+  PSO → DE pipeline via ``chain_optimizers``.
 - ``examples/`` is now in the main folder. It was in ``docs/`` previously.
 - Minimum Python version is now 3.10 (was 3.7).
 - Support for Python 3.12, 3.13, and 3.14.

@@ -42,6 +42,22 @@ from pylinkage import (
     show_linkage,
     trials_and_errors_optimization,
 )
+from pylinkage.optimization import (
+    chain_optimizers,
+    differential_evolution_optimization,
+    dual_annealing_optimization,
+    minimize_linkage,
+    multi_objective_optimization,
+    OptimizationProgress,
+    ParetoFront,
+    ParetoSolution,
+    # Async variants
+    differential_evolution_optimization_async,
+    minimize_linkage_async,
+    particle_swarm_optimization_async,
+    trials_and_errors_optimization_async,
+)
+from pylinkage.optimization.collections import Agent, MutableAgent
 
 # New pylinkage 0.8.0 API re-exports for forward compatibility
 from pylinkage.components import Ground
@@ -55,8 +71,14 @@ from .dynamiclinkage import (
     PinUp,
     convert_to_dynamic_linkage,
 )
-from .geneticoptimizer import GeneticOptimization
+from .geneticoptimizer import GeneticOptimization, genetic_algorithm_optimization
 from .physicsengine import World, params
+from .walking_objectives import (
+    energy_efficiency_objective,
+    multi_objective_walking_optimization,
+    stride_length_objective,
+    total_distance_objective,
+)
 from .show_evolution import load_data, show_genetic_optimization
 from .utility import step, stride
 from .walker import Walker
@@ -91,6 +113,22 @@ __all__ = [
     "Ground",
     "FixedDyad",
     "RRRDyad",
+    # pylinkage optimization (new)
+    "Agent",
+    "MutableAgent",
+    "chain_optimizers",
+    "differential_evolution_optimization",
+    "dual_annealing_optimization",
+    "minimize_linkage",
+    "multi_objective_optimization",
+    "OptimizationProgress",
+    "ParetoFront",
+    "ParetoSolution",
+    # Async optimization variants
+    "differential_evolution_optimization_async",
+    "minimize_linkage_async",
+    "particle_swarm_optimization_async",
+    "trials_and_errors_optimization_async",
     # utility
     "step",
     "stride",
@@ -98,6 +136,7 @@ __all__ = [
     "Walker",
     # geneticoptimizer
     "GeneticOptimization",
+    "genetic_algorithm_optimization",
     # dynamiclinkage
     "Nail",
     "PinUp",
@@ -114,6 +153,11 @@ __all__ = [
     "video_debug",
     "VisualWorld",
     "CAMERA",
+    # walking_objectives
+    "stride_length_objective",
+    "energy_efficiency_objective",
+    "total_distance_objective",
+    "multi_objective_walking_optimization",
     # show_evolution
     "load_data",
     "show_genetic_optimization",

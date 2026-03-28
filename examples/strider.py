@@ -611,9 +611,9 @@ def efficiency(dna):
 
 
 def evolutive_optimizer(
-        linkage, 
+        linkage,
         dims=DIMENSIONS,
-        prev=None, 
+        prev=None,
         pop=10,
         iters=10,
         startnstop=False,
@@ -641,9 +641,8 @@ def evolutive_optimizer(
 
     Returns
     -------
-    list
-        List of optimized linkages with dimensions, score and initial
-        positions.
+    list[Agent]
+        List of Agent(score, dimensions, init_positions), sorted by score.
 
     """
     linkage.rebuild(prev)
@@ -652,7 +651,7 @@ def evolutive_optimizer(
     dna = [0, list(dims), list(linkage.get_coords())]
     dna[0] = fitness_function(dna)
     optimizer = ls.GeneticOptimization(
-        dna=dna, 
+        dna=dna,
         prob=.07,
         fitness=fitness_function,
         max_pop=pop,
@@ -660,6 +659,52 @@ def evolutive_optimizer(
         gui=gui
     )
     return optimizer.run(iters, processes=4)
+
+
+def chained_optimizer(linkage, dims=DIMENSIONS, prev=None):
+    """
+    Two-stage optimization: PSO for kinematic exploration, then DE to refine.
+
+    This demonstrates pylinkage's chain_optimizers pipeline, where each stage
+    feeds its best result to the next automatically.
+
+    Parameters
+    ----------
+    linkage : Linkage
+        Linkage to optimize.
+    dims : sequence of floats
+        Initial dimensions.
+    prev : tuple of 2-tuples of float, optional
+        Initial positions.
+
+    Returns
+    -------
+    list[Agent]
+        Best result from the final stage.
+    """
+    if prev is not None:
+        linkage.rebuild(prev)
+
+    return ls.chain_optimizers(
+        eval_func=sym_stride_evaluator,
+        linkage=linkage,
+        stages=[
+            # Stage 1: PSO explores the space broadly
+            (ls.particle_swarm_optimization, {
+                "center": dims,
+                "n_particles": 40,
+                "iters": 40,
+                "bounds": BOUNDS,
+                "dimensions": len(dims),
+            }),
+            # Stage 2: DE refines the best PSO result
+            (ls.differential_evolution_optimization, {
+                "bounds": BOUNDS,
+                "maxiter": 100,
+                "popsize": 15,
+            }),
+        ],
+    )
 
 
 def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
@@ -676,7 +721,7 @@ def show_optimized(linkage, data, n_show=10, duration=5, symmetric=True):
         )
 
 
-def main(trials_and_errors, particle_swarm, genetic):
+def main(trials_and_errors, particle_swarm, genetic, chained=False):
     """
 
     Parameters
@@ -689,6 +734,9 @@ def main(trials_and_errors, particle_swarm, genetic):
         The default is False.
     genetic : bool, optional
         True to use genetic optimization.
+        The default is False.
+    chained : bool, optional
+        True to use chained PSO -> DE optimization.
         The default is False.
 
     Returns
@@ -707,7 +755,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         )
         print(
             "Striding score after trials and errors optimization:",
-            optimized_striders[0][0]
+            optimized_striders[0].score
         )
 
     # Particle swarm optimization
@@ -717,8 +765,18 @@ def main(trials_and_errors, particle_swarm, genetic):
         )
         print(
             "Striding score after particle swarm optimization:",
-            optimized_striders[0][0]
+            optimized_striders[0].score
         )
+
+    if chained:
+        # Two-stage: PSO exploration -> DE refinement
+        results = chained_optimizer(strider, DIMENSIONS, INIT_COORD)
+        best = results[0]
+        print(
+            "Striding score after chained PSO+DE optimization:",
+            best.score
+        )
+        show_optimized(strider, results, n_show=1)
 
     if genetic:
         # ls.show_linkage(strider, save=False, duration=10, iteration_factor=LAP_POINTS)
@@ -744,7 +802,7 @@ def main(trials_and_errors, particle_swarm, genetic):
         )
         print(
             "Distance ran score after genetic optimization:",
-            optimized_striders[0][0]
+            optimized_striders[0].score
         )
         strider = dna_interpreter(optimized_striders[0])
         input("Press enter to show result ")
