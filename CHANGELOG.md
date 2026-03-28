@@ -11,13 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `add_opposite_leg` adds the ability to mirror a leg instantly.
 - Using `uv` instead of raw Python.
+- Re-exports of pylinkage 0.8.0 new API classes: ``Ground``, ``FixedDyad``,
+  ``RRRDyad``.
 
 ### Changed
 
 - ``examples/`` is now in the main folder. It was in ``docs/`` previously.
 - Minimum Python version is now 3.10 (was 3.7).
 - Support for Python 3.12, 3.13, and 3.14.
-- Compatibility with pylinkage 0.7.0.
+- Compatibility with pylinkage 0.8.0 (was 0.7.0):
+  - Adapted to topology/geometry split: ``from_linkage()`` now returns
+    ``(HypergraphLinkage, Dimensions)``; ``Node`` no longer carries position.
+  - Threaded ``Dimensions`` through ``hypergraph_physics`` and ``dynamiclinkage``.
+  - Suppressed ``pylinkage.joints`` deprecation warnings (legacy classes still
+    required for ``DynamicJoint`` inheritance).
+  - Added forward-compatible ``isinstance`` checks for new API types
+    (``Ground``, ``FixedDyad``, ``RRRDyad``) alongside legacy types.
+  - ``convert_to_dynamic_joints`` now bridges both legacy and new attribute
+    names (``joint0``/``anchor1``, ``r``/``distance``, etc.).
+  - Requires ``pylinkage>=0.8.0``.
 
 ### Fixed
 
