@@ -69,6 +69,7 @@ from .walking_objectives import (
 )
 from .show_evolution import load_data, show_genetic_optimization
 from .utility import step, stride
+from .urdf_export import URDFConfig, to_urdf, to_urdf_file
 from .walker import Walker, walker_from_legacy
 
 __version__ = "0.5.0"
@@ -165,4 +166,8 @@ __all__ = [
     # show_evolution
     "load_data",
     "show_genetic_optimization",
+    # urdf_export
+    "URDFConfig",
+    "to_urdf",
+    "to_urdf_file",
 ]
