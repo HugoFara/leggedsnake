@@ -38,7 +38,7 @@ import numpy as np
 
 from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 
-from .fitness import CompositeFitness, DynamicFitness, FitnessResult
+from .fitness import CompositeFitness, DynamicFitness
 from .gait_analysis import GaitAnalysisResult, analyze_gait
 from .stability import StabilityTimeSeries
 

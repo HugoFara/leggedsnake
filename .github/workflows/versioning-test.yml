@@ -27,7 +27,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: uv sync
+      run: uv sync --no-sources
     - name: Lint with ruff
       run: uv run ruff check src/
     - name: Test with pytest
