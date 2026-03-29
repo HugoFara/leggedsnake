@@ -95,6 +95,16 @@ from .walking_objectives import (
     stride_length_objective,
     total_distance_objective,
 )
+from .serialization import (
+    load_result,
+    load_walker,
+    result_from_dict,
+    result_to_dict,
+    save_result,
+    save_walker,
+    walker_from_dict,
+    walker_to_dict,
+)
 from .show_evolution import load_data, show_genetic_optimization
 from .utility import step, stride
 from .plotting import (
@@ -224,6 +234,15 @@ __all__ = [
     "energy_efficiency_objective",
     "total_distance_objective",
     "multi_objective_walking_optimization",
+    # serialization
+    "walker_to_dict",
+    "walker_from_dict",
+    "save_walker",
+    "load_walker",
+    "result_to_dict",
+    "result_from_dict",
+    "save_result",
+    "load_result",
     # show_evolution
     "load_data",
     "show_genetic_optimization",
