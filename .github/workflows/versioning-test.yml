@@ -29,7 +29,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: uv sync
+      run: |
+        uv sync
+        uv pip install "pylinkage @ git+https://github.com/HugoFara/pylinkage.git@main"
     - name: Lint with ruff
       run: uv run ruff check src/
     - name: Test with pytest
