@@ -105,6 +105,12 @@ from .plotting import (
     plot_pareto_front,
     plot_stability_timeseries,
 )
+from .topology_optimization import (
+    TopologyCoOptConfig,
+    TopologySolutionInfo,
+    TopologyWalkingResult,
+    topology_walking_optimization,
+)
 from .urdf_export import URDFConfig, to_urdf, to_urdf_file
 from .walker import Walker, walker_from_legacy
 
@@ -228,6 +234,11 @@ __all__ = [
     "plot_com_trajectory",
     "plot_foot_trajectories",
     "plot_optimization_dashboard",
+    # topology_optimization
+    "TopologyCoOptConfig",
+    "TopologySolutionInfo",
+    "TopologyWalkingResult",
+    "topology_walking_optimization",
     # urdf_export
     "URDFConfig",
     "to_urdf",
