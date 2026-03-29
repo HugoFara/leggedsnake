@@ -70,15 +70,22 @@ from .walking_objectives import (
 from .show_evolution import load_data, show_genetic_optimization
 from .utility import step, stride
 from .walker import Walker, walker_from_legacy
-from .worldvisualizer import (
-    CAMERA,
-    VisualWorld,
-    all_linkages_video,
-    video,
-    video_debug,
-)
 
 __version__ = "0.5.0"
+
+# Lazy imports for modules that require a display (pyglet)
+_VISUALIZER_NAMES = frozenset({
+    "CAMERA", "VisualWorld", "all_linkages_video", "video", "video_debug",
+})
+
+
+def __getattr__(name: str):
+    if name in _VISUALIZER_NAMES:
+        from . import worldvisualizer as _wv
+        # Populate module namespace so subsequent access is direct
+        globals().update({n: getattr(_wv, n) for n in _VISUALIZER_NAMES})
+        return globals()[name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     # pylinkage re-exports
