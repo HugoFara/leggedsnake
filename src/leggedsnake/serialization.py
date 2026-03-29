@@ -26,7 +26,6 @@ from typing import Any
 import numpy as np
 
 from pylinkage.dimensions import Dimensions, DriverAngle
-from pylinkage.hypergraph import HypergraphLinkage
 from pylinkage.hypergraph.serialization import graph_from_dict, graph_to_dict
 from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 
@@ -307,7 +306,6 @@ def result_from_dict(data: dict[str, Any]) -> NsgaWalkingResult:
             )
 
         # Return as TopologyWalkingResult
-        from .topology_optimization import TopologyCoOptConfig
         result = TopologyWalkingResult(
             pareto_front=pareto,
             topology_info=topo_info,

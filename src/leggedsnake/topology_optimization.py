@@ -46,7 +46,7 @@ import numpy as np
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 
-from .fitness import CompositeFitness, DynamicFitness, FitnessResult
+from .fitness import CompositeFitness, DynamicFitness
 from .gait_analysis import GaitAnalysisResult, analyze_gait
 from .nsga_optimizer import NsgaWalkingConfig, _check_pymoo
 from .stability import StabilityTimeSeries
