@@ -38,6 +38,7 @@ dependencies = [
     "pymunk>=6.0.0",
     "pyglet>=2.0.0",
     "scipy>=1.15.3",
+    "pymoo>=0.6.1.6",
 ]
 dynamic = ["version"]
 
@@ -83,6 +84,9 @@ dev-dependencies = [
     "pytest-cov>=4.0.0",
     "ruff>=0.14.9",
     "mypy>=1.0.0",
+    "jupyter>=1.1.1",
+    "nbconvert>=6.5.4",
+    "lxml-html-clean>=0.4.4",
 ]
 
 [tool.bumpversion]
