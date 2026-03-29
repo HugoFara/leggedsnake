@@ -171,6 +171,8 @@ class TopologyCoOptConfig:
     dimension_lower: float = 0.3
     dimension_upper: float = 5.0
     topology_mutation_rate: float = 0.1
+    n_workers: int = 1
+    """Number of parallel workers. 1 = sequential. >1 uses process pool."""
 
 
 # ---------------------------------------------------------------------------
@@ -402,17 +404,48 @@ class _TopologyWalkingProblem:
             def _evaluate(
                 self_inner, X: np.ndarray, out: dict, *args: Any, **kwargs: Any,
             ) -> None:
-                F = np.full((X.shape[0], outer._n_obj), float("inf"))
-                for i in range(X.shape[0]):
-                    scores = outer._evaluate_candidate(X[i])
-                    F[i] = [-s for s in scores]
-                out["F"] = F
+                out["F"] = outer._evaluate_batch(X)
 
         self._problem = _Problem()
 
     @property
     def problem(self) -> Any:
         return self._problem
+
+    def _evaluate_batch(self, X: np.ndarray) -> np.ndarray:
+        """Evaluate batch, optionally in parallel."""
+        n_pop = X.shape[0]
+        F = np.full((n_pop, self._n_obj), float("inf"))
+        n_workers = max(1, self._config.n_workers)
+
+        if n_workers <= 1:
+            for i in range(n_pop):
+                scores = self._evaluate_candidate(X[i])
+                F[i] = [-s for s in scores]
+        else:
+            from concurrent.futures import ProcessPoolExecutor, as_completed
+
+            with ProcessPoolExecutor(max_workers=n_workers) as pool:
+                futures = {
+                    pool.submit(
+                        _topology_evaluate_worker,
+                        self.ctx,
+                        self.objectives,
+                        self._config,
+                        self.world_config,
+                        X[i].copy(),
+                    ): i
+                    for i in range(n_pop)
+                }
+                for future in as_completed(futures):
+                    idx = futures[future]
+                    try:
+                        scores = future.result()
+                        F[idx] = [-s for s in scores]
+                    except Exception:
+                        F[idx] = [float("inf")] * self._n_obj
+
+        return F
 
     def _evaluate_candidate(self, x: np.ndarray) -> list[float]:
         """Evaluate a single mixed chromosome."""
@@ -445,6 +478,47 @@ class _TopologyWalkingProblem:
                 scores.append(0.0)
 
         return scores
+
+
+# ---------------------------------------------------------------------------
+# Top-level worker for parallel evaluation (must be picklable)
+# ---------------------------------------------------------------------------
+
+
+def _topology_evaluate_worker(
+    ctx: _TopologyContext,
+    objectives: list[DynamicFitness],
+    config: TopologyCoOptConfig,
+    world_config: Any | None,
+    x: np.ndarray,
+) -> list[float]:
+    """Evaluate a single topology chromosome in a worker process."""
+    topo_idx = int(round(x[0]))
+    dims = x[1:].tolist()
+
+    walker = ctx.build_walker(topo_idx, dims, config.motor_rates)
+    if walker is None:
+        return [0.0] * len(objectives)
+
+    if config.n_legs > 1:
+        try:
+            walker.add_legs(config.n_legs - 1)
+        except Exception:
+            return [0.0] * len(objectives)
+
+    scores: list[float] = []
+    for objective in objectives:
+        try:
+            result = objective(
+                deepcopy(walker.topology),
+                deepcopy(walker.dimensions),
+                world_config,
+            )
+            scores.append(result.score if result.valid else 0.0)
+        except Exception:
+            scores.append(0.0)
+
+    return scores
 
 
 # ---------------------------------------------------------------------------

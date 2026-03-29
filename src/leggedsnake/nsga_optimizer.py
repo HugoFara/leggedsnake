@@ -89,6 +89,9 @@ class NsgaWalkingConfig:
     verbose: bool = True
     crossover_prob: float = 0.9
     mutation_eta: float = 20.0
+    n_workers: int = 1
+    """Number of parallel workers for fitness evaluation.
+    1 = sequential (default). >1 uses a process pool."""
 
 
 @dataclass
@@ -165,6 +168,7 @@ class WalkingNsgaProblem:
         objectives: Sequence[DynamicFitness],
         bounds: tuple[Sequence[float], Sequence[float]],
         config: Any | None = None,
+        n_workers: int = 1,
     ) -> None:
         _check_pymoo()
         from pymoo.core.problem import Problem
@@ -173,6 +177,7 @@ class WalkingNsgaProblem:
         self.objectives = list(objectives)
         self.config = config
         self._n_obj = len(objectives)
+        self._n_workers = max(1, n_workers)
 
         xl = np.array(bounds[0], dtype=float)
         xu = np.array(bounds[1], dtype=float)
@@ -194,13 +199,7 @@ class WalkingNsgaProblem:
             def _evaluate(
                 self_inner, X: np.ndarray, out: dict, *args: Any, **kwargs: Any,
             ) -> None:
-                F = np.full((X.shape[0], outer._n_obj), float("inf"))
-                for i in range(X.shape[0]):
-                    dims = X[i].tolist()
-                    scores = outer._evaluate_candidate(dims)
-                    # Negate: pymoo minimizes, our fitness maximizes
-                    F[i] = [-s for s in scores]
-                out["F"] = F
+                out["F"] = outer._evaluate_batch(X)
 
         self._problem = _Problem()
 
@@ -208,6 +207,40 @@ class WalkingNsgaProblem:
     def problem(self) -> Any:
         """The pymoo Problem instance."""
         return self._problem
+
+    def _evaluate_batch(self, X: np.ndarray) -> np.ndarray:
+        """Evaluate a batch of candidates, optionally in parallel."""
+        n_pop = X.shape[0]
+        F = np.full((n_pop, self._n_obj), float("inf"))
+
+        if self._n_workers <= 1:
+            for i in range(n_pop):
+                scores = self._evaluate_candidate(X[i].tolist())
+                F[i] = [-s for s in scores]
+        else:
+            from concurrent.futures import ProcessPoolExecutor, as_completed
+
+            candidates = [X[i].tolist() for i in range(n_pop)]
+            with ProcessPoolExecutor(max_workers=self._n_workers) as pool:
+                futures = {
+                    pool.submit(
+                        _evaluate_candidate_worker,
+                        self.walker_factory,
+                        self.objectives,
+                        self.config,
+                        candidate,
+                    ): idx
+                    for idx, candidate in enumerate(candidates)
+                }
+                for future in as_completed(futures):
+                    idx = futures[future]
+                    try:
+                        scores = future.result()
+                        F[idx] = [-s for s in scores]
+                    except Exception:
+                        F[idx] = [float("inf")] * self._n_obj
+
+        return F
 
     def _evaluate_candidate(
         self, dims: list[float],
@@ -229,6 +262,36 @@ class WalkingNsgaProblem:
                 scores.append(0.0)
 
         return scores
+
+
+# ---------------------------------------------------------------------------
+# Top-level worker for parallel evaluation (must be picklable)
+# ---------------------------------------------------------------------------
+
+
+def _evaluate_candidate_worker(
+    walker_factory: Callable[[], Any],
+    objectives: list[DynamicFitness],
+    config: Any | None,
+    dims: list[float],
+) -> list[float]:
+    """Evaluate a single candidate in a worker process."""
+    scores: list[float] = []
+    walker = walker_factory()
+    walker.set_num_constraints(dims)
+
+    for objective in objectives:
+        try:
+            result = objective(
+                deepcopy(walker.topology),
+                deepcopy(walker.dimensions),
+                config,
+            )
+            scores.append(result.score if result.valid else 0.0)
+        except Exception:
+            scores.append(0.0)
+
+    return scores
 
 
 # ---------------------------------------------------------------------------
@@ -293,6 +356,7 @@ def nsga_walking_optimization(
         objectives=objectives,
         bounds=bounds,
         config=world_config,
+        n_workers=cfg.n_workers,
     )
 
     # Build algorithm
