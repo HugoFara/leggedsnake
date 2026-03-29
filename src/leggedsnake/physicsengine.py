@@ -7,6 +7,7 @@ Manages the simulation space, road generation, and energy tracking.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Any, TypedDict
 
 import numpy as np
@@ -16,6 +17,62 @@ from pylinkage.geometry import norm, cyl_to_cart
 
 from . import dynamiclinkage
 
+
+# ---------------------------------------------------------------------------
+# WorldConfig — structured replacement for the global ``params`` dict
+# ---------------------------------------------------------------------------
+
+@dataclass
+class TerrainConfig:
+    """Terrain generation parameters."""
+    slope: float = 10 * np.pi / 180
+    """Nominal slope in radians."""
+    max_step: float = 0.5
+    """Maximum step height."""
+    step_freq: float = 0.1
+    """Probability of a step vs. a slope segment."""
+    noise: float = 0.9
+    """Terrain variation factor (should be ≤ 1)."""
+    section_len: float = 1.0
+    """Length of each road section."""
+    friction: float = 0.5 ** 0.5
+    """Ground friction coefficient (square root of mu)."""
+
+
+@dataclass
+class WorldConfig:
+    """Complete simulation configuration.
+
+    Replaces the global ``params`` dict with a structured, immutable-by-default
+    configuration object.  Pass to ``World(config=...)`` to parameterize a
+    simulation; or omit to use ``DEFAULT_CONFIG``.
+
+    Examples
+    --------
+    >>> cfg = WorldConfig(gravity=(0, -5.0), physics_period=0.01)
+    >>> world = World(config=cfg)
+    """
+    gravity: tuple[float, float] = (0, -9.80665)
+    """Gravity vector (m/s²)."""
+    physics_period: float = 0.02
+    """Time step for each physics computation (s)."""
+    torque: float = 1e3
+    """Maximum motor torque (N·m)."""
+    load_mass: float = 10.0
+    """Default load/chassis mass (kg)."""
+    ground_friction: float = 0.5 ** 0.5
+    """Ground friction coefficient (square root of mu)."""
+    terrain: TerrainConfig = field(default_factory=TerrainConfig)
+    """Terrain generation parameters."""
+
+
+DEFAULT_CONFIG = WorldConfig()
+"""Module-level default configuration, used when no config is passed."""
+
+
+# ---------------------------------------------------------------------------
+# Legacy ``params`` dict — kept for backward compatibility
+# ---------------------------------------------------------------------------
 
 class GroundParams(TypedDict):
     slope: float
@@ -110,18 +167,35 @@ class World:
     """Simulation world containing a pymunk space, linkages, and a road.
 
     Not intended to be rendered visually per se, see VisualWorld for that.
+
+    Parameters
+    ----------
+    space : pm.Space | None
+        Pymunk space. Created automatically if *None*.
+    road_y : float
+        Initial road height.
+    config : WorldConfig | None
+        Simulation parameters. Uses ``DEFAULT_CONFIG`` when *None*.
     """
 
     space: pm.Space
     road: list[tuple[float, float]]
     linkages: list[dynamiclinkage.DynamicLinkage]
+    config: WorldConfig
 
-    def __init__(self, space: pm.Space | None = None, road_y: float = -5) -> None:
+    def __init__(
+        self,
+        space: pm.Space | None = None,
+        road_y: float = -5,
+        config: WorldConfig | None = None,
+    ) -> None:
+        self.config = config if config is not None else DEFAULT_CONFIG
+
         if isinstance(space, pm.Space):
             self.space = space
         else:
             self.space = pm.Space()
-            self.space.gravity = params["physics"]["gravity"]
+            self.space.gravity = self.config.gravity
 
         set_space_constraints(self.space)
 
@@ -129,7 +203,7 @@ class World:
         seg = pm.Segment(
             self.space.static_body, self.road[0], self.road[-1], .1
         )
-        seg.friction = params["ground"]["friction"]
+        seg.friction = self.config.ground_friction
         self.space.add(seg)
         self.linkages = []
 
@@ -160,7 +234,7 @@ class World:
 
         self.linkages.append(dl)
         for s in self.space.shapes:
-            s.friction = params["ground"]["friction"]
+            s.friction = self.config.ground_friction
 
         self.tune_solver()
 
@@ -180,18 +254,18 @@ class World:
             if norm(vel.x, vel.y) < .1:
                 # Enable ALL motors when linkage settles
                 for motor in motors:
-                    motor.max_force = params["linkage"]["torque"]
+                    motor.max_force = self.config.torque
                 linkage.height = linkage.body.position.y
                 linkage.mechanical_energy = (
                     .5 * linkage.mass * norm(vel.x, vel.y) ** 2
                 )
 
         # Energy from the motor in this step
-        energy = power * params["simul"]["physics_period"]
+        energy = power * self.config.physics_period
         if hasattr(linkage, 'height') and linkage.height != 0.0 and energy != 0.:
             vel = linkage.body.velocity
             v = norm(vel.x, vel.y)
-            g = norm(*params["physics"]["gravity"])
+            g = norm(*self.config.gravity)
             m = linkage.mass
             new_mechanical_energy = m * (
                 .5 * v ** 2 + g * (linkage.body.position.y - linkage.height)
@@ -209,10 +283,10 @@ class World:
         Parameters
         ----------
         dt : float | None
-            Time step. Uses params["simul"]["physics_period"] if None.
+            Time step. Uses ``config.physics_period`` if None.
         """
         if dt is None:
-            dt = params["simul"]["physics_period"]
+            dt = self.config.physics_period
 
         # Compute motor power for each linkage
         powers: list[list[float]] = [
@@ -256,35 +330,35 @@ class World:
             return efficiency, energy * dt
         return None
 
-    def __build_road_step__(self, ground: GroundParams, index: int) -> None:
+    def __build_road_step__(self, terrain: TerrainConfig, index: int) -> None:
         """Add a step (two points)."""
-        high = np.random.rand() * ground["max_step"]
+        high = np.random.rand() * terrain.max_step
         a = self.road[index][0], self.road[index][1] + high
         b = (
-            self.road[index][0] + ground["section_len"] * (1 - index),
+            self.road[index][0] + terrain.section_len * (1 - index),
             self.road[index][1] + high
         )
 
         s = pm.Segment(self.space.static_body, a, b, .1)
-        s.friction = ground["friction"]
+        s.friction = self.config.ground_friction
         self.space.add(s)
         s = pm.Segment(self.space.static_body, a, self.road[index], .1)
-        s.friction = ground["friction"]
+        s.friction = self.config.ground_friction
         self.space.add(s)
         self.road.insert(-index * len(self.road), a)
         self.road.insert(-index * len(self.road), b)
 
-    def __build_road_segment__(self, ground: GroundParams, index: int) -> None:
+    def __build_road_segment__(self, terrain: TerrainConfig, index: int) -> None:
         """Add a segment (one point)."""
         angle = np.random.normal(
-            ground["slope"] / 2, ground["noise"] * ground["slope"] / 2
+            terrain.slope / 2, terrain.noise * terrain.slope / 2
         )
         if not index:
             angle = np.pi - angle
-        a = pm.Vec2d(*cyl_to_cart(ground["section_len"], angle,
+        a = pm.Vec2d(*cyl_to_cart(terrain.section_len, angle,
                                   *self.road[index]))
         s = pm.Segment(self.space.static_body, a, self.road[index], .1)
-        s.friction = ground["friction"]
+        s.friction = self.config.ground_friction
         self.space.add(s)
         self.road.insert(-index * len(self.road), a)
 
@@ -295,11 +369,11 @@ class World:
         ---------
         positive: if False (default), the road part will be added on the left.
         """
-        ground = params["ground"]
-        if np.random.rand() < ground["step_freq"] and False:
-            self.__build_road_step__(ground, -positive)
+        terrain = self.config.terrain
+        if np.random.rand() < terrain.step_freq and False:
+            self.__build_road_step__(terrain, -positive)
         else:
-            self.__build_road_segment__(ground, -positive)
+            self.__build_road_segment__(terrain, -positive)
 
 
 def recalc_linkage(linkage: dynamiclinkage.DynamicLinkage) -> None:

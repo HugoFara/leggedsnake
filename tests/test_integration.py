@@ -14,7 +14,7 @@ from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, Hyperedge, NodeR
 
 import leggedsnake as ls
 from leggedsnake.walker import Walker
-from leggedsnake.physicsengine import World, params
+from leggedsnake.physicsengine import World, WorldConfig, TerrainConfig, DEFAULT_CONFIG
 
 
 def _make_simple_walker() -> Walker:
@@ -250,6 +250,85 @@ class TestGAPhysicsPipeline(unittest.TestCase):
         results = optimizer.run(iters=2, processes=1)
         self.assertIsInstance(results, list)
         self.assertGreater(len(results), 0)
+
+
+class TestWorldConfig(unittest.TestCase):
+    """Test WorldConfig dataclass and its integration with World."""
+
+    def test_default_config(self):
+        """DEFAULT_CONFIG has sensible defaults."""
+        cfg = DEFAULT_CONFIG
+        self.assertAlmostEqual(cfg.gravity[1], -9.80665)
+        self.assertAlmostEqual(cfg.physics_period, 0.02)
+        self.assertGreater(cfg.torque, 0)
+
+    def test_world_uses_default_config(self):
+        """World without config uses DEFAULT_CONFIG."""
+        world = World()
+        self.assertIs(world.config, DEFAULT_CONFIG)
+
+    def test_world_accepts_custom_config(self):
+        """World stores the custom config passed at construction."""
+        cfg = WorldConfig(gravity=(0, -5.0), physics_period=0.01)
+        world = World(config=cfg)
+        self.assertIs(world.config, cfg)
+        self.assertEqual(world.space.gravity[1], -5.0)
+
+    def test_custom_gravity_affects_physics(self):
+        """A world with weaker gravity should let bodies fall slower."""
+        walker = _make_simple_walker()
+
+        # Normal gravity
+        world_normal = World(config=WorldConfig(gravity=(0, -9.81)))
+        world_normal.add_linkage(walker)
+        for _ in range(20):
+            world_normal.update()
+        y_normal = world_normal.linkages[0].body.position.y
+
+        # Weak gravity
+        walker2 = _make_simple_walker()
+        world_weak = World(config=WorldConfig(gravity=(0, -1.0)))
+        world_weak.add_linkage(walker2)
+        for _ in range(20):
+            world_weak.update()
+        y_weak = world_weak.linkages[0].body.position.y
+
+        # Weaker gravity → body should be higher (less fallen)
+        self.assertGreater(y_weak, y_normal)
+
+    def test_custom_physics_period(self):
+        """World.update() uses config.physics_period as default dt."""
+        cfg = WorldConfig(physics_period=0.05)
+        world = World(config=cfg)
+        walker = _make_simple_walker()
+        world.add_linkage(walker)
+        # Should not raise — just verify it runs with custom period
+        for _ in range(10):
+            world.update()
+
+    def test_terrain_config(self):
+        """TerrainConfig fields are accessible."""
+        terrain = TerrainConfig(slope=0.1, max_step=1.0, friction=0.8)
+        self.assertAlmostEqual(terrain.slope, 0.1)
+        self.assertAlmostEqual(terrain.max_step, 1.0)
+        cfg = WorldConfig(terrain=terrain)
+        self.assertAlmostEqual(cfg.terrain.slope, 0.1)
+
+    def test_objective_with_custom_config(self):
+        """Walking objectives accept WorldConfig."""
+        walker = _make_simple_walker()
+        cfg = WorldConfig(gravity=(0, -5.0), physics_period=0.05)
+        obj = ls.total_distance_objective(duration=0.5, n_legs=1, config=cfg)
+        dims = walker.get_num_constraints()
+        pos = walker.get_coords()
+        score = obj(walker, dims, pos)
+        self.assertIsInstance(score, float)
+
+    def test_config_exported(self):
+        """WorldConfig and TerrainConfig are accessible from leggedsnake."""
+        self.assertTrue(hasattr(ls, 'WorldConfig'))
+        self.assertTrue(hasattr(ls, 'TerrainConfig'))
+        self.assertTrue(hasattr(ls, 'DEFAULT_CONFIG'))
 
 
 class TestExampleImports(unittest.TestCase):

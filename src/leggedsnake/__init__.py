@@ -45,7 +45,7 @@ from pylinkage.dimensions import Dimensions, DriverAngle
 
 from .dynamiclinkage import DynamicLinkage, convert_to_dynamic_linkage
 from .geneticoptimizer import GeneticOptimization, genetic_algorithm_optimization
-from .physicsengine import World, params
+from .physicsengine import DEFAULT_CONFIG, TerrainConfig, World, WorldConfig, params
 from .walking_objectives import (
     energy_efficiency_objective,
     multi_objective_walking_optimization,
@@ -111,8 +111,11 @@ __all__ = [
     "GeneticOptimization",
     "genetic_algorithm_optimization",
     # physicsengine
+    "DEFAULT_CONFIG",
     "params",
+    "TerrainConfig",
     "World",
+    "WorldConfig",
     # worldvisualizer
     "all_linkages_video",
     "video",

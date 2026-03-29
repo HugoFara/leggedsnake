@@ -33,7 +33,7 @@ from typing import Any, Callable
 
 from pylinkage.optimization.collections import ParetoFront
 
-from .physicsengine import World, params
+from .physicsengine import World, WorldConfig
 from .utility import step as step_check, stride
 from .walker import Walker
 
@@ -41,8 +41,18 @@ from .walker import Walker
 def _run_physics(
     linkage: Walker,
     duration: float,
+    config: WorldConfig | None = None,
 ) -> tuple[float, float, float]:
     """Simulate a walker and return (distance, total_efficiency, total_energy).
+
+    Parameters
+    ----------
+    linkage : Walker
+        The mechanism to simulate.
+    duration : float
+        Simulation duration in seconds.
+    config : WorldConfig | None
+        Simulation parameters. Uses ``DEFAULT_CONFIG`` when *None*.
 
     Returns (0, 0, 0) if the mechanism is unbuildable.
     """
@@ -53,10 +63,10 @@ def _run_physics(
     except UnbuildableError:
         return 0.0, 0.0, 0.0
 
-    world = World()
+    world = World(config=config)
     world.add_linkage(linkage)
 
-    dt = params["simul"]["physics_period"]
+    dt = world.config.physics_period
     steps = int(duration / dt)
     total_efficiency = 0.0
     total_energy = 0.0
@@ -168,6 +178,7 @@ def energy_efficiency_objective(
     n_legs: int = 4,
     param_expander: Callable[..., Any] | None = None,
     min_distance: float = 5.0,
+    config: WorldConfig | None = None,
 ) -> Callable[..., float]:
     """Create a dynamic energy-efficiency objective (to maximize).
 
@@ -184,6 +195,8 @@ def energy_efficiency_objective(
         Function to expand compact parameters to full dimensions.
     min_distance : float
         Minimum distance the walker must cover to get a non-zero score.
+    config : WorldConfig, optional
+        Simulation parameters (gravity, terrain, etc.).
 
     Returns
     -------
@@ -197,7 +210,7 @@ def energy_efficiency_objective(
         pos: Sequence[Any],
     ) -> float:
         walker = _prepare_walker(linkage, dims, pos, n_legs, param_expander)
-        distance, total_eff, total_energy = _run_physics(walker, duration)
+        distance, total_eff, total_energy = _run_physics(walker, duration, config)
         if distance < min_distance or total_energy == 0:
             return 0.0
         return total_eff / total_energy
@@ -211,6 +224,7 @@ def total_distance_objective(
     duration: float = 40.0,
     n_legs: int = 4,
     param_expander: Callable[..., Any] | None = None,
+    config: WorldConfig | None = None,
 ) -> Callable[..., float]:
     """Create a dynamic total-distance objective (to maximize).
 
@@ -224,6 +238,8 @@ def total_distance_objective(
         Number of leg pairs for the walker.
     param_expander : callable, optional
         Function to expand compact parameters to full dimensions.
+    config : WorldConfig, optional
+        Simulation parameters (gravity, terrain, etc.).
 
     Returns
     -------
@@ -237,7 +253,7 @@ def total_distance_objective(
         pos: Sequence[Any],
     ) -> float:
         walker = _prepare_walker(linkage, dims, pos, n_legs, param_expander)
-        distance, _, _ = _run_physics(walker, duration)
+        distance, _, _ = _run_physics(walker, duration, config)
         return distance
 
     _objective.__name__ = "total_distance"

@@ -43,6 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ``stride_length_objective``, ``energy_efficiency_objective``,
   ``total_distance_objective``, ``multi_objective_walking_optimization``.
 - ``add_opposite_leg()`` mirrors a leg across a vertical axis.
+- **``WorldConfig`` dataclass**: structured replacement for the global
+  ``params`` dict. Pass ``config=WorldConfig(...)`` to ``World()`` to
+  parameterize gravity, physics period, torque, terrain, and friction.
+  - ``TerrainConfig`` dataclass for terrain generation parameters.
+  - ``DEFAULT_CONFIG`` module-level instance with the previous defaults.
+  - Walking objective factories (``total_distance_objective``,
+    ``energy_efficiency_objective``) accept an optional ``config`` parameter.
 
 ### Changed
 

@@ -326,7 +326,7 @@ class VisualWorld(pe.World):
         dt: float
         fps: int
         if time is None:
-            dt = pe.params["simul"]["physics_period"]
+            dt = self.config.physics_period
             fps = CAMERA["fps"]
         elif isinstance(time, int) or isinstance(time, float):
             dt = float(time)
@@ -414,7 +414,7 @@ def video_debug(
         return
 
     def update(dt: float) -> None:
-        physics_dt = pe.params["simul"]["physics_period"]
+        physics_dt = world.config.physics_period
         world.space.step(physics_dt)
         pe.recalc_linkage(dynamic_linkage)
         world.reload_visuals()
@@ -454,7 +454,7 @@ def all_linkages_video(
     for linkage in linkages:
         world.add_linkage(linkage)
 
-    dt = pe.params["simul"]["physics_period"]
+    dt = world.config.physics_period
     fps = CAMERA["fps"]
     if dt * fps > 1:
         print(

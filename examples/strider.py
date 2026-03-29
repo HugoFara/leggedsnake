@@ -471,7 +471,7 @@ def total_distance(dna):
     world = ls.World()
     world.add_linkage(linkage)
     duration = 40
-    steps = int(duration / ls.params["simul"]["physics_period"])
+    steps = int(duration / world.config.physics_period)
     for _ in range(steps):
         world.update()
     return world.linkages[0].body.position.x, pos
@@ -488,7 +488,7 @@ def efficiency(dna):
     duration = 40
     tot = 0
     dur = 0
-    steps = int(duration / ls.params["simul"]["physics_period"])
+    steps = int(duration / world.config.physics_period)
     for _ in range(steps):
         eff, energy = world.update()
         tot += eff
