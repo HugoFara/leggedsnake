@@ -76,6 +76,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ``optimize_walking_mechanism(spec)``: end-to-end pipeline from
     ``WalkingDesignSpec`` to ranked ``Walker`` solutions with metrics.
   - ``WalkingDesignSpec``, ``WalkingDesignResult`` dataclasses.
+- **URDF export** (``urdf_export`` module):
+  - ``to_urdf(walker)`` generates a URDF XML string for a Walker.
+  - ``to_urdf_file(walker, path)`` writes to file.
+  - ``URDFConfig`` dataclass for export options.
+- **Stability metrics** (``stability`` module):
+  - ``StabilitySnapshot`` dataclass: single-timestep CoM, ZMP, support
+    polygon, tip-over margin, and body angle.
+  - ``StabilityTimeSeries`` dataclass with properties:
+    ``mean_tip_over_margin``, ``min_tip_over_margin``, ``zmp_excursion``,
+    ``angular_stability``, ``com_trajectory``, ``summary_metrics()``.
+  - ``compute_com(linkage)`` and ``compute_com_velocity(linkage)``:
+    mass-weighted center of mass from pymunk rigid bodies.
+  - ``approximate_zmp()``: zero-moment-point x-coordinate via linear
+    inverted pendulum model.
+  - ``get_support_polygon()``: convex hull of foot positions near ground.
+  - ``compute_tip_over_margin()``: signed distance from CoM projection to
+    support polygon boundary.
+  - ``compute_stability_snapshot()``: one-call assembly of all metrics.
+- **Gait analysis** (``gait_analysis`` module):
+  - ``FootEvent`` dataclass for touchdown/liftoff events.
+  - ``GaitCycle`` dataclass with duty factor, stride period, stance/swing
+    duration.
+  - ``GaitAnalysisResult`` dataclass with ``mean_duty_factor``,
+    ``mean_stride_frequency``, ``mean_stride_length``, ``phase_offsets``,
+    ``summary_metrics()``.
+  - ``detect_foot_events()``: y-threshold crossing detection.
+  - ``extract_gait_cycles()``: groups events into stride cycles.
+  - ``compute_phase_offsets()``: normalized [0,1) phase between foot pairs.
+  - ``compute_foot_trajectory_metrics()``: max height, horizontal range,
+    path length, smoothness.
+  - ``analyze_gait()``: one-call entry point from simulation loci.
+- **NSGA-II/III multi-objective optimizer** (``nsga_optimizer`` module):
+  - ``NsgaWalkingConfig`` dataclass: generations, population, algorithm,
+    seed, crossover/mutation parameters, and ``n_workers`` for parallel
+    evaluation.
+  - ``NsgaWalkingResult`` dataclass: Pareto front with optional per-solution
+    gait analysis and stability time series.
+  - ``WalkingNsgaProblem``: pymoo Problem wrapper that evaluates
+    ``DynamicFitness`` objectives on Walker candidates.
+  - ``nsga_walking_optimization()``: high-level entry point returning
+    ``ParetoFront`` of non-dominated solutions.
+  - ``StabilityFitness``: scores by mean tip-over margin.
+  - ``CompositeFitness``: evaluates distance + efficiency + stability in a
+    single physics simulation (avoids redundant runs).
+- **Visualization and reporting** (``plotting`` module):
+  - ``plot_pareto_front()``: 2D and 3D Pareto front scatter plots with
+    best-compromise highlighting.
+  - ``plot_gait_diagram()``: gait timing diagram (stance/swing bars per
+    foot).
+  - ``plot_stability_timeseries()``: four-panel plot of tip-over margin,
+    ZMP, body angle, and CoM height.
+  - ``plot_com_trajectory()``: 2D CoM path colored by tip-over margin with
+    support polygon snapshots.
+  - ``plot_foot_trajectories()``: per-foot trajectory shape plots.
+  - ``plot_optimization_dashboard()``: combined four-panel dashboard for a
+    single Pareto solution.
+- **Topology co-optimization** (``topology_optimization`` module):
+  - ``TopologyCoOptConfig`` dataclass: max links, bounds, mutation rate,
+    ``n_workers`` for parallel evaluation.
+  - ``TopologyWalkingResult`` dataclass: extends NSGA result with
+    per-solution ``TopologySolutionInfo`` (topology name, ID, link count).
+  - ``topology_walking_optimization()``: jointly optimizes mechanism
+    topology (from pylinkage's 19-entry catalog) and link dimensions
+    using NSGA-II. Mixed chromosome: ``[topology_idx, dim_1, ..., dim_N]``.
+  - ``solutions_by_topology()``: groups Pareto solutions by mechanism type.
+- **Parallel fitness evaluation**:
+  - ``n_workers`` parameter on ``NsgaWalkingConfig`` and
+    ``TopologyCoOptConfig``. When > 1, candidate evaluation uses
+    ``concurrent.futures.ProcessPoolExecutor``.
+- **Walker serialization** (``serialization`` module):
+  - ``walker_to_dict()`` / ``walker_from_dict()``: serialize Walker
+    (topology + dimensions + motor rates) to/from plain dicts.
+  - ``save_walker()`` / ``load_walker()``: JSON file I/O for Walkers.
+  - ``result_to_dict()`` / ``result_from_dict()``: serialize
+    ``NsgaWalkingResult`` (Pareto front scores, dimensions, config,
+    topology metadata) to/from plain dicts.
+  - ``save_result()`` / ``load_result()``: JSON file I/O for optimization
+    results.
+- ``examples/optimization_pipeline.py``: end-to-end example demonstrating
+  Walker definition, NSGA-II optimization, gait/stability analysis, and
+  all visualization plots.
 - **Expanded terrain generation** in ``TerrainConfig`` / ``World``:
   - ``seed`` field for reproducible terrain via a seeded
     ``np.random.Generator`` (replaces bare ``np.random`` calls).
@@ -126,6 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minimum Python version is now 3.10 (was 3.7).
 - Support for Python 3.12, 3.13, and 3.14.
 - Requires ``pylinkage>=0.8.0``.
+- Requires ``pymoo>=0.6.1.6`` (for NSGA-II/III and topology co-optimization).
+- Requires ``scipy>=1.15.3``.
 - Version bumped to 0.5.0.
 
 ### Fixed
