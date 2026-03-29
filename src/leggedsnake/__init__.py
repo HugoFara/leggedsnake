@@ -44,6 +44,15 @@ from pylinkage.hypergraph import (
 from pylinkage.dimensions import Dimensions, DriverAngle
 
 from .dynamiclinkage import DynamicLinkage, convert_to_dynamic_linkage
+from .fitness import (
+    DynamicFitness,
+    DistanceFitness,
+    EfficiencyFitness,
+    FitnessResult,
+    StrideFitness,
+    as_eval_func,
+    as_ga_fitness,
+)
 from .geneticoptimizer import GeneticOptimization, genetic_algorithm_optimization
 from .physicsengine import DEFAULT_CONFIG, TerrainConfig, World, WorldConfig, params
 from .walking_objectives import (
@@ -107,6 +116,14 @@ __all__ = [
     # dynamiclinkage
     "DynamicLinkage",
     "convert_to_dynamic_linkage",
+    # fitness protocol
+    "DynamicFitness",
+    "DistanceFitness",
+    "EfficiencyFitness",
+    "FitnessResult",
+    "StrideFitness",
+    "as_eval_func",
+    "as_ga_fitness",
     # geneticoptimizer
     "GeneticOptimization",
     "genetic_algorithm_optimization",

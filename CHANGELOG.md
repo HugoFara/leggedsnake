@@ -48,6 +48,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   parameterize gravity, physics period, torque, terrain, and friction.
   - ``TerrainConfig`` dataclass for terrain generation parameters.
   - ``DEFAULT_CONFIG`` module-level instance with the previous defaults.
+- **Physics-aware fitness protocol** (``fitness`` module):
+  - ``FitnessResult`` dataclass with ``score``, ``metrics``, ``valid``,
+    and ``loci`` fields for rich evaluation results.
+  - ``DynamicFitness`` runtime-checkable Protocol for standardized
+    fitness function signatures: ``(topology, dimensions, config) → FitnessResult``.
+  - Built-in implementations: ``DistanceFitness`` (total walking distance),
+    ``EfficiencyFitness`` (energy efficiency ratio), ``StrideFitness``
+    (kinematic stride length, no physics).
+  - ``as_eval_func()`` adapter: wraps ``DynamicFitness`` into pylinkage's
+    ``(linkage, dims, pos) → float`` optimizer contract.
+  - ``as_ga_fitness()`` adapter: wraps ``DynamicFitness`` into the GA
+    optimizer's ``(dna) → (score, positions)`` contract.
   - Walking objective factories (``total_distance_objective``,
     ``energy_efficiency_objective``) accept an optional ``config`` parameter.
 
