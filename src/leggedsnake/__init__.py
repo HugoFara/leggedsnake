@@ -97,6 +97,14 @@ from .walking_objectives import (
 )
 from .show_evolution import load_data, show_genetic_optimization
 from .utility import step, stride
+from .plotting import (
+    plot_com_trajectory,
+    plot_foot_trajectories,
+    plot_gait_diagram,
+    plot_optimization_dashboard,
+    plot_pareto_front,
+    plot_stability_timeseries,
+)
 from .urdf_export import URDFConfig, to_urdf, to_urdf_file
 from .walker import Walker, walker_from_legacy
 
@@ -213,6 +221,13 @@ __all__ = [
     # show_evolution
     "load_data",
     "show_genetic_optimization",
+    # plotting
+    "plot_pareto_front",
+    "plot_gait_diagram",
+    "plot_stability_timeseries",
+    "plot_com_trajectory",
+    "plot_foot_trajectories",
+    "plot_optimization_dashboard",
     # urdf_export
     "URDFConfig",
     "to_urdf",
