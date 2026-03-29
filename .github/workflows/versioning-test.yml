@@ -13,6 +13,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      UV_NO_SOURCES: true
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +29,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
-      run: uv sync --no-sources
+      run: uv sync
     - name: Lint with ruff
       run: uv run ruff check src/
     - name: Test with pytest
