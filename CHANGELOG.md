@@ -62,6 +62,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     optimizer's ``(dna) → (score, positions)`` contract.
   - Walking objective factories (``total_distance_objective``,
     ``energy_efficiency_objective``) accept an optional ``config`` parameter.
+- **Dynamic Co-Design** (``co_design`` module): connect pylinkage's topology
+  co-optimization with leggedsnake's physics simulation.
+  - ``Walker.from_catalog(entry, dimensions)``: build Walker from a
+    topology ``CatalogEntry``.
+  - ``Walker.from_hierarchy(hierarchy, dimensions)``: build Walker from a
+    ``HierarchicalLinkage`` (flattened automatically).
+  - ``Walker.from_synthesis(solution)``: build Walker from
+    ``TopologySolution`` or ``CoOptSolution``.
+  - ``co_optimize_objective(fitness)``: adapt ``DynamicFitness`` to
+    pylinkage's ``co_optimize()`` contract (``Linkage → float``, minimized).
+    Supports two-stage kinematic pre-filter + dynamic evaluation.
+  - ``optimize_walking_mechanism(spec)``: end-to-end pipeline from
+    ``WalkingDesignSpec`` to ranked ``Walker`` solutions with metrics.
+  - ``WalkingDesignSpec``, ``WalkingDesignResult`` dataclasses.
 
 ### Changed
 

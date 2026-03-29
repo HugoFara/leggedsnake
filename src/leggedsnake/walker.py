@@ -19,7 +19,9 @@ from pylinkage.hypergraph import HypergraphLinkage, NodeRole, to_mechanism
 from pylinkage.hypergraph.core import Edge, Hyperedge, Node
 
 if TYPE_CHECKING:
+    from pylinkage.hypergraph import HierarchicalLinkage
     from pylinkage.mechanism import Mechanism
+    from pylinkage.topology.catalog import CatalogEntry
 
 
 class Walker:
@@ -65,6 +67,94 @@ class Walker:
         self.name = name or topology.name
         self.motor_rates = motor_rates
         self._mechanism = None
+
+    # --- Factory class methods ---
+
+    @classmethod
+    def from_catalog(
+        cls,
+        entry: CatalogEntry,
+        dimensions: Dimensions,
+        motor_rates: dict[str, float] | float = -4.0,
+    ) -> Walker:
+        """Create a Walker from a topology catalog entry.
+
+        The catalog provides topology only (nodes, edges, roles).
+        Dimensions (positions, distances, driver angles) must be supplied.
+
+        Parameters
+        ----------
+        entry : CatalogEntry
+            A topology from ``pylinkage.topology.load_catalog()``.
+        dimensions : Dimensions
+            Geometric data for the topology's nodes and edges.
+        motor_rates : float | dict[str, float]
+            Motor angular velocities for dynamic simulation.
+        """
+        topology = entry.to_graph()
+        return cls(topology, dimensions, name=entry.name, motor_rates=motor_rates)
+
+    @classmethod
+    def from_hierarchy(
+        cls,
+        hierarchy: HierarchicalLinkage,
+        dimensions: Dimensions,
+        motor_rates: dict[str, float] | float = -4.0,
+    ) -> Walker:
+        """Create a Walker from a hierarchical linkage composition.
+
+        Flattens the hierarchy (merging shared ports) into a single
+        ``HypergraphLinkage`` suitable for simulation.
+
+        Parameters
+        ----------
+        hierarchy : HierarchicalLinkage
+            Composed mechanism with component instances and connections.
+        dimensions : Dimensions
+            Geometric data for the flattened topology's nodes and edges.
+        motor_rates : float | dict[str, float]
+            Motor angular velocities for dynamic simulation.
+        """
+        flat = hierarchy.flatten()
+        return cls(flat, dimensions, name=hierarchy.name, motor_rates=motor_rates)
+
+    @classmethod
+    def from_synthesis(
+        cls,
+        solution: object,
+        motor_rates: dict[str, float] | float = -4.0,
+        n_legs: int = 1,
+    ) -> Walker:
+        """Create a Walker from a synthesis or co-optimization solution.
+
+        Accepts ``TopologySolution`` (from ``multi_topology_synthesize``)
+        or ``CoOptSolution`` (from ``co_optimize``). Both carry a
+        ``.linkage`` attribute that is converted via ``walker_from_legacy``.
+
+        Parameters
+        ----------
+        solution : TopologySolution | CoOptSolution
+            A solution with a ``.linkage`` attribute.
+        motor_rates : float | dict[str, float]
+            Motor angular velocities for dynamic simulation.
+        n_legs : int
+            Number of legs. If > 1, ``add_legs(n_legs - 1)`` is called.
+
+        Raises
+        ------
+        ValueError
+            If ``solution.linkage`` is None.
+        """
+        linkage = getattr(solution, "linkage", None)
+        if linkage is None:
+            raise ValueError(
+                "Solution has no linkage. Cannot convert to Walker."
+            )
+        walker = walker_from_legacy(linkage)
+        walker.motor_rates = motor_rates
+        if n_legs > 1:
+            walker.add_legs(n_legs - 1)
+        return walker
 
     def _invalidate_cache(self) -> None:
         """Invalidate cached Mechanism after topology/dimension changes."""

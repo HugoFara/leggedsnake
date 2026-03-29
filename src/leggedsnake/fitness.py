@@ -359,6 +359,71 @@ def as_ga_fitness(
     return _ga
 
 
+def co_optimize_objective(
+    fitness: DynamicFitness,
+    config: WorldConfig | None = None,
+    motor_rates: float | dict[str, float] = -4.0,
+    kinematic_prefilter: DynamicFitness | None = None,
+) -> Callable[..., float]:
+    """Adapt a ``DynamicFitness`` to pylinkage's ``co_optimize()`` contract.
+
+    Returns ``Callable[[Linkage], float]`` where the result is **minimized**
+    (``co_optimize`` minimizes). Walking performance scores (higher = better)
+    are negated so that better walkers have lower objective values.
+
+    Supports an optional two-stage pipeline: a fast kinematic pre-filter
+    rejects mechanisms with poor foot paths before the expensive physics
+    simulation runs.
+
+    Parameters
+    ----------
+    fitness : DynamicFitness
+        The physics-based fitness evaluator (e.g., ``DistanceFitness``).
+    config : WorldConfig | None
+        Simulation config override.
+    motor_rates : float | dict[str, float]
+        Motor angular velocity applied to each Walker. Default -4.0.
+    kinematic_prefilter : DynamicFitness | None
+        Optional fast kinematic check (e.g., ``StrideFitness``).
+        If the pre-filter returns ``score <= 0`` or ``valid=False``,
+        the mechanism is rejected (returns ``inf``) without running physics.
+
+    Returns
+    -------
+    callable
+        ``objective(linkage: Linkage) -> float`` for ``co_optimize()``.
+    """
+
+    def _objective(linkage: Any) -> float:
+        from .walker import walker_from_legacy
+
+        try:
+            walker = walker_from_legacy(linkage)
+        except Exception:
+            return float("inf")
+
+        walker.motor_rates = motor_rates
+
+        # Fast kinematic pre-filter
+        if kinematic_prefilter is not None:
+            pre_result = kinematic_prefilter(
+                walker.topology, walker.dimensions, config,
+            )
+            if not pre_result.valid or pre_result.score <= 0:
+                return float("inf")
+
+        # Full dynamic evaluation
+        result = fitness(walker.topology, walker.dimensions, config)
+
+        if not result.valid or result.score <= 0:
+            return float("inf")
+
+        # Negate: co_optimize minimizes, but higher walking score is better
+        return -result.score
+
+    return _objective
+
+
 # ---------------------------------------------------------------------------
 # Internal simulation helper
 # ---------------------------------------------------------------------------
