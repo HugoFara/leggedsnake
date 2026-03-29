@@ -76,6 +76,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ``optimize_walking_mechanism(spec)``: end-to-end pipeline from
     ``WalkingDesignSpec`` to ranked ``Walker`` solutions with metrics.
   - ``WalkingDesignSpec``, ``WalkingDesignResult`` dataclasses.
+- **Expanded terrain generation** in ``TerrainConfig`` / ``World``:
+  - ``seed`` field for reproducible terrain via a seeded
+    ``np.random.Generator`` (replaces bare ``np.random`` calls).
+  - ``friction_range`` field: per-segment friction randomized uniformly
+    within ``(lo, hi)``, overriding the global ``friction`` value.
+  - ``gap_freq`` / ``gap_width``: configurable chasms (empty space) in the
+    road that the walker must step over.
+  - ``obstacle_freq`` / ``obstacle_height`` / ``obstacle_width``:
+    rectangular bumps placed on the road surface.
+  - ``slope_profile`` field: deterministic slope generators for repeatable
+    benchmarking. Accepts a ``SlopeProfile`` enum (``RANDOM``, ``FLAT``,
+    ``CONSTANT``, ``VALLEY``, ``SAWTOOTH``), a string key, or a custom
+    callable with signature ``(terrain, rng, step) → angle``.
+  - ``SLOPE_PROFILES`` registry mapping string keys to generator callables.
+  - Re-enabled discrete step generation (was disabled with ``and False``).
+  - ``TerrainPreset`` enum with ``TerrainConfig.from_preset()`` factory:
+    ``FLAT``, ``HILLY``, ``ROUGH``, ``STAIRS``, ``MIXED`` ready-made
+    terrain configurations.
+  - ``SlopeProfile``, ``SLOPE_PROFILES``, and ``TerrainPreset`` are
+    re-exported from the package.
 
 ### Changed
 
@@ -121,6 +141,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``add_opposite_leg()`` now creates independent DRIVER nodes with pi
   phase offset (was creating DRIVEN nodes linked to original driver).
 - Project links fixed in pyproject.toml.
+- Road step/gap/obstacle direction logic: new road features now extend
+  in the correct direction (forward or backward) matching slope segments.
 
 ### Removed
 

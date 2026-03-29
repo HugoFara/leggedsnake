@@ -60,7 +60,16 @@ from .fitness import (
     co_optimize_objective,
 )
 from .geneticoptimizer import GeneticOptimization, genetic_algorithm_optimization
-from .physicsengine import DEFAULT_CONFIG, TerrainConfig, World, WorldConfig, params
+from .physicsengine import (
+    DEFAULT_CONFIG,
+    SLOPE_PROFILES,
+    SlopeProfile,
+    TerrainConfig,
+    TerrainPreset,
+    World,
+    WorldConfig,
+    params,
+)
 from .walking_objectives import (
     energy_efficiency_objective,
     multi_objective_walking_optimization,
@@ -148,8 +157,11 @@ __all__ = [
     "genetic_algorithm_optimization",
     # physicsengine
     "DEFAULT_CONFIG",
+    "SLOPE_PROFILES",
+    "SlopeProfile",
     "params",
     "TerrainConfig",
+    "TerrainPreset",
     "World",
     "WorldConfig",
     # worldvisualizer

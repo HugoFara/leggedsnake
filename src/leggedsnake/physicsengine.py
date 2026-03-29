@@ -8,7 +8,8 @@ Manages the simulation space, road generation, and energy tracking.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, TypedDict
+from enum import Enum
+from typing import Any, Callable, TypedDict
 
 import numpy as np
 import pymunk as pm
@@ -16,6 +17,93 @@ import pymunk as pm
 from pylinkage.geometry import norm, cyl_to_cart
 
 from . import dynamiclinkage
+
+
+# ---------------------------------------------------------------------------
+# Terrain profiles — deterministic slope generators for benchmarking
+# ---------------------------------------------------------------------------
+
+class SlopeProfile(Enum):
+    """Named slope profiles for repeatable terrain generation.
+
+    Each value is a string key; the actual generator is looked up in
+    :data:`SLOPE_PROFILES`.
+    """
+    RANDOM = "random"
+    """Default Gaussian-distributed random slopes."""
+    FLAT = "flat"
+    """Perfectly flat ground (slope = 0)."""
+    CONSTANT = "constant"
+    """Constant uphill at the configured slope angle."""
+    VALLEY = "valley"
+    """V-shaped descent then ascent."""
+    SAWTOOTH = "sawtooth"
+    """Repeating climb-then-drop pattern."""
+
+
+def _slope_random(
+    terrain: "TerrainConfig", rng: np.random.Generator, _step: int,
+) -> float:
+    """Gaussian-distributed slope (original behaviour)."""
+    return float(rng.normal(terrain.slope / 2, terrain.noise * terrain.slope / 2))
+
+
+def _slope_flat(
+    _terrain: "TerrainConfig", _rng: np.random.Generator, _step: int,
+) -> float:
+    return 0.0
+
+
+def _slope_constant(
+    terrain: "TerrainConfig", _rng: np.random.Generator, _step: int,
+) -> float:
+    return terrain.slope
+
+
+def _slope_valley(
+    terrain: "TerrainConfig", _rng: np.random.Generator, step: int,
+) -> float:
+    """V-shape: descend for 20 segments, then ascend."""
+    half = 20
+    if step % (2 * half) < half:
+        return -terrain.slope
+    return terrain.slope
+
+
+def _slope_sawtooth(
+    terrain: "TerrainConfig", _rng: np.random.Generator, step: int,
+) -> float:
+    """Climb for 10 segments, then a steep single-segment drop."""
+    cycle = 11
+    if step % cycle < cycle - 1:
+        return terrain.slope
+    return -terrain.slope * (cycle - 1)
+
+
+#: Registry mapping profile keys to generator callables.
+#: Signature: ``(terrain, rng, step_counter) -> angle_in_radians``
+SlopeGenerator = Callable[["TerrainConfig", np.random.Generator, int], float]
+
+SLOPE_PROFILES: dict[str, SlopeGenerator] = {
+    SlopeProfile.RANDOM.value: _slope_random,
+    SlopeProfile.FLAT.value: _slope_flat,
+    SlopeProfile.CONSTANT.value: _slope_constant,
+    SlopeProfile.VALLEY.value: _slope_valley,
+    SlopeProfile.SAWTOOTH.value: _slope_sawtooth,
+}
+
+
+# ---------------------------------------------------------------------------
+# Terrain presets
+# ---------------------------------------------------------------------------
+
+class TerrainPreset(Enum):
+    """Ready-made terrain configurations."""
+    FLAT = "flat"
+    HILLY = "hilly"
+    ROUGH = "rough"
+    STAIRS = "stairs"
+    MIXED = "mixed"
 
 
 # ---------------------------------------------------------------------------
@@ -37,6 +125,90 @@ class TerrainConfig:
     """Length of each road section."""
     friction: float = 0.5 ** 0.5
     """Ground friction coefficient (square root of mu)."""
+    friction_range: tuple[float, float] | None = None
+    """If set, friction is randomized uniformly within this (min, max) range
+    for each new road segment, overriding :attr:`friction`."""
+    seed: int | None = None
+    """Random seed for reproducible terrain generation.  *None* means
+    non-deterministic."""
+    gap_freq: float = 0.0
+    """Probability of a gap (chasm) instead of a solid segment."""
+    gap_width: float = 1.0
+    """Width of gaps in meters."""
+    obstacle_freq: float = 0.0
+    """Probability of placing a rectangular obstacle on a segment."""
+    obstacle_height: float = 0.3
+    """Maximum obstacle height in meters."""
+    obstacle_width: float = 0.4
+    """Obstacle width in meters."""
+    slope_profile: SlopeProfile | SlopeGenerator | str = SlopeProfile.RANDOM
+    """Slope generation strategy.  Accepts a :class:`SlopeProfile` enum, a
+    string key from :data:`SLOPE_PROFILES`, or a custom callable with
+    signature ``(terrain, rng, step_counter) -> angle``."""
+
+    @staticmethod
+    def from_preset(preset: TerrainPreset | str) -> "TerrainConfig":
+        """Create a :class:`TerrainConfig` from a named preset.
+
+        Parameters
+        ----------
+        preset : TerrainPreset or str
+            One of the built-in terrain presets.
+        """
+        if isinstance(preset, str):
+            preset = TerrainPreset(preset)
+        return dict(_TERRAIN_PRESETS)[preset]()
+
+
+def _preset_flat() -> TerrainConfig:
+    return TerrainConfig(
+        slope=0.0, noise=0.0, step_freq=0.0,
+        slope_profile=SlopeProfile.FLAT,
+    )
+
+
+def _preset_hilly() -> TerrainConfig:
+    return TerrainConfig(
+        slope=15 * np.pi / 180, noise=0.6, step_freq=0.0,
+        section_len=1.5,
+        slope_profile=SlopeProfile.RANDOM,
+    )
+
+
+def _preset_rough() -> TerrainConfig:
+    return TerrainConfig(
+        slope=5 * np.pi / 180, noise=1.0, step_freq=0.0,
+        section_len=0.4,
+        friction_range=(0.3, 0.9),
+        obstacle_freq=0.15, obstacle_height=0.2, obstacle_width=0.3,
+        slope_profile=SlopeProfile.RANDOM,
+    )
+
+
+def _preset_stairs() -> TerrainConfig:
+    return TerrainConfig(
+        slope=0.0, noise=0.0, step_freq=1.0,
+        max_step=0.4, section_len=1.2,
+    )
+
+
+def _preset_mixed() -> TerrainConfig:
+    return TerrainConfig(
+        slope=10 * np.pi / 180, noise=0.9, step_freq=0.15,
+        friction_range=(0.4, 0.8),
+        gap_freq=0.05, gap_width=0.8,
+        obstacle_freq=0.1, obstacle_height=0.25,
+        slope_profile=SlopeProfile.RANDOM,
+    )
+
+
+_TERRAIN_PRESETS: list[tuple[TerrainPreset, Callable[[], TerrainConfig]]] = [
+    (TerrainPreset.FLAT, _preset_flat),
+    (TerrainPreset.HILLY, _preset_hilly),
+    (TerrainPreset.ROUGH, _preset_rough),
+    (TerrainPreset.STAIRS, _preset_stairs),
+    (TerrainPreset.MIXED, _preset_mixed),
+]
 
 
 @dataclass
@@ -182,6 +354,9 @@ class World:
     road: list[tuple[float, float]]
     linkages: list[dynamiclinkage.DynamicLinkage]
     config: WorldConfig
+    _rng: np.random.Generator
+    _slope_fn: SlopeGenerator
+    _segment_counter: int
 
     def __init__(
         self,
@@ -190,6 +365,19 @@ class World:
         config: WorldConfig | None = None,
     ) -> None:
         self.config = config if config is not None else DEFAULT_CONFIG
+
+        # Seeded RNG for reproducible terrain
+        terrain = self.config.terrain
+        self._rng = np.random.default_rng(terrain.seed)
+        self._segment_counter = 0
+
+        # Resolve slope profile to a callable
+        sp = terrain.slope_profile
+        if callable(sp) and not isinstance(sp, (SlopeProfile, str)):
+            self._slope_fn = sp
+        else:
+            key = sp.value if isinstance(sp, SlopeProfile) else str(sp)
+            self._slope_fn = SLOPE_PROFILES[key]
 
         if isinstance(space, pm.Space):
             self.space = space
@@ -330,50 +518,96 @@ class World:
             return efficiency, energy * dt
         return None
 
-    def __build_road_step__(self, terrain: TerrainConfig, index: int) -> None:
-        """Add a step (two points)."""
-        high = np.random.rand() * terrain.max_step
-        a = self.road[index][0], self.road[index][1] + high
-        b = (
-            self.road[index][0] + terrain.section_len * (1 - index),
-            self.road[index][1] + high
-        )
+    def _segment_friction(self, terrain: TerrainConfig) -> float:
+        """Return friction for a new road segment."""
+        if terrain.friction_range is not None:
+            lo, hi = terrain.friction_range
+            return float(self._rng.uniform(lo, hi))
+        return self.config.ground_friction
 
-        s = pm.Segment(self.space.static_body, a, b, .1)
-        s.friction = self.config.ground_friction
-        self.space.add(s)
-        s = pm.Segment(self.space.static_body, a, self.road[index], .1)
-        s.friction = self.config.ground_friction
-        self.space.add(s)
+    def __build_road_step__(self, terrain: TerrainConfig, index: int) -> None:
+        """Add a step (two points): vertical riser + horizontal plateau."""
+        high = float(self._rng.random()) * terrain.max_step
+        origin = self.road[index]
+        # Vertical riser
+        a = (origin[0], origin[1] + high)
+        # Horizontal plateau
+        direction = 1 if index else -1
+        b = (a[0] + terrain.section_len * direction, a[1])
+
+        friction = self._segment_friction(terrain)
+        for p, q in [(origin, a), (a, b)]:
+            s = pm.Segment(self.space.static_body, p, q, .1)
+            s.friction = friction
+            self.space.add(s)
         self.road.insert(-index * len(self.road), a)
         self.road.insert(-index * len(self.road), b)
 
     def __build_road_segment__(self, terrain: TerrainConfig, index: int) -> None:
-        """Add a segment (one point)."""
-        angle = np.random.normal(
-            terrain.slope / 2, terrain.noise * terrain.slope / 2
-        )
+        """Add a slope segment (one point)."""
+        angle = self._slope_fn(terrain, self._rng, self._segment_counter)
         if not index:
             angle = np.pi - angle
         a = pm.Vec2d(*cyl_to_cart(terrain.section_len, angle,
                                   *self.road[index]))
         s = pm.Segment(self.space.static_body, a, self.road[index], .1)
-        s.friction = self.config.ground_friction
+        s.friction = self._segment_friction(terrain)
         self.space.add(s)
         self.road.insert(-index * len(self.road), a)
+
+    def __build_road_gap__(self, terrain: TerrainConfig, index: int) -> None:
+        """Add a gap (chasm) — road resumes at the same height after a gap."""
+        origin = self.road[index]
+        direction = 1 if index else -1
+        far = (origin[0] + terrain.gap_width * direction, origin[1])
+        # No segment added — the gap is empty space
+        self.road.insert(-index * len(self.road), far)
+
+    def __build_road_obstacle__(
+        self, terrain: TerrainConfig, index: int,
+    ) -> None:
+        """Place a rectangular bump on the road surface."""
+        origin = self.road[index]
+        direction = 1 if index else -1
+        h = float(self._rng.random()) * terrain.obstacle_height
+        w = terrain.obstacle_width
+
+        # Four corners of the bump
+        bl = origin
+        tl = (bl[0], bl[1] + h)
+        tr = (tl[0] + w * direction, tl[1])
+        br = (tr[0], bl[1])
+
+        friction = self._segment_friction(terrain)
+        for p, q in [(bl, tl), (tl, tr), (tr, br)]:
+            s = pm.Segment(self.space.static_body, p, q, .1)
+            s.friction = friction
+            self.space.add(s)
+
+        # Road continues from the far base of the obstacle
+        self.road.insert(-index * len(self.road), br)
 
     def build_road(self, positive: bool = False) -> None:
         """Build a road part.
 
-        Arguments
-        ---------
-        positive: if False (default), the road part will be added on the left.
+        Parameters
+        ----------
+        positive : bool
+            If *False* (default) the road is extended to the left.
         """
         terrain = self.config.terrain
-        if np.random.rand() < terrain.step_freq and False:
-            self.__build_road_step__(terrain, -positive)
+        index = -positive  # 0 for left, -1 (True) for right
+        self._segment_counter += 1
+
+        roll = float(self._rng.random())
+        if roll < terrain.gap_freq:
+            self.__build_road_gap__(terrain, index)
+        elif roll < terrain.gap_freq + terrain.obstacle_freq:
+            self.__build_road_obstacle__(terrain, index)
+        elif roll < terrain.gap_freq + terrain.obstacle_freq + terrain.step_freq:
+            self.__build_road_step__(terrain, index)
         else:
-            self.__build_road_segment__(terrain, -positive)
+            self.__build_road_segment__(terrain, index)
 
 
 def recalc_linkage(linkage: dynamiclinkage.DynamicLinkage) -> None:
