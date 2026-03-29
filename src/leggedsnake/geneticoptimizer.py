@@ -430,8 +430,9 @@ def genetic_algorithm_optimization(
     eval_func : callable
         Evaluation function with signature
         ``(linkage, dimensions, init_positions) -> float``.
-    linkage : Linkage
-        The linkage to optimize.
+    linkage : Walker or Linkage
+        The mechanism to optimize. Must provide ``get_num_constraints()``,
+        ``set_num_constraints()``, ``get_coords()``, ``set_coords()``.
     center : sequence of float, optional
         Initial dimensions. If *None*, read from ``linkage``.
         ``chain_optimizers`` injects the previous stage's best here.

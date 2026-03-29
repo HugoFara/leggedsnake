@@ -22,9 +22,21 @@ References:
 
 Run with: uv run python examples/chebyshev_linkage.py
 """
+from math import pi
+
 import numpy as np
-from pylinkage import Static, Crank, Fixed, Revolute
+
 import leggedsnake as ls
+from leggedsnake import (
+    Dimensions,
+    DriverAngle,
+    Edge,
+    Hyperedge,
+    HypergraphLinkage,
+    Node,
+    NodeRole,
+    Walker,
+)
 
 # Simulation parameters
 LAP_POINTS = 48  # Steps per revolution
@@ -125,45 +137,54 @@ def create_chebyshev_linkage():
     d = get_scaled_dimensions()
     coords = compute_initial_coords(d, angle=0)
 
-    # Create frame joints (Static)
-    O1 = Static(x=coords['O1'][0], y=coords['O1'][1], name="O1 (crank center)")
-    O2 = Static(x=coords['O2'][0], y=coords['O2'][1], name="O2 (rocker center)")
-    O2.joint0 = O1
+    # --- Topology ---
+    hg = HypergraphLinkage(name="Chebyshev")
 
-    # Crank joint
-    A = Crank(
-        x=coords['A'][0], y=coords['A'][1],
-        joint0=O1,
-        distance=d['crank'],
-        angle=-2 * np.pi / LAP_POINTS,
-        name="A (crank)"
-    )
+    # Frame joints (ground)
+    hg.add_node(Node("O1", role=NodeRole.GROUND, name="O1 (crank center)"))
+    hg.add_node(Node("O2", role=NodeRole.GROUND, name="O2 (rocker center)"))
 
-    # B: coupler meets rocker
-    B = Revolute(
-        x=coords['B'][0], y=coords['B'][1],
-        joint0=A, joint1=O2,
-        distance0=d['coupler'], distance1=d['rocker'],
-        name="B (coupler-rocker)"
-    )
+    # Crank joint (driver)
+    hg.add_node(Node("A", role=NodeRole.DRIVER, name="A (crank)"))
 
-    # P (foot): fixed point on the rigid coupler link
-    # foot_dist is a ratio (0.5 = midpoint), convert to absolute distance
+    # B: coupler meets rocker (driven, circle-circle intersection)
+    hg.add_node(Node("B", role=NodeRole.DRIVEN, name="B (coupler-rocker)"))
+
+    # P (foot): fixed point on the rigid coupler link (driven, rigid triangle)
+    hg.add_node(Node("P", role=NodeRole.DRIVEN, name="P (foot)"))
+
+    # Edges
+    hg.add_edge(Edge("O1_A", "O1", "A"))       # crank link
+    hg.add_edge(Edge("A_B", "A", "B"))          # coupler link
+    hg.add_edge(Edge("O2_B", "O2", "B"))        # rocker link
+
+    # P forms a rigid triangle with A and B (on the coupler)
+    hg.add_edge(Edge("A_P", "A", "P"))
+    hg.add_hyperedge(Hyperedge("triangle_P", nodes=("A", "B", "P")))
+
+    # --- Dimensions ---
     foot_distance = d['foot_dist'] * d['coupler']
-    P = Fixed(
-        x=coords['P'][0], y=coords['P'][1],
-        joint0=A, joint1=B,
-        distance=foot_distance,
-        angle=d['foot_angle'],
-        name="P (foot)"
+
+    dims = Dimensions(
+        node_positions={
+            "O1": coords['O1'],
+            "O2": coords['O2'],
+            "A": coords['A'],
+            "B": coords['B'],
+            "P": coords['P'],
+        },
+        driver_angles={
+            "A": DriverAngle(angular_velocity=-2 * pi / LAP_POINTS),
+        },
+        edge_distances={
+            "O1_A": d['crank'],
+            "A_B": d['coupler'],
+            "O2_B": d['rocker'],
+            "A_P": foot_distance,
+        },
     )
 
-    joints = [O1, O2, A, B, P]
-    walker = ls.Walker(
-        joints=joints,
-        order=joints,
-        name="Chebyshev"
-    )
+    walker = Walker(hg, dims, name="Chebyshev")
 
     return walker
 
@@ -205,7 +226,7 @@ def main():
 
     walker = create_chebyshev_walker(n_legs=3)
     # Motor rate: negative for clockwise rotation (walking forward)
-    walker.motor_rate = -4.0
+    walker.motor_rates = -4.0
 
     # Run the visualization
     ls.video(walker, duration=15, dynamic_camera=True)

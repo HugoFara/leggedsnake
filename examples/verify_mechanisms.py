@@ -34,9 +34,18 @@ def plot_mechanism_trajectory(ax, walker, name, iterations=48):
     # Get all positions during one full revolution
     loci = list(walker.step(iterations=iterations))
 
-    # Get foot joint index
-    foot = walker.get_foots()[0]
-    foot_idx = list(walker.joints).index(foot)
+    # Get foot node IDs
+    feet = walker.get_feet()
+    if not feet:
+        ax.set_title(f'{name}\n(ERROR: No feet found)')
+        return
+
+    foot_id = feet[0]
+
+    # Get the mechanism to find foot index among joints
+    mechanism = walker.to_mechanism()
+    joint_ids = [j.id for j in mechanism.joints]
+    foot_idx = joint_ids.index(foot_id)
 
     # Extract foot trajectory
     foot_positions = [pos[foot_idx] for pos in loci]
@@ -53,37 +62,27 @@ def plot_mechanism_trajectory(ax, walker, name, iterations=48):
 
     # Plot initial mechanism configuration
     initial_pos = loci[0]
-    joint_names = [j.name for j in walker.joints]
 
     # Plot joints
     for i, pos in enumerate(initial_pos):
         if pos[0] is not None:
             ax.scatter(pos[0], pos[1], color='red', s=50, zorder=4)
-            # Extract short name from joint name
-            short_name = joint_names[i].split()[0]
+            short_name = joint_ids[i].split()[0]
             ax.annotate(short_name, (pos[0], pos[1]),
                        fontsize=8, ha='center', va='bottom')
 
-    # Plot links (connect joints in order based on joint0/joint1)
-    for i, j in enumerate(walker.joints):
-        if hasattr(j, 'joint0') and j.joint0 is not None:
-            try:
-                j0_idx = list(walker.joints).index(j.joint0)
-                if initial_pos[j0_idx][0] is not None and initial_pos[i][0] is not None:
-                    ax.plot([initial_pos[j0_idx][0], initial_pos[i][0]],
-                           [initial_pos[j0_idx][1], initial_pos[i][1]],
-                           'k-', linewidth=1.5, alpha=0.5)
-            except ValueError:
-                pass
-        if hasattr(j, 'joint1') and j.joint1 is not None:
-            try:
-                j1_idx = list(walker.joints).index(j.joint1)
-                if initial_pos[j1_idx][0] is not None and initial_pos[i][0] is not None:
-                    ax.plot([initial_pos[j1_idx][0], initial_pos[i][0]],
-                           [initial_pos[j1_idx][1], initial_pos[i][1]],
-                           'k-', linewidth=1.5, alpha=0.5)
-            except ValueError:
-                pass
+    # Plot links (edges from topology)
+    for edge in walker.topology.edges.values():
+        if edge.source in joint_ids and edge.target in joint_ids:
+            src_idx = joint_ids.index(edge.source)
+            tgt_idx = joint_ids.index(edge.target)
+            if (initial_pos[src_idx][0] is not None and
+                    initial_pos[tgt_idx][0] is not None):
+                ax.plot(
+                    [initial_pos[src_idx][0], initial_pos[tgt_idx][0]],
+                    [initial_pos[src_idx][1], initial_pos[tgt_idx][1]],
+                    'k-', linewidth=1.5, alpha=0.5,
+                )
 
     # Calculate stride metrics
     stride_width = max(xs) - min(xs)

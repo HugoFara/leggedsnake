@@ -85,7 +85,12 @@ def _prepare_walker(
     linkage.set_coords(init_positions)
 
     # Add legs if the walker doesn't have them yet
-    current_legs = len(linkage.get_foots()) if hasattr(linkage, 'get_foots') else 1
+    if hasattr(linkage, 'get_feet'):
+        current_legs = len(linkage.get_feet())
+    elif hasattr(linkage, 'get_foots'):
+        current_legs = len(linkage.get_foots())
+    else:
+        current_legs = 1
     if n_legs > 1 and current_legs <= 2:
         linkage.add_legs(n_legs - 1)
 

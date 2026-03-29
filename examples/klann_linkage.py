@@ -23,9 +23,21 @@ References:
 
 Run with: uv run python examples/klann_linkage.py
 """
+from math import pi
+
 import numpy as np
-from pylinkage import Static, Crank, Revolute, Fixed
+
 import leggedsnake as ls
+from leggedsnake import (
+    Dimensions,
+    DriverAngle,
+    Edge,
+    Hyperedge,
+    HypergraphLinkage,
+    Node,
+    NodeRole,
+    Walker,
+)
 
 # Simulation parameters
 LAP_POINTS = 48  # Steps per crank revolution
@@ -188,29 +200,6 @@ def compute_initial_coords(d, angle=0):
     }
 
 
-def _compute_fixed_angle(p0, p1, p_target):
-    """
-    Compute the angle for a Fixed joint.
-
-    Parameters
-    ----------
-    p0 : tuple
-        Position of joint0 (the anchor point)
-    p1 : tuple
-        Position of joint1 (the reference direction point)
-    p_target : tuple
-        Position of the Fixed joint itself
-
-    Returns
-    -------
-    float
-        Angle from (p0->p1) direction to (p0->p_target) direction
-    """
-    angle_to_ref = np.arctan2(p1[1] - p0[1], p1[0] - p0[0])
-    angle_to_target = np.arctan2(p_target[1] - p0[1], p_target[0] - p0[0])
-    return angle_to_target - angle_to_ref
-
-
 def create_klann_linkage():
     """
     Create a single Klann leg unit.
@@ -221,8 +210,8 @@ def create_klann_linkage():
     - 1 degree of freedom
 
     The two ternary links are:
-    - Ternary coupler: A → Elbow → Knee (rigid triangle, Knee uses Fixed joint)
-    - Ternary leg: Hip → Knee → Foot (rigid triangle, Foot uses Fixed joint)
+    - Ternary coupler: A → Elbow → Knee (rigid triangle, Knee uses Hyperedge)
+    - Ternary leg: Hip → Knee → Foot (rigid triangle, Foot uses Hyperedge)
 
     Returns
     -------
@@ -232,66 +221,73 @@ def create_klann_linkage():
     d = get_scaled_dimensions()
     coords = compute_initial_coords(d, angle=0)
 
-    # Create frame joints (Static)
-    O_crank = Static(x=coords['O_crank'][0], y=coords['O_crank'][1], name="Frame")
-    O_upper = Static(x=coords['O_upper'][0], y=coords['O_upper'][1], name="Upper")
-    O_lower = Static(x=coords['O_lower'][0], y=coords['O_lower'][1], name="Frame2")
-    O_upper.joint0 = O_crank
-    O_lower.joint0 = O_crank
+    # --- Topology ---
+    hg = HypergraphLinkage(name="Klann")
 
-    # Crank endpoint (rotates around O_crank)
-    A = Crank(
-        x=coords['A'][0], y=coords['A'][1],
-        joint0=O_crank,
-        distance=d['crank'],
-        angle=2 * np.pi / LAP_POINTS,  # Angular step for kinematic iteration
-        name="Crank"
-    )
+    # Frame joints (ground)
+    hg.add_node(Node("O_crank", role=NodeRole.GROUND, name="Frame"))
+    hg.add_node(Node("O_upper", role=NodeRole.GROUND, name="Upper"))
+    hg.add_node(Node("O_lower", role=NodeRole.GROUND, name="Frame2"))
 
-    # Elbow: connects ternary coupler (from A) and lower_rocker (from O_lower)
-    Elbow = Revolute(
-        x=coords['Elbow'][0], y=coords['Elbow'][1],
-        joint0=A, joint1=O_lower,
-        distance0=d['A_elbow'], distance1=d['lower_rocker'],
-        name="Elbow"
-    )
+    # Crank endpoint (driver, rotates around O_crank)
+    hg.add_node(Node("A", role=NodeRole.DRIVER, name="Crank"))
+
+    # Elbow: connects ternary coupler (from A) and lower rocker (from O_lower)
+    hg.add_node(Node("elbow", role=NodeRole.DRIVEN, name="Elbow"))
 
     # Knee: part of ternary coupler (A-Elbow-Knee rigid triangle)
-    # Use Fixed joint to signal rigid structure for physics
-    knee_angle = _compute_fixed_angle(coords['A'], coords['Elbow'], coords['Knee'])
-    Knee = Fixed(
-        x=coords['Knee'][0], y=coords['Knee'][1],
-        joint0=A, joint1=Elbow,
-        distance=d['A_knee'],
-        angle=knee_angle,
-        name="Knee"
-    )
+    hg.add_node(Node("knee", role=NodeRole.DRIVEN, name="Knee"))
 
-    # Hip: connects upper_rocker (from O_upper) and hip_knee (from Knee)
-    Hip = Revolute(
-        x=coords['Hip'][0], y=coords['Hip'][1],
-        joint0=O_upper, joint1=Knee,
-        distance0=d['upper_rocker'], distance1=d['hip_knee'],
-        name="Hip"
-    )
+    # Hip: connects upper rocker (from O_upper) and hip_knee (from Knee)
+    hg.add_node(Node("hip", role=NodeRole.DRIVEN, name="Hip"))
 
     # Foot: part of leg-ternary (Hip-Knee-Foot rigid triangle)
-    # Use Fixed joint to signal rigid structure for physics
-    foot_angle = _compute_fixed_angle(coords['Hip'], coords['Knee'], coords['Foot'])
-    Foot = Fixed(
-        x=coords['Foot'][0], y=coords['Foot'][1],
-        joint0=Hip, joint1=Knee,
-        distance=d['hip_foot'],
-        angle=foot_angle,
-        name="Foot"
+    hg.add_node(Node("foot", role=NodeRole.DRIVEN, name="Foot"))
+
+    # Edges
+    hg.add_edge(Edge("O_crank_A", "O_crank", "A"))           # crank link
+    hg.add_edge(Edge("A_elbow", "A", "elbow"))                # coupler link
+    hg.add_edge(Edge("O_lower_elbow", "O_lower", "elbow"))    # lower rocker
+
+    # Knee: rigid triangle with A and Elbow (ternary coupler)
+    hg.add_edge(Edge("A_knee", "A", "knee"))
+    hg.add_hyperedge(Hyperedge("ternary_coupler", nodes=("A", "elbow", "knee")))
+
+    # Hip: upper rocker + connection to Knee
+    hg.add_edge(Edge("O_upper_hip", "O_upper", "hip"))        # upper rocker
+    hg.add_edge(Edge("knee_hip", "knee", "hip"))               # hip-knee link
+
+    # Foot: rigid triangle with Hip and Knee (ternary leg)
+    hg.add_edge(Edge("hip_foot", "hip", "foot"))
+    hg.add_hyperedge(Hyperedge("ternary_leg", nodes=("hip", "knee", "foot")))
+
+    # --- Dimensions ---
+    dims = Dimensions(
+        node_positions={
+            "O_crank": coords['O_crank'],
+            "O_upper": coords['O_upper'],
+            "O_lower": coords['O_lower'],
+            "A": coords['A'],
+            "elbow": coords['Elbow'],
+            "knee": coords['Knee'],
+            "hip": coords['Hip'],
+            "foot": coords['Foot'],
+        },
+        driver_angles={
+            "A": DriverAngle(angular_velocity=2 * pi / LAP_POINTS),
+        },
+        edge_distances={
+            "O_crank_A": d['crank'],
+            "A_elbow": d['A_elbow'],
+            "O_lower_elbow": d['lower_rocker'],
+            "A_knee": d['A_knee'],
+            "O_upper_hip": d['upper_rocker'],
+            "knee_hip": d['hip_knee'],
+            "hip_foot": d['hip_foot'],
+        },
     )
 
-    joints = [O_crank, O_upper, O_lower, A, Elbow, Knee, Hip, Foot]
-    walker = ls.Walker(
-        joints=joints,
-        order=joints,
-        name="Klann"
-    )
+    walker = Walker(hg, dims, name="Klann")
 
     return walker
 
@@ -333,7 +329,7 @@ def main():
 
     walker = create_klann_walker(n_legs=2)
     # Motor rate: positive for counterclockwise rotation (walking forward)
-    walker.motor_rate = 4.0
+    walker.motor_rates = 4.0
 
     # Run the visualization
     ls.video(walker, duration=15, dynamic_camera=True)

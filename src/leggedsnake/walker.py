@@ -1,242 +1,509 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-The walker module gives a simple interface between a generic linkage and a Walker.
+Hypergraph-native Walker for simulating and optimizing walking linkages.
 
-A generic linkage should be understood as a pylinkage.linkage.Linkage. Thus a
-Walker is a kinematic mechanism (not dynamic).
-
-Created on Thu Jun 10 2021 21:13:12.
-
-@author: HugoFara
+A Walker stores a mechanism as a HypergraphLinkage (topology) plus Dimensions
+(geometry). It delegates kinematic simulation to pylinkage's Mechanism class
+via ``to_mechanism()``, naturally supporting multi-DOF mechanisms through
+multiple DRIVER nodes with independent angular velocities.
 """
 from __future__ import annotations
 
-import warnings
-from math import tau
+from collections.abc import Generator
+from typing import TYPE_CHECKING
 
-import pylinkage.linkage as lk
+from pylinkage.dimensions import Dimensions
+from pylinkage.hypergraph import HypergraphLinkage, NodeRole, to_mechanism
+from pylinkage.hypergraph.core import Edge, Hyperedge, Node
 
-# Legacy joint classes required for construction and isinstance checks.
-# Suppress pylinkage 0.8.0 deprecation until full migration to new API.
-with warnings.catch_warnings():
-    warnings.filterwarnings(
-        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
-    )
-    from pylinkage import Static, Crank, Fixed, Pivot, Revolute
-    from pylinkage.joints.joint import Joint
+if TYPE_CHECKING:
+    from pylinkage.mechanism import Mechanism
 
 
-class Walker(lk.Linkage):  # type: ignore[misc]
-    """A Walker, or a leg mechanism is a Linkage with some useful methods.
+class Walker:
+    """A walking mechanism represented as a hypergraph.
+
+    The Walker holds a ``HypergraphLinkage`` (topology) and ``Dimensions``
+    (geometry). It supports multi-DOF mechanisms: each DRIVER node can have
+    an independent angular velocity stored in ``Dimensions.driver_angles``.
+
+    Kinematic simulation is delegated to pylinkage's ``Mechanism`` class
+    via ``to_mechanism()``. Physics simulation is handled by converting
+    to a ``DynamicLinkage`` (see ``physicsengine.World.add_linkage``).
 
     Attributes
     ----------
-    motor_rate : float
-        Motor angular velocity in rad/s for dynamic simulation.
-        Positive = counterclockwise, negative = clockwise.
-        Default is -4.0 rad/s (~38 RPM clockwise, typical walking speed).
-        This is separate from the kinematic angle used for stepping.
+    topology : HypergraphLinkage
+        The mechanism topology (nodes, edges, hyperedges).
+    dimensions : Dimensions
+        Geometric data (node positions, edge distances, driver angles).
+    name : str
+        Human-readable name.
+    motor_rates : dict[str, float] | float
+        Motor angular velocities for dynamic (physics) simulation.
+        Single float applies to all drivers. Dict maps driver node IDs
+        to individual rates. Default -4.0 rad/s (clockwise).
     """
 
-    motor_rate: float = -4.0  # Default walking speed in rad/s
+    topology: HypergraphLinkage
+    dimensions: Dimensions
+    name: str
+    motor_rates: dict[str, float] | float
+    _mechanism: Mechanism | None
 
-    def add_legs(self, number: int = 2) -> None:
+    def __init__(
+        self,
+        topology: HypergraphLinkage,
+        dimensions: Dimensions,
+        name: str = "",
+        motor_rates: dict[str, float] | float = -4.0,
+    ) -> None:
+        self.topology = topology
+        self.dimensions = dimensions
+        self.name = name or topology.name
+        self.motor_rates = motor_rates
+        self._mechanism = None
+
+    def _invalidate_cache(self) -> None:
+        """Invalidate cached Mechanism after topology/dimension changes."""
+        self._mechanism = None
+
+    def to_mechanism(self) -> Mechanism:
+        """Convert to a pylinkage Mechanism for kinematic simulation.
+
+        The result is cached and invalidated when topology or dimensions change.
         """
-        Add legs to a linkage, mostly for a dynamic simulation.
+        if self._mechanism is None:
+            self._mechanism = to_mechanism(self.topology, self.dimensions)
+        return self._mechanism
 
-        The leg is a subset a joints whose position inherits from a crank.
+    def step(
+        self,
+        iterations: int | None = None,
+        dt: float = 1.0,
+    ) -> Generator[tuple[tuple[float, float] | tuple[float | None, float | None], ...], None, None]:
+        """Simulate one full rotation of the mechanism.
+
+        Delegates to ``Mechanism.step()``. Each driver advances independently.
 
         Parameters
         ----------
-        number : int, optional
-            Number of legs to add. The default is 2.
+        iterations : int | None
+            Number of simulation steps. If None, uses one full rotation period.
+        dt : float
+            Time step multiplier.
 
-        Returns
-        -------
-        None.
-
+        Yields
+        ------
+        tuple of (x, y) coordinate tuples
+            Joint positions at each step.
         """
-        new_joints: list[Joint] = []
-        iterations_factor = int(12 / (number + 1)) + 1
-        # We use at least 12 steps to avoid bad initial positions
-        new_positions = tuple(
-            self.step(
-                (number + 1) * iterations_factor,
-                self.get_rotation_period() / (number + 1) / iterations_factor
-            )
-        )[iterations_factor - 1:-1:iterations_factor]
-        # Because we have per-leg iterations,
-        # we have to save crank information
-        crank_memory: dict[Joint, Joint] = dict(zip(self._cranks, self._cranks))
-        # For each leg
-        for i, positions in enumerate(new_positions):
-            equiv: dict[Joint | None, Joint | None] = {None: None}
-            # For each new joint
-            new_j: Joint
-            for pos, j in zip(positions, self._solve_order):
-                if isinstance(j.joint0, Static) and j.joint0 not in equiv:
-                    equiv[j.joint0] = j.joint0
-                common: dict[str, float | Joint | None | str] = {
-                    'x': pos[0], 'y': pos[1],
-                    'joint0': equiv[j.joint0],
-                    'name': j.name + ' ({})'.format(i)
-                }
-                if isinstance(j, Static):
-                    new_j = j
-                elif isinstance(j, Crank):
-                    common['joint1'] = crank_memory[j]
-                    new_j = Fixed(
-                        **common,
-                        distance=j.r,
-                        angle=tau / (number + 1)
-                    )
-                    crank_memory[j] = new_j
-                    new_joints.append(new_j)
+        mechanism = self.to_mechanism()
+        if iterations is None:
+            yield from mechanism.step(dt)
+        else:
+            for _ in range(iterations):
+                mechanism._step_once(dt)
+                yield tuple(j.coord() for j in mechanism.joints)
+
+    def get_rotation_period(self) -> int:
+        """Number of steps for one full rotation cycle."""
+        return self.to_mechanism().get_rotation_period()
+
+    # --- Leg management ---
+
+    def add_legs(self, number: int = 1) -> None:
+        """Add phase-offset copies of all non-ground mechanism parts.
+
+        Each copy shares the same ground nodes but has its driver(s)
+        phase-offset by ``tau / (number + 1)`` from the existing legs.
+
+        Parameters
+        ----------
+        number : int
+            Number of additional legs to add (default 1).
+        """
+        if number < 1:
+            return
+
+        # Identify non-ground nodes (the "leg" template)
+        ground_ids = {n.id for n in self.topology.ground_nodes()}
+        driver_ids = {n.id for n in self.topology.driver_nodes()}
+        template_node_ids = [nid for nid in self.topology.nodes if nid not in ground_ids]
+
+        # Compute positions at each phase offset by stepping kinematically
+        mechanism = self.to_mechanism()
+        period = mechanism.get_rotation_period()
+        total_legs = number + 1  # existing + new
+        step_size = period // total_legs
+        if step_size < 1:
+            step_size = 1
+
+        # Run mechanism to collect positions at each phase offset
+        phase_positions: list[dict[str, tuple[float, float]]] = []
+        steps_done = 0
+        for positions in mechanism.step():
+            steps_done += 1
+            if steps_done % step_size == 0 and len(phase_positions) < number:
+                pos_dict = {}
+                for joint, pos in zip(mechanism.joints, positions):
+                    if pos[0] is not None and pos[1] is not None:
+                        pos_dict[joint.id] = (pos[0], pos[1])
+                phase_positions.append(pos_dict)
+
+        # For each phase offset, clone the non-ground nodes and edges
+        edge_counter = max(
+            (int(eid.split("_")[-1]) for eid in self.topology.edges if "_" in eid),
+            default=0,
+        ) + 1
+        node_counter = 0
+
+        for leg_idx, offset_positions in enumerate(phase_positions, start=1):
+            suffix = f" ({leg_idx})"
+            old_to_new: dict[str, str] = {}
+
+            # Map ground nodes to themselves
+            for gid in ground_ids:
+                old_to_new[gid] = gid
+
+            # Clone non-ground nodes
+            for nid in template_node_ids:
+                orig_node = self.topology.nodes[nid]
+                new_id = f"{nid}{suffix}"
+                while new_id in self.topology.nodes:
+                    node_counter += 1
+                    new_id = f"{nid}_{node_counter}"
+
+                # For drivers in additional legs, make them DRIVEN (Fixed joint
+                # sharing the original crank's motor, like the old Walker)
+                new_role = NodeRole.DRIVEN if nid in driver_ids else orig_node.role
+                new_node = Node(
+                    id=new_id,
+                    role=new_role,
+                    joint_type=orig_node.joint_type,
+                    name=f"{orig_node.name}{suffix}" if orig_node.name else new_id,
+                )
+                self.topology.add_node(new_node)
+                old_to_new[nid] = new_id
+
+                # Set position from kinematic simulation
+                if nid in offset_positions:
+                    self.dimensions.node_positions[new_id] = offset_positions[nid]
                 else:
-                    # Static joints not always included in joints
-                    if isinstance(j.joint1, Static) and j.joint1 not in equiv:
-                        equiv[j.joint1] = j.joint1
-                    common['joint1'] = equiv[j.joint1]
+                    # Fallback: use original position
+                    orig_pos = self.dimensions.get_node_position(nid)
+                    if orig_pos is not None:
+                        self.dimensions.node_positions[new_id] = orig_pos
 
-                    if isinstance(j, Fixed):
-                        new_j = Fixed(
-                            **common,
-                            distance=j.r, angle=j.angle
-                        )
-                    elif isinstance(j, Revolute):
-                        new_j = Revolute(
-                            **common,
-                            distance0=j.r0, distance1=j.r1
-                        )
-                    new_joints.append(new_j)
-                equiv[j] = new_j
-        self.joints += tuple(new_joints)
-        self._solve_order += tuple(new_joints)
+            # Clone edges
+            for edge_id, edge in list(self.topology.edges.items()):
+                src_is_template = edge.source in old_to_new and edge.source not in ground_ids
+                tgt_is_template = edge.target in old_to_new and edge.target not in ground_ids
+                if not (src_is_template or tgt_is_template):
+                    continue
 
-    def get_foots(self) -> list[Joint]:
-        """
-        Return the list of foot joints, joints that should be used as foots.
+                new_src = old_to_new.get(edge.source, edge.source)
+                new_tgt = old_to_new.get(edge.target, edge.target)
+                new_edge_id = f"edge_{edge_counter}"
+                edge_counter += 1
 
-        Formally, they are joints without children; their positions do not
-        influence other joints.
+                new_edge = Edge(id=new_edge_id, source=new_src, target=new_tgt)
+                self.topology.add_edge(new_edge)
 
-        Returns
-        -------
-        candidates : list
-            List of terminal joints, feet.
+                # Copy edge distance
+                dist = self.dimensions.get_edge_distance(edge_id)
+                if dist is not None:
+                    self.dimensions.edge_distances[new_edge_id] = dist
 
-        """
-        candidates = list(self.joints)
-        for j in self.joints:
-            if j.joint0 in candidates:
-                candidates.remove(j.joint0)
-            if hasattr(j, 'joint1') and j.joint1 in candidates:
-                candidates.remove(j.joint1)
-        return candidates
+                # If the original driver has a crank edge to ground, create
+                # a new edge from original driver to the new "driven" copy
+                # (mechanical linkage sharing the motor)
+                if edge.source in driver_ids and edge.target in ground_ids:
+                    link_edge_id = f"edge_{edge_counter}"
+                    edge_counter += 1
+                    link_edge = Edge(
+                        id=link_edge_id,
+                        source=old_to_new[edge.source],  # the new driven copy
+                        target=edge.source,  # the original driver
+                    )
+                    self.topology.add_edge(link_edge)
+                    if dist is not None:
+                        self.dimensions.edge_distances[link_edge_id] = dist
+
+            # Clone hyperedges
+            for he_id, he in list(self.topology.hyperedges.items()):
+                he_has_template = any(n in old_to_new and n not in ground_ids for n in he.nodes)
+                if not he_has_template:
+                    continue
+                new_nodes = tuple(old_to_new.get(n, n) for n in he.nodes)
+                new_he = Hyperedge(
+                    id=f"{he_id}{suffix}",
+                    nodes=new_nodes,
+                    name=f"{he.name}{suffix}" if he.name else None,
+                )
+                self.topology.add_hyperedge(new_he)
+
+        self._invalidate_cache()
 
     def add_opposite_leg(self, axis_x: float = 0.0) -> None:
-        """
-        Create an opposite (antisymmetric) copy of the leg across a vertical axis.
+        """Create an antisymmetric (mirrored) copy of the mechanism.
 
-        This creates a contralateral leg on the opposite side of the body,
-        commonly used in bipedal and quadrupedal walking mechanisms.
-        The opposite leg has its X-coordinates reflected and angles negated
-        to produce a geometrically antisymmetric version.
-
-        Unlike add_legs() which creates phase-offset copies along the same axis,
-        add_opposite_leg() creates a copy on the opposite side of the body.
+        The opposite leg has X-coordinates reflected across ``axis_x``
+        and driver initial angles offset by pi for phase opposition.
 
         Parameters
         ----------
-        axis_x : float, optional
-            X-coordinate of the vertical mirror axis. The default is 0.0,
-            which mirrors across the Y-axis.
-
-        Returns
-        -------
-        None.
-
-        Examples
-        --------
-        >>> walker = create_single_leg_linkage()
-        >>> walker.add_opposite_leg()  # Creates left/right leg pair
-        >>> walker.add_legs(1)   # Add phase-offset copies of both legs
+        axis_x : float
+            X-coordinate of the vertical mirror axis. Default 0.0.
         """
-        new_joints: list[Joint] = []
-        new_cranks: list[Crank] = []
-        # Map original joints to their mirrored counterparts
-        equiv: dict[Joint | None, Joint | None] = {None: None}
-        # Tolerance for detecting joints on the mirror axis
+        ground_ids = {n.id for n in self.topology.ground_nodes()}
+        template_node_ids = [nid for nid in self.topology.nodes if nid not in ground_ids]
         axis_tolerance = 1e-9
 
-        for j in self._solve_order:
-            # Mirror X coordinate across the axis
-            mirrored_x = 2 * axis_x - j.x
+        suffix = " (opposite)"
+        old_to_new: dict[str, str] = {}
 
-            common: dict[str, float | Joint | None | str] = {
-                'x': mirrored_x,
-                'y': j.y,
-                'joint0': equiv.get(j.joint0, j.joint0),
-                'name': j.name + ' (opposite)'
-            }
+        edge_counter = max(
+            (int(eid.split("_")[-1]) for eid in self.topology.edges if "_" in eid),
+            default=0,
+        ) + 1
 
-            if isinstance(j, Static):
-                # Static joints on the axis are shared; don't duplicate
-                if abs(j.x - axis_x) < axis_tolerance:
-                    equiv[j] = j
-                    continue
-                # Create opposite copy for off-axis static joints
-                new_j = Static(
-                    x=mirrored_x, y=j.y,
-                    name=j.name + ' (opposite)'
-                )
-                # Preserve drawing linkage
-                if hasattr(j, 'joint0') and j.joint0 is not None:
-                    new_j.joint0 = equiv.get(j.joint0, j.joint0)
-                new_joints.append(new_j)
-            elif isinstance(j, Crank):
-                # Use Fixed joint to share the motor with the original crank
-                # (models a common shaft connecting both sides)
-                # angle=tau/2 (180°) creates phase opposition for stable gait
-                new_j = Fixed(
-                    x=mirrored_x,
-                    y=j.y,
-                    joint0=equiv.get(j.joint0, j.joint0),  # Ground
-                    joint1=j,  # Original crank - creates mechanical link
-                    distance=j.r,
-                    angle=tau / 2,  # 180° phase opposition
-                    name=j.name + ' (opposite)'
-                )
-                new_joints.append(new_j)
-                # Don't add to new_cranks - Fixed joints share the original motor
-            elif isinstance(j, Fixed):
-                # Mirror angle by negating it
-                common['joint1'] = equiv.get(j.joint1, j.joint1)
-                new_j = Fixed(
-                    **common,
-                    distance=j.r,
-                    angle=-j.angle  # Negate angle for antisymmetric effect
-                )
-                new_joints.append(new_j)
-            elif isinstance(j, Revolute):
-                common['joint1'] = equiv.get(j.joint1, j.joint1)
-                new_j = Revolute(
-                    **common,
-                    distance0=j.r0,
-                    distance1=j.r1
-                )
-                new_joints.append(new_j)
+        # Map ground nodes: share if on axis, clone if off-axis
+        for gid in ground_ids:
+            pos = self.dimensions.get_node_position(gid)
+            if pos is not None and abs(pos[0] - axis_x) < axis_tolerance:
+                old_to_new[gid] = gid  # Share on-axis ground
             else:
-                # Unknown joint type, skip
+                # Clone off-axis ground
+                new_id = f"{gid}{suffix}"
+                old_to_new[gid] = new_id
+                new_node = Node(
+                    id=new_id,
+                    role=NodeRole.GROUND,
+                    joint_type=self.topology.nodes[gid].joint_type,
+                    name=f"{self.topology.nodes[gid].name}{suffix}",
+                )
+                self.topology.add_node(new_node)
+                if pos is not None:
+                    self.dimensions.node_positions[new_id] = (
+                        2 * axis_x - pos[0],
+                        pos[1],
+                    )
+
+        # Clone non-ground nodes
+        for nid in template_node_ids:
+            orig_node = self.topology.nodes[nid]
+            new_id = f"{nid}{suffix}"
+            # Drivers in opposite leg become DRIVEN (share original motor)
+            new_role = NodeRole.DRIVEN if orig_node.role == NodeRole.DRIVER else orig_node.role
+            new_node = Node(
+                id=new_id,
+                role=new_role,
+                joint_type=orig_node.joint_type,
+                name=f"{orig_node.name}{suffix}" if orig_node.name else new_id,
+            )
+            self.topology.add_node(new_node)
+            old_to_new[nid] = new_id
+
+            # Mirror position
+            pos = self.dimensions.get_node_position(nid)
+            if pos is not None:
+                self.dimensions.node_positions[new_id] = (
+                    2 * axis_x - pos[0],
+                    pos[1],
+                )
+
+        # Clone edges
+        driver_ids = {n.id for n in self.topology.driver_nodes()}
+        for edge_id, edge in list(self.topology.edges.items()):
+            src_is_template = edge.source in old_to_new
+            tgt_is_template = edge.target in old_to_new
+            if not (src_is_template or tgt_is_template):
+                continue
+            # Skip if both map to themselves (shared ground)
+            new_src = old_to_new.get(edge.source, edge.source)
+            new_tgt = old_to_new.get(edge.target, edge.target)
+            if new_src == edge.source and new_tgt == edge.target:
                 continue
 
-            equiv[j] = new_j
+            new_edge_id = f"edge_{edge_counter}"
+            edge_counter += 1
+            new_edge = Edge(id=new_edge_id, source=new_src, target=new_tgt)
+            self.topology.add_edge(new_edge)
 
-        self.joints += tuple(new_joints)
-        self._solve_order += tuple(new_joints)
-        # Also update cranks list for compatibility with add_legs
-        self._cranks = tuple(list(self._cranks) + new_cranks)
+            dist = self.dimensions.get_edge_distance(edge_id)
+            if dist is not None:
+                self.dimensions.edge_distances[new_edge_id] = dist
 
-    # Backwards compatibility alias
+            # Link opposite driver copy to original driver (shared motor)
+            if edge.source in driver_ids and edge.target in ground_ids:
+                link_edge_id = f"edge_{edge_counter}"
+                edge_counter += 1
+                link_edge = Edge(
+                    id=link_edge_id,
+                    source=old_to_new[edge.source],
+                    target=edge.source,
+                )
+                self.topology.add_edge(link_edge)
+                if dist is not None:
+                    self.dimensions.edge_distances[link_edge_id] = dist
+
+        # Clone hyperedges
+        for he_id, he in list(self.topology.hyperedges.items()):
+            he_has_template = any(n in old_to_new for n in he.nodes)
+            if not he_has_template:
+                continue
+            new_nodes = tuple(old_to_new.get(n, n) for n in he.nodes)
+            if new_nodes == he.nodes:
+                continue
+            new_he = Hyperedge(
+                id=f"{he_id}{suffix}",
+                nodes=new_nodes,
+                name=f"{he.name}{suffix}" if he.name else None,
+            )
+            self.topology.add_hyperedge(new_he)
+
+        self._invalidate_cache()
+
+    # Backward compat alias
     mirror_leg = add_opposite_leg
+
+    # --- Topology queries ---
+
+    def get_feet(self) -> list[str]:
+        """Return node IDs of foot joints (terminal, non-ground, non-driver).
+
+        Feet are nodes that don't appear as parents of other nodes —
+        i.e., nodes with degree 1 that are not ground or driver nodes.
+        """
+        ground_ids = {n.id for n in self.topology.ground_nodes()}
+        driver_ids = {n.id for n in self.topology.driver_nodes()}
+
+        # Count how many edges each node participates in
+        degree: dict[str, int] = {nid: 0 for nid in self.topology.nodes}
+        for edge in self.topology.edges.values():
+            degree[edge.source] += 1
+            degree[edge.target] += 1
+
+        return [
+            nid
+            for nid, d in degree.items()
+            if d == 1 and nid not in ground_ids and nid not in driver_ids
+        ]
+
+    # --- Optimization interface ---
+    # These methods bridge the pylinkage optimizer contract.
+
+    def get_num_constraints(self, flat: bool = True) -> list[float]:
+        """Get optimizable constraints as a flat list of floats.
+
+        Returns edge distances from the Mechanism (link lengths),
+        compatible with pylinkage optimizers.
+        """
+        return self.to_mechanism().get_constraints()
+
+    def set_num_constraints(
+        self,
+        constraints: list[float] | list[list[float]],
+        flat: bool = True,
+    ) -> None:
+        """Set constraints from a flat list of floats.
+
+        Updates the Mechanism, then syncs edge distances back to Dimensions.
+        """
+        mechanism = self.to_mechanism()
+        if not flat and isinstance(constraints, list) and constraints and isinstance(constraints[0], list):
+            # Flatten nested list
+            flat_constraints = [v for sub in constraints for v in sub]
+        else:
+            flat_constraints = list(constraints)  # type: ignore[arg-type]
+
+        mechanism.set_constraints(flat_constraints)
+
+        # Sync back: update Dimensions.edge_distances from mechanism link lengths
+        self._sync_dimensions_from_mechanism(mechanism)
+
+    def get_coords(self) -> list[tuple[float, float]]:
+        """Get current joint positions as a list of (x, y) tuples."""
+        mechanism = self.to_mechanism()
+        return mechanism.get_joint_positions()
+
+    def set_coords(
+        self,
+        coords: list[tuple[float, float]] | list[tuple[float | None, float | None]],
+    ) -> None:
+        """Set joint positions."""
+        mechanism = self.to_mechanism()
+        mechanism.set_joint_positions(coords)  # type: ignore[arg-type]
+
+        # Sync back to Dimensions
+        for joint in mechanism.joints:
+            pos = joint.position
+            if pos[0] is not None and pos[1] is not None:
+                self.dimensions.node_positions[joint.id] = (pos[0], pos[1])
+
+    def _sync_dimensions_from_mechanism(self, mechanism: Mechanism) -> None:
+        """Sync Dimensions edge distances from Mechanism link state."""
+        from pylinkage.mechanism.link import DriverLink, ArcDriverLink, GroundLink
+
+        # Rebuild edge distance mapping from mechanism's links
+        # This matches the order used in get_constraints/set_constraints
+        constraints = mechanism.get_constraints()
+        idx = 0
+        for link in mechanism.links:
+            if isinstance(link, GroundLink):
+                continue
+            if isinstance(link, (DriverLink, ArcDriverLink)):
+                if link.radius is not None and idx < len(constraints):
+                    # Find the edge in our topology corresponding to this link
+                    self._update_edge_distance_for_link(link, constraints[idx])
+                    idx += 1
+            else:
+                if link.length is not None and idx < len(constraints):
+                    self._update_edge_distance_for_link(link, constraints[idx])
+                    idx += 1
+
+    def _update_edge_distance_for_link(self, link: object, distance: float) -> None:
+        """Update the edge distance in Dimensions for a given Mechanism link."""
+        from pylinkage.mechanism.link import Link
+        if not isinstance(link, Link) or len(link.joints) < 2:
+            return
+        j0_id = link.joints[0].id
+        j1_id = link.joints[1].id
+        # Find matching edge in topology
+        edge = self.topology.get_edge_between(j0_id, j1_id)
+        if edge is not None:
+            self.dimensions.edge_distances[edge.id] = distance
+
+
+def walker_from_legacy(linkage: object) -> Walker:
+    """Create a Walker from a legacy pylinkage Linkage.
+
+    Uses ``from_linkage()`` to convert the joint-based representation
+    to a hypergraph. Useful for migrating existing code.
+
+    Parameters
+    ----------
+    linkage : pylinkage.Linkage
+        A legacy joint-based linkage.
+
+    Returns
+    -------
+    Walker
+        A hypergraph-native Walker.
+    """
+    from pylinkage.hypergraph import from_linkage
+
+    hg, dims = from_linkage(linkage)  # type: ignore[arg-type]
+
+    motor_rate: dict[str, float] | float = -4.0
+    if hasattr(linkage, 'motor_rate'):
+        motor_rate = linkage.motor_rate
+
+    return Walker(
+        topology=hg,
+        dimensions=dims,
+        name=getattr(linkage, 'name', '') or '',
+        motor_rates=motor_rate,
+    )

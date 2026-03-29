@@ -5,14 +5,33 @@ Tests for the physicsengine module.
 """
 
 import unittest
-from math import pi
+from math import tau
+
 import pymunk as pm
-from pylinkage import Static, Crank, Fixed, Pivot, Linkage
+from pylinkage.dimensions import Dimensions, DriverAngle
+from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
 from leggedsnake.physicsengine import (
     World, set_space_constraints, recalc_linkage, linkage_bb, params
 )
 from leggedsnake.dynamiclinkage import DynamicLinkage
+from leggedsnake.walker import Walker
+
+
+def _make_fourbar_walker():
+    hg = HypergraphLinkage(name="fourbar")
+    hg.add_node(Node("frame", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_node(Node("follower", role=NodeRole.DRIVEN))
+    hg.add_edge(Edge("frame_crank", "frame", "crank"))
+    hg.add_edge(Edge("frame_follower", "frame", "follower"))
+    hg.add_edge(Edge("crank_follower", "crank", "follower"))
+    dims = Dimensions(
+        node_positions={"frame": (0, 0), "crank": (1, 0), "follower": (0, 2)},
+        driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
+        edge_distances={"frame_crank": 1.0, "frame_follower": 2.0, "crank_follower": 1.5},
+    )
+    return Walker(hg, dims, name="fourbar")
 
 
 class TestParams(unittest.TestCase):
@@ -91,24 +110,11 @@ class TestWorld(unittest.TestCase):
         self.assertEqual(world.road[0][1], -10)
         self.assertEqual(world.road[-1][1], -10)
 
-    def test_add_linkage_kinematic(self):
-        """Test adding a kinematic linkage."""
+    def test_add_walker_linkage(self):
+        """Test adding a Walker to the World."""
         world = World()
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage, load=5)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker, load=5)
         self.assertEqual(len(world.linkages), 1)
         self.assertIsInstance(world.linkages[0], DynamicLinkage)
 
@@ -116,43 +122,22 @@ class TestWorld(unittest.TestCase):
         """Test adding a DynamicLinkage directly."""
         space = pm.Space()
         space.gravity = params["physics"]["gravity"]
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        dynamic_linkage = DynamicLinkage(
-            joints=(base, crank, follower, output),
+        walker = _make_fourbar_walker()
+        dl = DynamicLinkage(
+            topology=walker.topology,
+            dimensions=walker.dimensions,
             space=space,
-            name="test_dynamic"
+            name="test_dynamic",
         )
         world = World(space=space)
-        world.add_linkage(dynamic_linkage)
+        world.add_linkage(dl)
         self.assertEqual(len(world.linkages), 1)
 
     def test_world_update(self):
         """Test World update method."""
         world = World()
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage, load=5)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker, load=5)
         # Update should return efficiency and energy
         result = world.update()
         self.assertIsNotNone(result)
@@ -160,21 +145,8 @@ class TestWorld(unittest.TestCase):
     def test_world_update_custom_dt(self):
         """Test World update with custom dt."""
         world = World()
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage, load=5)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker, load=5)
         result = world.update(dt=0.01)
         self.assertIsNotNone(result)
 
@@ -197,67 +169,46 @@ class TestRecalcLinkage(unittest.TestCase):
     """Test recalc_linkage function."""
 
     def test_recalc_linkage(self):
-        """Test that recalc_linkage doesn't raise errors."""
+        """Test that recalc_linkage updates NodeProxy coordinates."""
         space = pm.Space()
         space.gravity = params["physics"]["gravity"]
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = DynamicLinkage(
-            joints=(base, crank, follower, output),
+        walker = _make_fourbar_walker()
+        dl = DynamicLinkage(
+            topology=walker.topology,
+            dimensions=walker.dimensions,
             space=space,
-            name="test_dynamic"
+            name="test_dynamic",
         )
         # Should not raise exception
-        recalc_linkage(linkage)
+        recalc_linkage(dl)
+        # All joints should have valid coordinates after reload
+        for proxy in dl.joints:
+            self.assertIsInstance(proxy.x, float)
+            self.assertIsInstance(proxy.y, float)
 
 
 class TestLinkageBb(unittest.TestCase):
     """Test linkage_bb function."""
 
-    def test_linkage_bb_kinematic(self):
-        """Test bounding box for kinematic linkage with initialized joints."""
-        # Create a simple linkage with explicit coordinates
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=1, name="crank")
-        # Manually trigger position calculation for crank
-        crank.reload(0)
-        # Create a simple 2-joint linkage since Fixed joints require rebuild
-        linkage = Linkage(
-            joints=(base, crank),
-            name="test_linkage"
-        )
-        bb = linkage_bb(linkage)
+    def test_linkage_bb_walker(self):
+        """Test bounding box for a Walker."""
+        walker = _make_fourbar_walker()
+        bb = linkage_bb(walker)
         # Bounding box should be (min_y, max_x, max_y, min_x)
         self.assertEqual(len(bb), 4)
 
     def test_linkage_bb_dynamic(self):
-        """Test bounding box for dynamic linkage."""
+        """Test bounding box for DynamicLinkage."""
         space = pm.Space()
         space.gravity = params["physics"]["gravity"]
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = DynamicLinkage(
-            joints=(base, crank, follower, output),
+        walker = _make_fourbar_walker()
+        dl = DynamicLinkage(
+            topology=walker.topology,
+            dimensions=walker.dimensions,
             space=space,
-            name="test_dynamic"
+            name="test_dynamic",
         )
-        bb = linkage_bb(linkage)
+        bb = linkage_bb(dl)
         self.assertEqual(len(bb), 4)
 
 

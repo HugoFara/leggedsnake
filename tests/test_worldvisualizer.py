@@ -5,15 +5,34 @@ Tests for the worldvisualizer module.
 """
 
 import unittest
-from math import pi
+from math import tau
+from unittest.mock import MagicMock
+
 import pymunk as pm
-from pylinkage import Static, Crank, Fixed, Pivot, Linkage
+from pylinkage.dimensions import Dimensions, DriverAngle
+from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
 from leggedsnake.worldvisualizer import (
     smooth_transition, VisualWorld, CAMERA
 )
 from leggedsnake.dynamiclinkage import DynamicLinkage
-from leggedsnake.physicsengine import params
+from leggedsnake.walker import Walker
+
+
+def _make_fourbar_walker():
+    hg = HypergraphLinkage(name="fourbar")
+    hg.add_node(Node("frame", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_node(Node("follower", role=NodeRole.DRIVEN))
+    hg.add_edge(Edge("frame_crank", "frame", "crank"))
+    hg.add_edge(Edge("frame_follower", "frame", "follower"))
+    hg.add_edge(Edge("crank_follower", "crank", "follower"))
+    dims = Dimensions(
+        node_positions={"frame": (0, 0), "crank": (1, 0), "follower": (0, 2)},
+        driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
+        edge_distances={"frame_crank": 1.0, "frame_follower": 2.0, "crank_follower": 1.5},
+    )
+    return Walker(hg, dims, name="fourbar")
 
 
 class TestSmoothTransition(unittest.TestCase):
@@ -68,66 +87,35 @@ class TestVisualWorld(unittest.TestCase):
         self.assertEqual(world.road[0][1], -10)
 
     def test_visual_world_add_linkage(self):
-        """Test adding a linkage to VisualWorld."""
+        """Test adding a Walker to VisualWorld."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage, load=5)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker, load=5)
         self.assertEqual(len(world.linkages), 1)
 
     def test_visual_world_init_visuals(self):
         """Test init_visuals method."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         result = world.init_visuals()
         self.assertIsNotNone(result)
 
     def test_visual_world_init_visuals_with_colors(self):
-        """Test init_visuals with colors."""
+        """Test init_visuals with opacity colors."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        linkage = Linkage(joints=(base, crank), name="test")
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         colors = [0.5]  # opacity
         result = world.init_visuals(colors=colors)
         self.assertIsNotNone(result)
-        # Check that color was processed
         self.assertIsNotNone(world._linkage_colors)
 
     def test_visual_world_init_visuals_with_rgb_colors(self):
         """Test init_visuals with RGB colors."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        linkage = Linkage(joints=(base, crank), name="test")
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         colors = [[0.5, 0.3, 0.8]]  # RGB color
         result = world.init_visuals(colors=colors)
         self.assertIsNotNone(result)
@@ -136,94 +124,40 @@ class TestVisualWorld(unittest.TestCase):
     def test_visual_world_reload_visuals(self):
         """Test reload_visuals method."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         result = world.reload_visuals()
         self.assertIsNotNone(result)
 
     def test_visual_world_visual_update(self):
         """Test visual_update method."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         result = world.visual_update()
         self.assertIsNotNone(result)
 
     def test_visual_world_visual_update_with_time(self):
         """Test visual_update with custom time."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         result = world.visual_update(time=0.01)
         self.assertIsNotNone(result)
 
     def test_visual_world_visual_update_with_time_tuple(self):
         """Test visual_update with time as tuple (dt, fps)."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-        linkage = Linkage(
-            joints=(base, crank, follower, output),
-            name="test_linkage"
-        )
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         result = world.visual_update(time=[0.02, 20])
         self.assertIsNotNone(result)
 
     def test_visual_world_view_bounds(self):
         """Test view bounds are updated correctly."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        linkage = Linkage(joints=(base, crank), name="test")
-        world.add_linkage(linkage)
+        walker = _make_fourbar_walker()
+        world.add_linkage(walker)
         world.reload_visuals()
         # View bounds should have been updated
         self.assertIsNotNone(world._view_bounds)
@@ -238,25 +172,44 @@ class TestVisualWorld(unittest.TestCase):
         self.assertIsInstance(screen_x, float)
         self.assertIsInstance(screen_y, float)
 
-    def test_visual_world_get_joint_color(self):
-        """Test joint color assignment based on type."""
+    def test_visual_world_get_joint_color_ground(self):
+        """Test joint color for GROUND role via mock NodeProxy."""
         world = VisualWorld(headless=True)
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(0, 2, joint0=base, joint1=crank, distance0=2, distance1=1.5)
-        output = Fixed(joint0=crank, joint1=follower, distance=1, angle=-pi/2)
+        mock_joint = MagicMock()
+        mock_joint.role = NodeRole.GROUND
+        color = world._get_joint_color(mock_joint)
+        self.assertEqual(len(color), 4)
+        # Ground color is gray (100, 100, 100, 255)
+        self.assertEqual(color, (100, 100, 100, 255))
 
-        # Test different joint types get different colors
-        static_color = world._get_joint_color(base)
-        crank_color = world._get_joint_color(crank)
-        pivot_color = world._get_joint_color(follower)
-        fixed_color = world._get_joint_color(output)
+    def test_visual_world_get_joint_color_driver(self):
+        """Test joint color for DRIVER role via mock NodeProxy."""
+        world = VisualWorld(headless=True)
+        mock_joint = MagicMock()
+        mock_joint.role = NodeRole.DRIVER
+        color = world._get_joint_color(mock_joint)
+        self.assertEqual(len(color), 4)
+        # Driver color is green (50, 200, 50, 255)
+        self.assertEqual(color, (50, 200, 50, 255))
 
-        # All should return RGBA tuples
-        self.assertEqual(len(static_color), 4)
-        self.assertEqual(len(crank_color), 4)
-        self.assertEqual(len(pivot_color), 4)
-        self.assertEqual(len(fixed_color), 4)
+    def test_visual_world_get_joint_color_driven(self):
+        """Test joint color for DRIVEN role via mock NodeProxy."""
+        world = VisualWorld(headless=True)
+        mock_joint = MagicMock()
+        mock_joint.role = NodeRole.DRIVEN
+        color = world._get_joint_color(mock_joint)
+        self.assertEqual(len(color), 4)
+        # Driven color is blue (50, 100, 200, 255)
+        self.assertEqual(color, (50, 100, 200, 255))
+
+    def test_visual_world_get_joint_color_no_role(self):
+        """Test joint color when object has no role attribute."""
+        world = VisualWorld(headless=True)
+        mock_joint = object()  # no .role attribute
+        color = world._get_joint_color(mock_joint)
+        self.assertEqual(len(color), 4)
+        # Falls back to ground color
+        self.assertEqual(color, (100, 100, 100, 255))
 
 
 class TestCAMERASettings(unittest.TestCase):

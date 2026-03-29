@@ -5,80 +5,95 @@ All notable changes to the LeggedSnake will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] - Unreleased
 
 ### Added
 
-- `add_opposite_leg` adds the ability to mirror a leg instantly.
-- Using `uv` instead of raw Python.
-- Re-exports of pylinkage 0.8.0 new API classes: ``Ground``, ``FixedDyad``,
-  ``RRRDyad``.
+- **Multi-DOF mechanism support**: mechanisms can now have multiple
+  independent drivers, each with its own angular velocity.
+  - ``Walker.motor_rates`` accepts a ``dict[str, float]`` mapping driver
+    node IDs to individual rates, or a single ``float`` for all drivers.
+  - ``PhysicsMapping.motor_node_ids`` tracks which driver each motor
+    corresponds to.
+- **Hypergraph-native Walker**: ``Walker`` now stores a
+  ``HypergraphLinkage`` (topology) and ``Dimensions`` (geometry) directly.
+  Mechanisms are constructed with ``Node``, ``Edge``, ``Hyperedge``,
+  and ``Dimensions`` from pylinkage's hypergraph API.
+- ``walker_from_legacy(linkage)`` factory function to convert existing
+  joint-based ``Linkage`` objects to the new ``Walker``.
+- Re-exports of pylinkage hypergraph API: ``HypergraphLinkage``, ``Node``,
+  ``Edge``, ``Hyperedge``, ``NodeRole``, ``Dimensions``, ``DriverAngle``.
+- ``Walker.to_mechanism()`` converts to pylinkage's ``Mechanism`` for
+  kinematic simulation with proper multi-driver support.
+- ``Walker.get_feet()`` returns terminal node IDs (replaces ``get_foots()``).
+- ``DynamicLinkage`` accepts ``HypergraphLinkage`` + ``Dimensions`` directly
+  (no intermediate ``from_linkage()`` conversion).
+- ``NodeProxy`` lightweight class replaces the ``DynamicJoint`` hierarchy
+  for reading physics body positions.
+- ``World.add_linkage()`` now accepts ``Walker`` directly.
 - Re-exports of pylinkage optimization pipeline:
-  - ``Agent``, ``MutableAgent`` return types for uniform optimizer output.
-  - ``differential_evolution_optimization`` (scipy DE).
-  - ``dual_annealing_optimization`` (scipy SA).
-  - ``minimize_linkage`` (scipy local methods: Nelder-Mead, L-BFGS-B, etc.).
-  - ``chain_optimizers`` for multi-stage pipelines (e.g. PSO → DE → polish).
-  - ``multi_objective_optimization`` (NSGA-II/III via pymoo).
-  - ``ParetoFront``, ``ParetoSolution``, ``OptimizationProgress`` types.
-  - Async variants: ``*_async`` for DE, minimize, PSO, and grid search.
+  ``Agent``, ``MutableAgent``, ``differential_evolution_optimization``,
+  ``dual_annealing_optimization``, ``minimize_linkage``,
+  ``chain_optimizers``, ``multi_objective_optimization``,
+  ``ParetoFront``, ``ParetoSolution``, ``OptimizationProgress``,
+  and async variants.
 - ``genetic_algorithm_optimization``: standard-signature wrapper for the
-  built-in GA, compatible with ``chain_optimizers`` (accepts ``center``
-  parameter, returns ``list[Agent]``).
-- New ``walking_objectives`` module with factory functions for multi-objective
-  walking optimization:
-  - ``stride_length_objective``: fast kinematic stride evaluation.
-  - ``energy_efficiency_objective``: physics-based efficiency metric.
-  - ``total_distance_objective``: physics-based distance metric.
-  - ``multi_objective_walking_optimization``: convenience wrapper for
-    NSGA-II/III with walking-specific objectives.
+  built-in GA, compatible with ``chain_optimizers``.
+- ``walking_objectives`` module with factory functions:
+  ``stride_length_objective``, ``energy_efficiency_objective``,
+  ``total_distance_objective``, ``multi_objective_walking_optimization``.
+- ``add_opposite_leg()`` mirrors a leg across a vertical axis.
 
 ### Changed
 
-- ``GeneticOptimization.run()`` now returns ``list[Agent]`` instead of raw
-  lists. Existing index-based access (``result[0][0]``) still works since
-  ``Agent`` is a ``NamedTuple``; new code should use ``.score``,
-  ``.dimensions``, ``.init_positions``.
-- ``examples/strider.py`` updated with ``chained_optimizer()`` demonstrating
-  PSO → DE pipeline via ``chain_optimizers``.
-- **DynamicJoint hierarchy migrated to modern pylinkage API**:
-  - ``Nail`` now inherits ``Ground`` (was ``Static``).
-  - ``PinUp`` now inherits ``FixedDyad`` (was ``Fixed``).
-  - ``DynamicPivot`` now inherits ``RRRDyad`` (was ``Pivot``).
-  - ``Motor`` now inherits ``actuators.Crank`` (was legacy ``Crank``).
-  - Adapter classes (``_joint_adapters.py``) provide backward-compatible
-    ``joint0``/``joint1``/``r``/``set_anchor0()`` interface on top of the
-    modern ``anchor1``/``anchor2``/``distance`` attributes.
-  - ``DynamicJoint.radius`` renamed to ``_hull_radius`` to avoid conflicting
-    with ``actuators.Crank.radius``.
-  - ``isinstance(nail, Ground)`` and ``isinstance(motor, actuators.Crank)``
-    now return ``True``.
-- ``examples/`` is now in the main folder. It was in ``docs/`` previously.
+- **Breaking**: ``Walker`` no longer inherits from ``pylinkage.Linkage``.
+  It is now a standalone class with ``topology`` and ``dimensions``
+  attributes. Use ``walker_from_legacy()`` to migrate existing code.
+- **Breaking**: ``DynamicLinkage`` no longer inherits from ``Linkage``.
+  It takes ``(topology, dimensions, space)`` instead of ``(joints, space)``.
+- **Breaking**: ``motor_rate`` parameter renamed to ``motor_rates`` in
+  ``create_bodies_from_hypergraph()`` and ``DynamicLinkage``. Accepts
+  ``dict[str, float]`` for per-driver rates or ``float`` for uniform rate.
+- **Breaking**: Rigid triangle detection in ``hypergraph_physics`` now uses
+  ``Hyperedge`` objects instead of ``isinstance(joint, Fixed)`` checks.
+  Add ``Hyperedge`` to your topology for Fixed/ternary joints.
+- ``_find_effective_ground_nodes()`` no longer requires a ``joints``
+  parameter; ground detection is purely topology-based.
+- ``World.update()`` power calculation uses ``sum(power)`` across all
+  motors instead of ``power[0]`` only. Fixes incorrect energy accounting
+  for multi-motor mechanisms.
+- ``World.__update_linkage__()`` enables/checks all motors via
+  ``physics_mapping.motors`` instead of ``isinstance`` checks.
+- Joint color assignment in ``VisualWorld`` now uses ``NodeRole``
+  (GROUND/DRIVER/DRIVEN) instead of ``isinstance`` checks on legacy
+  joint classes.
+- ``GeneticOptimization.run()`` returns ``list[Agent]`` (was raw lists).
+- All examples rewritten to use hypergraph construction pattern.
+- ``examples/`` is now in the main folder (was in ``docs/``).
 - Minimum Python version is now 3.10 (was 3.7).
 - Support for Python 3.12, 3.13, and 3.14.
-- Compatibility with pylinkage 0.8.0 (was 0.7.0):
-  - Adapted to topology/geometry split: ``from_linkage()`` now returns
-    ``(HypergraphLinkage, Dimensions)``; ``Node`` no longer carries position.
-  - Threaded ``Dimensions`` through ``hypergraph_physics`` and ``dynamiclinkage``.
-  - Added forward-compatible ``isinstance`` checks for new API types
-    (``Ground``, ``FixedDyad``, ``RRRDyad``) alongside legacy types.
-  - ``convert_to_dynamic_joints`` now bridges both legacy and new attribute
-    names (``joint0``/``anchor1``, ``r``/``distance``, etc.).
-  - Requires ``pylinkage>=0.8.0``.
+- Requires ``pylinkage>=0.8.0``.
+- Version bumped to 0.5.0.
 
 ### Fixed
 
+- Multi-motor energy accounting: ``World.update()`` now sums power from
+  all motors (was using only the first motor's power).
 - Project links fixed in pyproject.toml.
-- Documentation should be directly under ``docs/`` but the recommended
-  method was placing it in ``docs/html``.
 
 ### Removed
 
-- Removed ``setup.cfg`` (replaced by ``pyproject.toml``).
-- Removed ``setup.py`` (no longer needed with modern packaging).
-- Removed ``requirements.txt`` and ``requirements-dev.txt``
-  (dependencies now in ``pyproject.toml``).
-- Removed conda support and ``environment.yml``.
+- ``DynamicJoint`` abstract base class and subclasses: ``Nail``, ``Motor``,
+  ``PinUp``, ``DynamicPivot``. Replaced by ``NodeProxy``.
+- ``_joint_adapters.py`` module (adapter classes for legacy pylinkage API).
+- ``convert_to_dynamic_joints()`` method on ``DynamicLinkage``.
+- Re-exports of legacy pylinkage joint classes: ``Static``, ``Crank``,
+  ``Fixed``, ``Pivot``, ``Revolute``, ``Linkage``, ``Ground``,
+  ``FixedDyad``, ``RRRDyad``, ``bounding_box``, ``show_linkage``.
+  Import these from ``pylinkage`` directly if needed.
+- ``Walker.get_foots()`` (replaced by ``get_feet()``).
+- ``setup.cfg``, ``setup.py``, ``requirements.txt``,
+  ``requirements-dev.txt``, ``environment.yml``.
 
 ## [0.4.0] - 2023-06-21
 

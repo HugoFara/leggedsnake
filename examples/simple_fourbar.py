@@ -7,58 +7,74 @@ using the Pyglet-based visualizer.
 
 Run with: uv run python examples/simple_fourbar.py
 """
-import numpy as np
-from pylinkage import Static, Crank, Fixed, Revolute, Linkage
+from math import pi
+
 import leggedsnake as ls
+from leggedsnake import (
+    Dimensions,
+    DriverAngle,
+    Edge,
+    Hyperedge,
+    HypergraphLinkage,
+    Node,
+    NodeRole,
+    Walker,
+)
 
 
 def create_fourbar_linkage():
     """Create a simple four-bar linkage."""
-    # Ground joint (fixed point)
-    ground = Static(x=0, y=0, name="Ground")
+    # --- Topology ---
+    hg = HypergraphLinkage(name="FourBar")
+
+    # Ground joints (fixed frame points)
+    hg.add_node(Node("ground", role=NodeRole.GROUND))
+    hg.add_node(Node("rocker_ground", role=NodeRole.GROUND))
 
     # Crank - the driving link that rotates
-    # angle is the rotation per kinematic step
-    crank = Crank(
-        x=1, y=0,
-        joint0=ground,
-        distance=1,
-        angle=np.pi / 12,  # 15 degrees per step
-        name="Crank"
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+
+    # Coupler - connects crank to rocker (circle-circle intersection)
+    hg.add_node(Node("coupler", role=NodeRole.DRIVEN))
+
+    # Output - rigid triangle vertex on the crank-coupler link
+    hg.add_node(Node("output", role=NodeRole.DRIVEN))
+
+    # Edges (links between joints)
+    hg.add_edge(Edge("ground_crank", "ground", "crank"))
+    hg.add_edge(Edge("crank_coupler", "crank", "coupler"))
+    hg.add_edge(Edge("rocker_coupler", "rocker_ground", "coupler"))
+
+    # Output forms a rigid triangle with crank and coupler
+    hg.add_edge(Edge("crank_output", "crank", "output"))
+    hg.add_hyperedge(Hyperedge("triangle_output", nodes=("crank", "coupler", "output")))
+
+    # --- Dimensions ---
+    dims = Dimensions(
+        node_positions={
+            "ground": (0, 0),
+            "crank": (1, 0),
+            "rocker_ground": (3, 0),
+            "coupler": (1.5, 1.5),
+            "output": (0.5, 1.0),  # approximate, will be solved
+        },
+        driver_angles={
+            "crank": DriverAngle(angular_velocity=pi / 12),  # 15 degrees per step
+        },
+        edge_distances={
+            "ground_crank": 1.0,
+            "crank_coupler": 2.0,        # Distance from crank tip
+            "rocker_coupler": 2.5,       # Distance from rocker ground
+            "crank_output": 1.5,
+        },
     )
 
-    # Rocker pivot point (second ground point)
-    rocker_ground = Static(x=3, y=0, name="RockerGround")
-
-    # Coupler - connects crank to rocker
-    coupler = Revolute(
-        x=1.5, y=1.5,
-        joint0=crank,
-        joint1=rocker_ground,
-        distance0=2,      # Distance from crank tip
-        distance1=2.5,    # Distance from rocker ground
-        name="Coupler"
-    )
-
-    # Output link (rocker)
-    output = Fixed(
-        joint0=crank,
-        joint1=coupler,
-        distance=1.5,
-        angle=-np.pi/3,
-        name="Output"
-    )
-
-    linkage = Linkage(
-        joints=(ground, crank, rocker_ground, coupler, output),
-        name="FourBar"
-    )
+    walker = Walker(hg, dims, name="FourBar")
 
     # Perform one kinematic step to solve initial joint positions
-    # This is required before visualization
-    list(linkage.step())
+    list(walker.step(iterations=1))
 
-    return linkage
+    return walker
 
 
 def main():
@@ -70,10 +86,10 @@ def main():
     print("=" * 40)
 
     # Create the linkage
-    linkage = create_fourbar_linkage()
+    walker = create_fourbar_linkage()
 
     # Run the visualization for 10 seconds with dynamic camera (follows the linkage)
-    ls.video(linkage, duration=10, dynamic_camera=True)
+    ls.video(walker, duration=10, dynamic_camera=True)
 
 
 if __name__ == "__main__":

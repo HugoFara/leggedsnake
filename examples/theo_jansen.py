@@ -19,9 +19,20 @@ References:
 
 Run with: uv run python examples/theo_jansen.py
 """
+from math import pi
+
 import numpy as np
-from pylinkage import Static, Crank, Revolute
+
 import leggedsnake as ls
+from leggedsnake import (
+    Dimensions,
+    DriverAngle,
+    Edge,
+    HypergraphLinkage,
+    Node,
+    NodeRole,
+    Walker,
+)
 
 # Simulation parameters
 LAP_POINTS = 48  # More steps for numerical stability
@@ -117,60 +128,69 @@ def create_theo_jansen_linkage():
     h = get_scaled_dimensions()
     coords = compute_initial_coords(h, angle=0)
 
-    # Create joints
-    O = Static(x=coords['O'][0], y=coords['O'][1], name="O (crank center)")
-    B = Static(x=coords['B'][0], y=coords['B'][1], name="B (frame)")
-    B.joint0 = O
+    # --- Topology ---
+    # The Jansen linkage is an 8-bar mechanism. All mobile joints are
+    # Revolute (circle-circle intersections), no ternary/rigid triangles.
+    hg = HypergraphLinkage(name="TheoJansen")
 
-    A = Crank(
-        x=coords['A'][0], y=coords['A'][1],
-        joint0=O,
-        distance=h['m'],
-        angle=-2 * np.pi / LAP_POINTS,  # Angular step for kinematic iteration
-        name="A (crank)"
+    # Ground nodes
+    hg.add_node(Node("O", role=NodeRole.GROUND, name="O (crank center)"))
+    hg.add_node(Node("B", role=NodeRole.GROUND, name="B (frame)"))
+
+    # Driver (crank)
+    hg.add_node(Node("A", role=NodeRole.DRIVER, name="A (crank)"))
+
+    # Driven nodes (all Revolute / circle-circle intersection)
+    hg.add_node(Node("C", role=NodeRole.DRIVEN, name="C"))
+    hg.add_node(Node("D", role=NodeRole.DRIVEN, name="D"))
+    hg.add_node(Node("E", role=NodeRole.DRIVEN, name="E"))
+    hg.add_node(Node("F", role=NodeRole.DRIVEN, name="F"))
+    hg.add_node(Node("G", role=NodeRole.DRIVEN, name="G (foot)"))
+
+    # Edges (each represents a link/distance constraint)
+    hg.add_edge(Edge("O_A", "O", "A"))       # crank: O to A
+    hg.add_edge(Edge("A_C", "A", "C"))       # j: A to C
+    hg.add_edge(Edge("B_C", "B", "C"))       # b: B to C
+    hg.add_edge(Edge("A_D", "A", "D"))       # k: A to D
+    hg.add_edge(Edge("B_D", "B", "D"))       # c: B to D
+    hg.add_edge(Edge("B_E", "B", "E"))       # d: B to E
+    hg.add_edge(Edge("C_E", "C", "E"))       # e: C to E
+    hg.add_edge(Edge("D_F", "D", "F"))       # g: D to F
+    hg.add_edge(Edge("E_F", "E", "F"))       # f: E to F
+    hg.add_edge(Edge("D_G", "D", "G"))       # i: D to G
+    hg.add_edge(Edge("F_G", "F", "G"))       # h: F to G
+
+    # --- Dimensions ---
+    dims = Dimensions(
+        node_positions={
+            "O": coords['O'],
+            "B": coords['B'],
+            "A": coords['A'],
+            "C": coords['C'],
+            "D": coords['D'],
+            "E": coords['E'],
+            "F": coords['F'],
+            "G": coords['G'],
+        },
+        driver_angles={
+            "A": DriverAngle(angular_velocity=-2 * pi / LAP_POINTS),
+        },
+        edge_distances={
+            "O_A": h['m'],     # crank radius
+            "A_C": h['j'],     # A to C
+            "B_C": h['b'],     # B to C
+            "A_D": h['k'],     # A to D
+            "B_D": h['c'],     # B to D
+            "B_E": h['d'],     # B to E
+            "C_E": h['e'],     # C to E
+            "D_F": h['g'],     # D to F
+            "E_F": h['f'],     # E to F
+            "D_G": h['i'],     # D to G
+            "F_G": h['h'],     # F to G
+        },
     )
 
-    C = Revolute(
-        x=coords['C'][0], y=coords['C'][1],
-        joint0=A, joint1=B,
-        distance0=h['j'], distance1=h['b'],
-        name="C"
-    )
-
-    D = Revolute(
-        x=coords['D'][0], y=coords['D'][1],
-        joint0=A, joint1=B,
-        distance0=h['k'], distance1=h['c'],
-        name="D"
-    )
-
-    E = Revolute(
-        x=coords['E'][0], y=coords['E'][1],
-        joint0=B, joint1=C,
-        distance0=h['d'], distance1=h['e'],
-        name="E"
-    )
-
-    F = Revolute(
-        x=coords['F'][0], y=coords['F'][1],
-        joint0=D, joint1=E,
-        distance0=h['g'], distance1=h['f'],
-        name="F"
-    )
-
-    G = Revolute(
-        x=coords['G'][0], y=coords['G'][1],
-        joint0=D, joint1=F,
-        distance0=h['i'], distance1=h['h'],
-        name="G (foot)"
-    )
-
-    joints = [O, B, A, C, D, E, F, G]
-    walker = ls.Walker(
-        joints=joints,
-        order=joints,
-        name="TheoJansen"
-    )
+    walker = Walker(hg, dims, name="TheoJansen")
 
     return walker
 
@@ -212,7 +232,7 @@ def main():
 
     walker = create_theo_jansen_walker(n_legs=3)
     # Motor rate: negative for clockwise rotation (walking forward)
-    walker.motor_rate = -4.0
+    walker.motor_rates = -4.0
 
     # Run the visualization
     ls.video(walker, duration=15, dynamic_camera=True)

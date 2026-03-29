@@ -1,36 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-The physicsengine module gives a dynamic behavior to legged mechanism.
+Physics engine for dynamic walking simulation.
 
-It uses the 2D physics engine chipmunk, this is why it can only be used on
-planar mechanisms.
-In theory, you can use any type of mechanism, and not only planar mechanisms.
-In practice, we do generate the road and some other parameters as the gravity,
-so it can be difficult to test something other than a walker.
-
-Created on Sat May 25 2019 14:56:01.
-
-@author: HugoFara
+Uses the 2D physics engine pymunk (chipmunk) for planar mechanism simulation.
+Manages the simulation space, road generation, and energy tracking.
 """
 from __future__ import annotations
 
-import warnings
 from typing import Any, TypedDict
 
 import numpy as np
 import pymunk as pm
 
-# Legacy joint classes used for isinstance checks on kinematic input.
-with warnings.catch_warnings():
-    warnings.filterwarnings(
-        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
-    )
-    from pylinkage import bounding_box, Static, Crank, Fixed, Pivot
-
 from pylinkage.geometry import norm, cyl_to_cart
-
-from .dynamiclinkage import Motor
-from pylinkage.linkage import Linkage
 
 from . import dynamiclinkage
 
@@ -109,27 +91,14 @@ params: Params = {
 
 
 def set_space_constraints(space: pm.Space) -> None:
-    """
-    Auto-tune solver parameters based on constraint count.
-
-    More constraints require more solver iterations for stability,
-    especially when linkages make ground contact.
-    """
+    """Auto-tune solver parameters based on constraint count."""
     constraints = space.constraints
     len_c = len(constraints)
     if len_c == 0:
         return
 
-    # Scale iterations with constraint count for stability
-    # Base: 20 iterations, scaling up for complex linkages
-    # For 68 constraints: ~50 iterations
     space.iterations = max(20, int(15 + len_c * 0.5))
 
-    # Error bias controls constraint correction rate per step
-    # Lower values = faster correction but can cause jitter
-    # Higher values = slower correction but more stable
-    # Scale: more constraints → higher error_bias (softer, more stable)
-    # For 68 constraints: ~0.2, for 100: ~0.4
     correction_rate = 0.1 * np.exp(-len_c / 50)
     error_bias = pow(1 - correction_rate, 60)
 
@@ -138,11 +107,9 @@ def set_space_constraints(space: pm.Space) -> None:
 
 
 class World:
-    """
-    A world contains a space of simulation, at least one linkage, and a road.
+    """Simulation world containing a pymunk space, linkages, and a road.
 
-    It is not intended to be rendered visually per se, see VisualWorld for
-    this purpose.
+    Not intended to be rendered visually per se, see VisualWorld for that.
     """
 
     space: pm.Space
@@ -150,19 +117,6 @@ class World:
     linkages: list[dynamiclinkage.DynamicLinkage]
 
     def __init__(self, space: pm.Space | None = None, road_y: float = -5) -> None:
-        """
-        Initiate rigidbodies and simulation.
-
-        Add rigidbodies in linkage.
-
-        Parameters
-        ----------
-        space : pymunk.space.Space, optional
-            Space of simulation. The default is None.
-        road_y : float, optional
-            The ordinate of the ground. Useful when linkages have long legs.
-            The default is -5.
-        """
         if isinstance(space, pm.Space):
             self.space = space
         else:
@@ -171,83 +125,70 @@ class World:
 
         set_space_constraints(self.space)
 
-        # The road which will be built
         self.road = [(-15, road_y), (15, road_y)]
-        # First road parts
         seg = pm.Segment(
-            self.space.static_body, self.road[0], self.road[-1],
-            .1
+            self.space.static_body, self.road[0], self.road[-1], .1
         )
         seg.friction = params["ground"]["friction"]
         self.space.add(seg)
         self.linkages = []
 
     def add_linkage(
-        self, linkage: Linkage | dynamiclinkage.DynamicLinkage, load: float = 0
+        self,
+        source: Any,
+        load: float = 0,
     ) -> None:
-        """
-        Add a DynamicLinkage to the simulation.
+        """Add a linkage to the simulation.
 
         Parameters
         ----------
-        linkage : pylinkage.Linkage or leggedsnake.DynamicLinkage
-            Linkage to add.
-            We use the linkage's space if it is a DynamicLinkage.
-        load : float, optional
-            Load to add the center of the linkage.
-            Has no effect when using a DynamicLinkage.
-            The default is 0.
-        Returns
-        -------
-
+        source : Walker, DynamicLinkage, or legacy Linkage
+            The mechanism to simulate.
+        load : float
+            Load mass (only used when converting from Walker/Linkage).
         """
-        if isinstance(linkage, dynamiclinkage.DynamicLinkage):
-            dynamic_linkage = linkage
+        if isinstance(source, dynamiclinkage.DynamicLinkage):
+            dl = source
         else:
-            dynamic_linkage = dynamiclinkage.convert_to_dynamic_linkage(
-                linkage, self.space, load=load
+            dl = dynamiclinkage.convert_to_dynamic_linkage(
+                source, self.space, load=load
             )
-        for cur_crank in dynamic_linkage._cranks:
-            cur_crank.actuator.max_force = 0
-        self.linkages.append(dynamic_linkage)
+
+        # Disable motors initially (enable when settled)
+        for motor in dl.physics_mapping.motors:
+            motor.max_force = 0
+
+        self.linkages.append(dl)
         for s in self.space.shapes:
             s.friction = params["ground"]["friction"]
 
-        # Auto-tune solver after adding linkage for stability
         self.tune_solver()
 
     def tune_solver(self) -> None:
-        """
-        Auto-tune solver parameters for stability.
-
-        Call this after adding all linkages if you experience jittery physics
-        when the mechanism contacts the ground. This increases solver iterations
-        and softens constraint correction based on the constraint count.
-        """
+        """Auto-tune solver parameters for stability."""
         set_space_constraints(self.space)
 
     def __update_linkage__(
         self, linkage: dynamiclinkage.DynamicLinkage, power: float
     ) -> tuple[float, float]:
         """Update a specific linkage."""
-        # Get all crank joints (there may be multiple for mechanisms with
-        # opposite legs or multiple independent motors)
-        linkage_cranks = [j for j in linkage.joints if isinstance(j, (Crank, Motor))]
+        motors = linkage.physics_mapping.motors
         vel = linkage.body.velocity
-        # Check if any motor needs enabling (use first crank as reference)
-        if linkage_cranks and linkage_cranks[0].actuator.max_force == 0:
+
+        # Check if motors need enabling (use first motor as reference)
+        if motors and motors[0].max_force == 0:
             if norm(vel.x, vel.y) < .1:
-                # Enable ALL crank motors when linkage settles
-                for crank in linkage_cranks:
-                    crank.actuator.max_force = params["linkage"]["torque"]
+                # Enable ALL motors when linkage settles
+                for motor in motors:
+                    motor.max_force = params["linkage"]["torque"]
                 linkage.height = linkage.body.position.y
                 linkage.mechanical_energy = (
-                        .5 * linkage.mass * norm(vel.x, vel.y) ** 2
+                    .5 * linkage.mass * norm(vel.x, vel.y) ** 2
                 )
 
         # Energy from the motor in this step
         energy = power * params["simul"]["physics_period"]
-        if hasattr(linkage, 'height') and energy != 0.:
+        if hasattr(linkage, 'height') and linkage.height != 0.0 and energy != 0.:
             vel = linkage.body.velocity
             v = norm(vel.x, vel.y)
             g = norm(*params["physics"]["gravity"])
@@ -263,55 +204,52 @@ class World:
         return 0, 0
 
     def update(self, dt: float | None = None) -> tuple[float, float] | None:
-        """
-        Update simulation.
+        """Update simulation by one time step.
 
         Parameters
         ----------
         dt : float | None
-            Time of the step (delta-time). Uses params["simul"]["physics_period"] if None.
+            Time step. Uses params["simul"]["physics_period"] if None.
         """
-        # Simulation step
         if dt is None:
             dt = params["simul"]["physics_period"]
-        # Motor power in this simulation step
-        powers = [
-            [0 for j in lin.joints if isinstance(j, (Crank, Motor))]
+
+        # Compute motor power for each linkage
+        powers: list[list[float]] = [
+            [0.0] * len(lin.physics_mapping.motors)
             for lin in self.linkages
         ]
         self.space.step(dt)
+
         for i, linkage in enumerate(self.linkages):
-            index = -1
-            for crank in linkage.joints:
-                if not isinstance(crank, (Crank, Motor)):
-                    continue
-                index += 1
-                # Get offset for crank rotation speed
-                w = crank._b.angular_velocity
-                w -= linkage.body.angular_velocity
-                powers[i][index] += abs(w) * crank.actuator.impulse / dt
+            for j, motor in enumerate(linkage.physics_mapping.motors):
+                # Motor angular velocity relative to chassis
+                driver_body = motor.a  # type: ignore[attr-defined]
+                w = driver_body.angular_velocity - linkage.body.angular_velocity
+                powers[i][j] = abs(w) * abs(motor.impulse) / dt
 
         bounds: tuple[float, float] = (0.0, 0.0)
         energies: list[float] = [0.0] * len(self.linkages)
         efficiencies: list[float] = [0.0] * len(self.linkages)
-        for idx, linkage, power in zip(
-                range(len(self.linkages)), self.linkages, powers
-        ):
+
+        for idx, (linkage, power) in enumerate(zip(self.linkages, powers)):
             recalc_linkage(linkage)
+            # Sum power from ALL motors (fixes multi-motor energy accounting)
             energies[idx], efficiencies[idx] = self.__update_linkage__(
-                linkage, power[0]
+                linkage, sum(power)
             )
-            bounds = (
-                min(bounds[0], *(float(j.x) for j in linkage.joints)),
-                max(bounds[1], *(float(j.x) for j in linkage.joints))
-            )
+            # Compute position bounds for road generation
+            for proxy in linkage.joints:
+                bounds = (
+                    min(bounds[0], proxy.x),
+                    max(bounds[1], proxy.x),
+                )
+
         while self.road[-1][0] < bounds[1] + 10:
             self.build_road(True)
         while self.road[0][0] > bounds[0] - 10:
             self.build_road(False)
 
-        # Without animation, we return 100 times motor yield
-        # with a duration step
         for linkage, energy, efficiency in zip(
                 self.linkages, energies, efficiencies
         ):
@@ -333,17 +271,14 @@ class World:
         s = pm.Segment(self.space.static_body, a, self.road[index], .1)
         s.friction = ground["friction"]
         self.space.add(s)
-        # Add the elements in the end or the beginning
         self.road.insert(-index * len(self.road), a)
         self.road.insert(-index * len(self.road), b)
 
     def __build_road_segment__(self, ground: GroundParams, index: int) -> None:
         """Add a segment (one point)."""
-        # Add noise for more chaotic terrain."""
         angle = np.random.normal(
             ground["slope"] / 2, ground["noise"] * ground["slope"] / 2
         )
-        # Adding a point to the left increases angle by pi/2
         if not index:
             angle = np.pi - angle
         a = pm.Vec2d(*cyl_to_cart(ground["section_len"], angle,
@@ -354,14 +289,12 @@ class World:
         self.road.insert(-index * len(self.road), a)
 
     def build_road(self, positive: bool = False) -> None:
-        """
-        Build a road part.
+        """Build a road part.
 
         Arguments
         ---------
         positive: if False (default), the road part will be added on the left.
         """
-        # Ground parameters
         ground = params["ground"]
         if np.random.rand() < ground["step_freq"] and False:
             self.__build_road_step__(ground, -positive)
@@ -370,40 +303,32 @@ class World:
 
 
 def recalc_linkage(linkage: dynamiclinkage.DynamicLinkage) -> None:
-    """Assign a good position to all joints."""
+    """Update all joint proxy coordinates from physics bodies."""
     for j in linkage.joints:
         j.reload()
 
 
 def linkage_bb(
-    linkage: Linkage | dynamiclinkage.DynamicLinkage,
+    linkage: Any,
 ) -> tuple[float, float, float, float]:
-    """
-    Return the bounding box for this linkage.
+    """Return the bounding box (min_y, max_x, max_y, min_x) for a linkage."""
+    from .walker import Walker
 
-    The bounding box is in form (min_y, max_x, max_y, min_x).
-
-    Parameters
-    ----------
-    linkage : pylinkage.linkage.Linkage
-        The linkage from which to get the bounding box.
-    """
-    data = [i.coord() for i in linkage.joints]
     if isinstance(linkage, dynamiclinkage.DynamicLinkage):
-        data.extend(tuple(i.position) for i in linkage.rigidbodies)
-    bbox = bounding_box(data)
-    return (float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3]))
+        positions = list(linkage.get_all_positions().values())
+        positions.extend(tuple(b.position) for b in linkage.rigidbodies)
+    elif isinstance(linkage, Walker):
+        positions = list(linkage.dimensions.node_positions.values())
+    else:
+        # Legacy Linkage
+        from pylinkage import bounding_box
+        data = [i.coord() for i in linkage.joints]
+        bbox = bounding_box(data)
+        return (float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3]))
 
+    if not positions:
+        return (0.0, 0.0, 0.0, 0.0)
 
-if __name__ == "__main__":
-    base = Static(0, 0, name="Main trick")
-    crank = Crank(1, 0, name="The crank", angle=1, joint0=base)
-    follower = Pivot(0, 2, joint0=base, joint1=crank, distance0=2,
-                     distance1=1)
-    frame = Fixed(joint0=crank, joint1=follower, distance=1, angle=-np.pi/2)
-    demo_linkage = dynamiclinkage.DynamicLinkage(
-        name='Some tricky linkage',
-        joints=(base, crank, follower, frame),
-        space=pm.Space()
-    )
-    demo_linkage.space.gravity = params["physics"]["gravity"]
+    xs = [p[0] for p in positions]
+    ys = [p[1] for p in positions]
+    return (float(min(ys)), float(max(xs)), float(max(ys)), float(min(xs)))

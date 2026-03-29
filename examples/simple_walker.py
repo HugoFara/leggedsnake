@@ -7,9 +7,19 @@ and simulates it using the Pyglet-based visualizer.
 
 Run with: uv run python examples/simple_walker.py
 """
-import numpy as np
-from pylinkage import Static, Crank, Fixed, Revolute
+from math import pi
+
 import leggedsnake as ls
+from leggedsnake import (
+    Dimensions,
+    DriverAngle,
+    Edge,
+    Hyperedge,
+    HypergraphLinkage,
+    Node,
+    NodeRole,
+    Walker,
+)
 
 
 def create_klann_walker(opposite: bool = True):
@@ -25,51 +35,56 @@ def create_klann_walker(opposite: bool = True):
         If True, create an antisymmetric copy of the leg on the opposite side.
         This creates left/right leg pairs. Default is True.
     """
-    # Frame/chassis anchor point
-    frame = Static(x=0, y=0, name="Frame")
+    # --- Topology ---
+    hg = HypergraphLinkage(name="SimpleWalker")
+
+    # Frame/chassis anchor points
+    hg.add_node(Node("frame", role=NodeRole.GROUND))
+    hg.add_node(Node("frame2", role=NodeRole.GROUND))
 
     # Crank - the motor-driven input link
-    # angle is the rotation per step (must be non-zero)
-    crank = Crank(
-        x=0.5, y=0,
-        joint0=frame,
-        distance=0.5,
-        angle=np.pi / 6,  # 30 degrees per step
-        name="Crank"
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+
+    # Upper linkage - connects crank to frame2 (circle-circle intersection)
+    hg.add_node(Node("upper", role=NodeRole.DRIVEN))
+
+    # Foot - rigid triangle vertex on the upper-crank link
+    hg.add_node(Node("foot", role=NodeRole.DRIVEN))
+
+    # Edges
+    hg.add_edge(Edge("frame_crank", "frame", "crank"))
+    hg.add_edge(Edge("crank_upper", "crank", "upper"))
+    hg.add_edge(Edge("frame2_upper", "frame2", "upper"))
+
+    # Foot forms a rigid triangle with upper and crank
+    hg.add_edge(Edge("upper_foot", "upper", "foot"))
+    hg.add_hyperedge(Hyperedge("triangle_foot", nodes=("upper", "crank", "foot")))
+
+    # --- Dimensions ---
+    dims = Dimensions(
+        node_positions={
+            "frame": (0, 0),
+            "crank": (0.5, 0),
+            "frame2": (-1, -0.3),
+            "upper": (0, 1),
+            "foot": (0, -1.5),  # approximate, will be solved
+        },
+        driver_angles={
+            "crank": DriverAngle(angular_velocity=pi / 6),  # 30 degrees per step
+        },
+        edge_distances={
+            "frame_crank": 0.5,
+            "crank_upper": 1.5,
+            "frame2_upper": 2.0,
+            "upper_foot": 2.0,
+        },
     )
 
-    # Second frame point for the rocker
-    frame2 = Static(x=-1, y=-0.3, name="Frame2")
-
-    # Upper linkage - connects crank to rocker
-    upper = Revolute(
-        x=0, y=1,
-        joint0=crank,
-        joint1=frame2,
-        distance0=1.5,
-        distance1=2.0,
-        name="Upper"
-    )
-
-    # Lower leg segment - the "foot"
-    foot = Fixed(
-        joint0=upper,
-        joint1=crank,
-        distance=2.0,
-        angle=-2 * np.pi / 3,
-        name="Foot"
-    )
-
-    # Create a Walker (extends Linkage with leg-specific methods)
-    joints = (frame, crank, frame2, upper, foot)
-    walker = ls.Walker(
-        joints=joints,
-        order=joints,
-        name="SimpleWalker"
-    )
+    # Create a Walker
+    walker = Walker(hg, dims, name="SimpleWalker")
 
     # Perform one kinematic step to solve initial joint positions
-    list(walker.step())
+    list(walker.step(iterations=1))
 
     # Optionally add opposite leg to create left/right pair
     if opposite:

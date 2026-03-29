@@ -6,16 +6,24 @@ Hypergraph-based physics body generation.
 This module provides functions to convert a pylinkage hypergraph representation
 into pymunk physics bodies and constraints. Each edge in the hypergraph becomes
 a rigid body (bar), and nodes where multiple bodies meet get PivotJoint constraints.
+
+Hyperedges define rigid body groups: all nodes in a hyperedge share one pymunk body.
 """
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pymunk as pm
 from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole
+
+if TYPE_CHECKING:
+    pass
+
+# Motor rate can be a single float (same for all drivers) or a dict mapping
+# driver node IDs to individual rates, enabling multi-DOF mechanisms.
+MotorRates = float | dict[str, float]
 
 
 @dataclass
@@ -34,6 +42,8 @@ class PhysicsMapping:
         All pivot joint constraints created.
     motors : list[pm.SimpleMotor]
         All motor constraints for driver nodes.
+    motor_node_ids : list[str]
+        Driver node ID for each motor (parallel to motors list).
     motor_pivots : list[pm.PivotJoint]
         Pivot joints associated with motors (currently unused, kept for compatibility).
     """
@@ -43,7 +53,41 @@ class PhysicsMapping:
     node_to_anchors: dict[str, dict[pm.Body, pm.Vec2d]] = field(default_factory=dict)
     constraints: list[pm.PivotJoint] = field(default_factory=list)
     motors: list[pm.SimpleMotor] = field(default_factory=list)
+    motor_node_ids: list[str] = field(default_factory=list)
     motor_pivots: list[pm.PivotJoint] = field(default_factory=list)
+
+
+def _resolve_motor_rate(
+    motor_rates: MotorRates | None,
+    driver_id: str,
+    dimensions: Dimensions,
+) -> float:
+    """Resolve the motor rate for a specific driver node.
+
+    Parameters
+    ----------
+    motor_rates : MotorRates | None
+        Single float (all drivers share), dict (per-driver), or None (fallback to dimensions).
+    driver_id : str
+        The driver node ID.
+    dimensions : Dimensions
+        Geometric data, used as fallback for angular velocity.
+
+    Returns
+    -------
+    float
+        The resolved motor rate in rad/s.
+    """
+    if motor_rates is not None:
+        if isinstance(motor_rates, dict):
+            if driver_id in motor_rates:
+                return motor_rates[driver_id]
+            # Fallback to dimensions if not in dict
+        else:
+            return float(motor_rates)
+
+    driver_angle = dimensions.get_driver_angle(driver_id)
+    return driver_angle.angular_velocity if driver_angle is not None else 0.0
 
 
 def _get_node_position(node_id: str, dimensions: Dimensions) -> pm.Vec2d:
@@ -72,120 +116,28 @@ def _create_segment(
     return seg
 
 
-def _get_parent_names(joint: Any) -> tuple[str | None, str | None]:
-    """Get parent joint/anchor names, handling both legacy and new API.
-
-    Legacy joints use ``joint0``/``joint1``; new dyads use ``anchor1``/``anchor2``.
-    """
-    if hasattr(joint, 'joint0') and joint.joint0:
-        j0_name: str | None = joint.joint0.name
-    elif hasattr(joint, 'anchor1') and joint.anchor1:
-        j0_name = joint.anchor1.name
-    else:
-        j0_name = None
-
-    if hasattr(joint, 'joint1') and joint.joint1:
-        j1_name: str | None = joint.joint1.name
-    elif hasattr(joint, 'anchor2') and joint.anchor2:
-        j1_name = joint.anchor2.name
-    else:
-        j1_name = None
-
-    return j0_name, j1_name
-
-
-def _is_ground_parent(joint: Any, parent_attr: str) -> bool:
-    """Check if a parent joint is a ground/static type (legacy or new API)."""
-    parent = getattr(joint, parent_attr, None)
-    if parent is None:
-        return False
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
-        )
-        from pylinkage import Static
-    from pylinkage.components import Ground
-    return isinstance(parent, (Static, Ground))
-
-
-def _is_ground_node(hg: HypergraphLinkage, node_id: str) -> bool:
-    """Check if a node is a ground node."""
-    return bool(hg.nodes[node_id].role == NodeRole.GROUND)
-
-
-def _is_driver_node(hg: HypergraphLinkage, node_id: str) -> bool:
-    """Check if a node is a driver (motor) node."""
-    return bool(hg.nodes[node_id].role == NodeRole.DRIVER)
-
-
 def _find_effective_ground_nodes(
     hg: HypergraphLinkage,
-    joints: tuple[Any, ...] | None = None,
 ) -> set[str]:
     """Find all nodes that should be treated as ground (fixed to frame).
 
     A node is an effective ground node if:
     1. It is explicitly marked as GROUND, OR
-    2. It is a Fixed joint where BOTH parent joints (joint0, joint1) are ground, OR
-    3. It is not a DRIVER and ALL its neighbors (through edges) are effective ground nodes
-
-    This handles cases like Fixed joints that connect two ground points -
-    they should also be fixed to the frame body.
+    2. It is not a DRIVER and ALL its neighbors (through edges) are effective
+       ground nodes (propagation rule)
 
     Parameters
     ----------
     hg : HypergraphLinkage
         The hypergraph representation of the linkage.
-    joints : tuple[Joint, ...] | None
-        Optional original linkage joints for detecting Fixed joints with
-        static parents. If provided, enables detection of ground-constrained
-        Fixed joints.
 
     Returns
     -------
     set[str]
         Set of node IDs that should be treated as ground nodes.
     """
-    # Import legacy classes with deprecation suppressed
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
-        )
-        from pylinkage import Fixed
-    from pylinkage.dyads import FixedDyad
-
     # Start with explicit ground nodes
     effective_ground: set[str] = {node.id for node in hg.ground_nodes()}
-
-    # If we have the original joints, detect Fixed joints with both parents being ground
-    if joints is not None:
-        # Iteratively find Fixed/FixedDyad joints where both parents are effective ground
-        changed = True
-        while changed:
-            changed = False
-            for joint in joints:
-                if not isinstance(joint, (Fixed, FixedDyad)):
-                    continue
-                if joint.name in effective_ground:
-                    continue
-
-                # Check if both parent joints are effective ground
-                j0_name, j1_name = _get_parent_names(joint)
-
-                j0_is_ground = (
-                    j0_name in effective_ground
-                    or _is_ground_parent(joint, 'joint0')
-                    or _is_ground_parent(joint, 'anchor1')
-                )
-                j1_is_ground = (
-                    j1_name in effective_ground
-                    or _is_ground_parent(joint, 'joint1')
-                    or _is_ground_parent(joint, 'anchor2')
-                )
-
-                if j0_is_ground and j1_is_ground:
-                    effective_ground.add(joint.name)
-                    changed = True
 
     # Build adjacency map: node_id -> set of neighbor node_ids
     neighbors: dict[str, set[str]] = {node_id: set() for node_id in hg.nodes}
@@ -213,29 +165,20 @@ def _find_effective_ground_nodes(
     return effective_ground
 
 
-def _find_rigid_triangles(
+def _find_rigid_groups(
     hg: HypergraphLinkage,
-    joints: tuple[Any, ...] | None,
 ) -> list[set[str]]:
-    """Find groups of edges that form rigid triangles.
+    """Find groups of edges that form rigid bodies.
 
-    Fixed joints with two parents create rigid triangles - all edges
-    in such triangles should be on the same rigid body.
+    Rigid body groups are detected from hyperedges: each hyperedge defines
+    a set of nodes that share one rigid body. The edges connecting those
+    nodes are merged into that body.
 
     Returns a list of edge ID sets, where each set contains edges
     that should be merged into a single body.
     """
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
-        )
-        from pylinkage import Fixed
-    from pylinkage.dyads import FixedDyad
-
-    if joints is None:
+    if not hg.hyperedges:
         return []
-
-    triangles = []
 
     # Build edge lookup: (node1, node2) -> edge_id
     edge_lookup: dict[tuple[str, str], str] = {}
@@ -243,39 +186,21 @@ def _find_rigid_triangles(
         edge_lookup[(edge.source, edge.target)] = edge_id
         edge_lookup[(edge.target, edge.source)] = edge_id
 
-    for joint in joints:
-        if not isinstance(joint, (Fixed, FixedDyad)):
-            continue
+    groups: list[set[str]] = []
+    for he in hg.hyperedges.values():
+        group_edges: set[str] = set()
+        nodes = he.nodes
+        # Find all edges between nodes in this hyperedge
+        for i in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
+                edge_id = edge_lookup.get((nodes[i], nodes[j]))
+                if edge_id is not None:
+                    group_edges.add(edge_id)
+        if len(group_edges) >= 2:
+            groups.append(group_edges)
 
-        fixed_id = joint.name
-        if fixed_id is None:
-            continue
-
-        j0_name, j1_name = _get_parent_names(joint)
-
-        if j0_name is None or j1_name is None:
-            continue
-
-        # Find edges forming the triangle: F-j0, F-j1, and j0-j1
-        edge_f_j0 = edge_lookup.get((fixed_id, j0_name))
-        edge_f_j1 = edge_lookup.get((fixed_id, j1_name))
-        edge_j0_j1 = edge_lookup.get((j0_name, j1_name))
-
-        # Collect all edges that form this triangle
-        triangle_edges: set[str] = set()
-        if edge_f_j0:
-            triangle_edges.add(edge_f_j0)
-        if edge_f_j1:
-            triangle_edges.add(edge_f_j1)
-        if edge_j0_j1:
-            triangle_edges.add(edge_j0_j1)
-
-        if len(triangle_edges) >= 2:  # At least 2 edges to form a rigid structure
-            triangles.append(triangle_edges)
-
-    # Merge overlapping triangles (edges shared between triangles)
-    merged = _merge_overlapping_sets(triangles)
-    return merged
+    # Merge overlapping groups (edges shared between hyperedges)
+    return _merge_overlapping_sets(groups)
 
 
 def _merge_overlapping_sets(sets: list[set[str]]) -> list[set[str]]:
@@ -322,14 +247,13 @@ def create_bodies_from_hypergraph(
     density: float,
     thickness: float,
     shape_filter: pm.ShapeFilter | None,
-    joints: tuple[Any, ...] | None = None,
-    motor_rate: float | None = None,
+    motor_rates: MotorRates | None = None,
 ) -> PhysicsMapping:
     """Create pymunk bodies from a hypergraph representation.
 
     Each edge in the hypergraph becomes a rigid body with a segment shape,
-    except for edges that form rigid triangles (from Fixed joints) which
-    are merged into single bodies.
+    except for edges in hyperedges (rigid groups) which are merged into
+    single bodies.
 
     Parameters
     ----------
@@ -347,12 +271,10 @@ def create_bodies_from_hypergraph(
         Radius of segment shapes.
     shape_filter : pm.ShapeFilter | None
         Collision filter for segments (typically to prevent self-collision).
-    joints : tuple[Joint, ...] | None
-        Optional original linkage joints for detecting Fixed joints with
-        static parents. Enables proper detection of frame-fixed nodes.
-    motor_rate : float | None
-        Motor angular velocity in rad/s. If None, falls back to kinematic
-        angle from the Crank joints (not recommended).
+    motor_rates : MotorRates | None
+        Motor angular velocities. Single float applies to all drivers.
+        Dict maps driver node IDs to individual rates (multi-DOF).
+        If None, falls back to driver angular velocity from dimensions.
 
     Returns
     -------
@@ -362,7 +284,7 @@ def create_bodies_from_hypergraph(
     mapping = PhysicsMapping()
 
     # Find all nodes that should be treated as ground (fixed to frame)
-    effective_ground = _find_effective_ground_nodes(hg, joints)
+    effective_ground = _find_effective_ground_nodes(hg)
 
     # Initialize effective ground nodes with load_body
     for node_id in effective_ground:
@@ -372,17 +294,17 @@ def create_bodies_from_hypergraph(
             load_body.world_to_local(pos)
         )
 
-    # Find rigid triangles that need to be merged
-    triangles = _find_rigid_triangles(hg, joints)
+    # Find rigid groups from hyperedges
+    rigid_groups = _find_rigid_groups(hg)
 
-    # Build map: edge_id -> triangle index (or None if not in triangle)
-    edge_to_triangle: dict[str, int] = {}
-    for i, triangle in enumerate(triangles):
-        for edge_id in triangle:
-            edge_to_triangle[edge_id] = i
+    # Build map: edge_id -> group index (or None if not in a group)
+    edge_to_group: dict[str, int] = {}
+    for i, group in enumerate(rigid_groups):
+        for edge_id in group:
+            edge_to_group[edge_id] = i
 
-    # Track which triangles have been created
-    triangle_bodies: dict[int, pm.Body] = {}
+    # Track which groups have been created
+    group_bodies: dict[int, pm.Body] = {}
 
     # Create bodies for edges
     for edge_id, edge in hg.edges.items():
@@ -399,33 +321,32 @@ def create_bodies_from_hypergraph(
             )
             space.add(seg)
             mapping.edge_to_body[edge_id] = load_body
-        elif edge_id in edge_to_triangle:
-            # This edge is part of a rigid triangle
-            tri_idx = edge_to_triangle[edge_id]
+        elif edge_id in edge_to_group:
+            # This edge is part of a rigid group
+            grp_idx = edge_to_group[edge_id]
 
-            if tri_idx not in triangle_bodies:
-                # Create a new body for this triangle
-                # Calculate center from all nodes in the triangle
-                triangle_edges = triangles[tri_idx]
-                triangle_nodes: set[str] = set()
-                for te_id in triangle_edges:
-                    te = hg.edges[te_id]
-                    triangle_nodes.add(te.source)
-                    triangle_nodes.add(te.target)
+            if grp_idx not in group_bodies:
+                # Create a new body for this group
+                group_edges = rigid_groups[grp_idx]
+                group_nodes: set[str] = set()
+                for ge_id in group_edges:
+                    ge = hg.edges[ge_id]
+                    group_nodes.add(ge.source)
+                    group_nodes.add(ge.target)
 
                 # Calculate center of mass
-                positions = [_get_node_position(n, dimensions) for n in triangle_nodes]
+                positions = [_get_node_position(n, dimensions) for n in group_nodes]
                 center = sum(positions, pm.Vec2d(0, 0)) / len(positions)
 
                 body = pm.Body()
                 body.mass = 1
                 body.position = center
                 space.add(body)
-                triangle_bodies[tri_idx] = body
+                group_bodies[grp_idx] = body
 
-            body = triangle_bodies[tri_idx]
+            body = group_bodies[grp_idx]
 
-            # Add segment to the triangle body
+            # Add segment to the group body
             seg = _create_segment(
                 body, source_pos, target_pos, thickness, density, shape_filter
             )
@@ -471,7 +392,7 @@ def create_bodies_from_hypergraph(
     _create_pivot_constraints(hg, dimensions, mapping, space, effective_ground, load_body)
 
     # Create motors for driver nodes
-    _create_motor_constraints(hg, dimensions, mapping, space, load_body, motor_rate)
+    _create_motor_constraints(hg, dimensions, mapping, space, load_body, motor_rates)
 
     return mapping
 
@@ -521,12 +442,12 @@ def _create_motor_constraints(
     mapping: PhysicsMapping,
     space: pm.Space,
     load_body: pm.Body,
-    motor_rate: float | None = None,
+    motor_rates: MotorRates | None = None,
 ) -> None:
     """Create SimpleMotor constraints for driver (crank) nodes.
 
-    Note: The pivot constraint at the ground connection point is already
-    created by _create_pivot_constraints. We only need to add the motor here.
+    Each driver node gets its own motor with an independently resolved rate,
+    enabling multi-DOF mechanisms.
 
     Parameters
     ----------
@@ -540,9 +461,9 @@ def _create_motor_constraints(
         The pymunk space.
     load_body : pm.Body
         The frame/chassis body.
-    motor_rate : float | None
-        Motor angular velocity in rad/s. If None, falls back to driver
-        angular velocity from dimensions (not recommended).
+    motor_rates : MotorRates | None
+        Motor angular velocities. Single float for all drivers, or dict
+        mapping driver node IDs to individual rates.
     """
     for driver_node in hg.driver_nodes():
         driver_id = driver_node.id
@@ -550,11 +471,14 @@ def _create_motor_constraints(
         # Find the edge connecting driver to ground - this is the crank arm
         crank_edge_id = None
 
+        def _is_ground(nid: str) -> bool:
+            return bool(hg.nodes[nid].role == NodeRole.GROUND)
+
         for edge_id, edge in hg.edges.items():
-            if edge.source == driver_id and _is_ground_node(hg, edge.target):
+            if edge.source == driver_id and _is_ground(edge.target):
                 crank_edge_id = edge_id
                 break
-            elif edge.target == driver_id and _is_ground_node(hg, edge.source):
+            elif edge.target == driver_id and _is_ground(edge.source):
                 crank_edge_id = edge_id
                 break
 
@@ -569,16 +493,13 @@ def _create_motor_constraints(
             # Crank edge might be entirely on load_body (both ends ground)
             continue
 
-        # Create motor - use provided motor_rate, or fall back to driver angle
-        # Note: driver angular_velocity is the kinematic step size, not an ideal motor rate
-        if motor_rate is not None:
-            rate = motor_rate
-        else:
-            driver_angle = dimensions.get_driver_angle(driver_id)
-            rate = driver_angle.angular_velocity if driver_angle is not None else 0.0
+        # Resolve per-driver rate
+        rate = _resolve_motor_rate(motor_rates, driver_id, dimensions)
+
         motor = pm.SimpleMotor(driver_body, load_body, rate)
         space.add(motor)
         mapping.motors.append(motor)
+        mapping.motor_node_ids.append(driver_id)
 
 
 def get_node_world_position(

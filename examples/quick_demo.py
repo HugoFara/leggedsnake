@@ -7,9 +7,19 @@ and runs the visualization immediately.
 
 Run with: uv run python examples/quick_demo.py
 """
-import numpy as np
-from pylinkage import Static, Crank, Fixed, Revolute, Linkage
+from math import pi
+
 import leggedsnake as ls
+from leggedsnake import (
+    Dimensions,
+    DriverAngle,
+    Edge,
+    Hyperedge,
+    HypergraphLinkage,
+    Node,
+    NodeRole,
+    Walker,
+)
 
 
 def main():
@@ -17,35 +27,48 @@ def main():
     print("Press Q or ESC to quit")
     print("-" * 30)
 
-    # Create a simple crank-rocker mechanism
-    base = Static(0, 0, name="Base")
-    crank = Crank(1, 0, name="Crank", angle=0.5, distance=1, joint0=base)
-    follower = Revolute(
-        0, 2,
-        joint0=base,
-        joint1=crank,
-        distance0=2,
-        distance1=1.5,
-        name="Follower"
-    )
-    output = Fixed(
-        joint0=crank,
-        joint1=follower,
-        distance=1.5,
-        angle=-np.pi/2,
-        name="Output"
+    # --- Topology: a simple crank-rocker mechanism ---
+    hg = HypergraphLinkage(name="QuickDemo")
+
+    hg.add_node(Node("base", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_node(Node("follower", role=NodeRole.DRIVEN))
+    hg.add_node(Node("output", role=NodeRole.DRIVEN))
+
+    hg.add_edge(Edge("base_crank", "base", "crank"))
+    hg.add_edge(Edge("base_follower", "base", "follower"))
+    hg.add_edge(Edge("crank_follower", "crank", "follower"))
+
+    # Output forms a rigid triangle with crank and follower
+    hg.add_edge(Edge("crank_output", "crank", "output"))
+    hg.add_hyperedge(Hyperedge("triangle_output", nodes=("crank", "follower", "output")))
+
+    # --- Dimensions ---
+    dims = Dimensions(
+        node_positions={
+            "base": (0, 0),
+            "crank": (1, 0),
+            "follower": (0, 2),
+            "output": (0.5, -0.5),  # approximate, will be solved
+        },
+        driver_angles={
+            "crank": DriverAngle(angular_velocity=0.5),
+        },
+        edge_distances={
+            "base_crank": 1.0,
+            "base_follower": 2.0,
+            "crank_follower": 1.5,
+            "crank_output": 1.5,
+        },
     )
 
-    linkage = Linkage(
-        name='QuickDemo',
-        joints=(base, crank, follower, output),
-    )
+    walker = Walker(hg, dims, name="QuickDemo")
 
     # Perform one kinematic step to solve initial joint positions
-    list(linkage.step())
+    list(walker.step(iterations=1))
 
     # Run for 10 seconds
-    ls.video(linkage, duration=10, dynamic_camera=True)
+    ls.video(walker, duration=10, dynamic_camera=True)
 
 
 if __name__ == "__main__":

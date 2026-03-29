@@ -1,35 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Tests for the genetic_algorithm_optimization standard-signature wrapper.
-"""
+"""Tests for the genetic_algorithm_optimization standard-signature wrapper."""
 
 import inspect
 import unittest
-import warnings
+from math import tau
 
-import pymunk as pm
-
-with warnings.catch_warnings():
-    warnings.filterwarnings(
-        "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
-    )
-    from pylinkage import Static, Crank, Pivot, Linkage
-
+from pylinkage.dimensions import Dimensions, DriverAngle
+from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 from pylinkage.optimization.collections import Agent
 
 from leggedsnake.geneticoptimizer import genetic_algorithm_optimization
+from leggedsnake.walker import Walker
 
 
-def _make_linkage():
-    """Create a minimal kinematic linkage for testing."""
-    base = Static(0, 0, name="base")
-    crank = Crank(1, 0, joint0=base, distance=1, angle=0.1, name="crank")
-    follower = Pivot(
-        0, 2, joint0=base, joint1=crank,
-        distance0=2, distance1=1.5, name="follower",
+def _make_walker():
+    """Create a minimal Walker for testing."""
+    hg = HypergraphLinkage(name="test")
+    hg.add_node(Node("frame", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_node(Node("follower", role=NodeRole.DRIVEN))
+    hg.add_edge(Edge("edge_0", "frame", "crank"))
+    hg.add_edge(Edge("edge_1", "frame", "follower"))
+    hg.add_edge(Edge("edge_2", "crank", "follower"))
+    dims = Dimensions(
+        node_positions={"frame": (0, 0), "crank": (1, 0), "follower": (0, 2)},
+        driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
+        edge_distances={"edge_0": 1.0, "edge_1": 2.0, "edge_2": 1.5},
     )
-    return Linkage(joints=(base, crank, follower), name="test")
+    return Walker(hg, dims, name="test")
 
 
 def _simple_evaluator(linkage, dims, pos):
@@ -43,14 +42,11 @@ def _simple_minimizer(linkage, dims, pos):
 
 
 class TestGeneticAlgorithmOptimization(unittest.TestCase):
-    """Tests for the standard-signature GA wrapper."""
-
     def test_returns_list_of_agents(self):
-        """Result must be a list of Agent namedtuples."""
-        linkage = _make_linkage()
+        walker = _make_walker()
         results = genetic_algorithm_optimization(
-            _simple_evaluator, linkage,
-            center=[1.0, 0.1, 2.0, 1.5],
+            _simple_evaluator, walker,
+            center=[1.0, 2.0, 1.5],
             iters=3, max_pop=5, verbose=False,
         )
         self.assertIsInstance(results, list)
@@ -62,11 +58,10 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
             self.assertIsNotNone(agent.init_positions)
 
     def test_agent_indexing_backward_compat(self):
-        """Agent[0], Agent[1], Agent[2] must still work."""
-        linkage = _make_linkage()
+        walker = _make_walker()
         results = genetic_algorithm_optimization(
-            _simple_evaluator, linkage,
-            center=[1.0, 0.1, 2.0, 1.5],
+            _simple_evaluator, walker,
+            center=[1.0, 2.0, 1.5],
             iters=2, max_pop=5, verbose=False,
         )
         best = results[0]
@@ -75,43 +70,37 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
         self.assertEqual(best[2], best.init_positions)
 
     def test_maximization(self):
-        """Default order_relation=max should maximize the score."""
-        linkage = _make_linkage()
+        walker = _make_walker()
         results = genetic_algorithm_optimization(
-            _simple_evaluator, linkage,
-            center=[5.0, 5.0, 5.0, 5.0],
+            _simple_evaluator, walker,
+            center=[5.0, 5.0, 5.0],
             iters=5, max_pop=8, verbose=False,
         )
-        # Best score should be better (less negative) than initial
-        initial_score = _simple_evaluator(linkage, [5, 5, 5, 5], [])
+        initial_score = _simple_evaluator(walker, [5, 5, 5], [])
         self.assertGreaterEqual(results[0].score, initial_score)
 
     def test_minimization(self):
-        """order_relation=min should minimize."""
-        linkage = _make_linkage()
+        walker = _make_walker()
         results = genetic_algorithm_optimization(
-            _simple_minimizer, linkage,
-            center=[5.0, 5.0, 5.0, 5.0],
+            _simple_minimizer, walker,
+            center=[5.0, 5.0, 5.0],
             order_relation=min,
             iters=5, max_pop=8, verbose=False,
         )
-        initial_score = _simple_minimizer(linkage, [5, 5, 5, 5], [])
+        initial_score = _simple_minimizer(walker, [5, 5, 5], [])
         self.assertLessEqual(results[0].score, initial_score)
 
     def test_center_parameter_used(self):
-        """The center parameter should seed the initial population."""
-        linkage = _make_linkage()
-        center = [2.0, 0.5, 3.0, 2.0]
+        walker = _make_walker()
+        center = [2.0, 3.0, 2.0]
         results = genetic_algorithm_optimization(
-            _simple_evaluator, linkage,
+            _simple_evaluator, walker,
             center=center,
             iters=1, max_pop=3, verbose=False,
         )
-        # At least the seed DNA should use the provided center
         self.assertEqual(len(results[0].dimensions), len(center))
 
     def test_chainable_signature(self):
-        """Function must have 'center' param for chain_optimizers introspection."""
         sig = inspect.signature(genetic_algorithm_optimization)
         self.assertIn("center", sig.parameters)
         self.assertIn("eval_func", sig.parameters)
@@ -120,11 +109,10 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
         self.assertIn("bounds", sig.parameters)
 
     def test_sorted_by_score(self):
-        """Results should be sorted by score, best first."""
-        linkage = _make_linkage()
+        walker = _make_walker()
         results = genetic_algorithm_optimization(
-            _simple_evaluator, linkage,
-            center=[3.0, 3.0, 3.0, 3.0],
+            _simple_evaluator, walker,
+            center=[3.0, 3.0, 3.0],
             iters=3, max_pop=6, verbose=False,
         )
         if len(results) > 1:
@@ -133,10 +121,7 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
 
 
 class TestGeneticOptimizationRunReturnsAgent(unittest.TestCase):
-    """Test that GeneticOptimization.run() returns list[Agent]."""
-
     def test_run_returns_agents(self):
-        """Direct GeneticOptimization usage should also return Agents."""
         from leggedsnake.geneticoptimizer import GeneticOptimization
 
         def fitness(dna):

@@ -7,51 +7,66 @@ and visualizes them together with varying opacities.
 
 Run with: uv run python examples/compare_linkages.py
 """
-import numpy as np
-from pylinkage import Static, Crank, Fixed, Revolute, Linkage
+from math import pi
+
 import leggedsnake as ls
+from leggedsnake import (
+    Dimensions,
+    DriverAngle,
+    Edge,
+    Hyperedge,
+    HypergraphLinkage,
+    Node,
+    NodeRole,
+    Walker,
+)
 
 
 def create_linkage(crank_length: float, coupler_length: float, name: str):
     """Create a four-bar linkage with specified dimensions."""
-    ground = Static(x=0, y=0, name=f"{name}_Ground")
+    # --- Topology ---
+    hg = HypergraphLinkage(name=name)
 
-    crank = Crank(
-        x=crank_length, y=0,
-        joint0=ground,
-        distance=crank_length,
-        angle=np.pi / 12,  # 15 degrees per step
-        name=f"{name}_Crank"
+    hg.add_node(Node("ground", role=NodeRole.GROUND))
+    hg.add_node(Node("rocker_ground", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_node(Node("coupler", role=NodeRole.DRIVEN))
+    hg.add_node(Node("output", role=NodeRole.DRIVEN))
+
+    hg.add_edge(Edge("ground_crank", "ground", "crank"))
+    hg.add_edge(Edge("crank_coupler", "crank", "coupler"))
+    hg.add_edge(Edge("rocker_coupler", "rocker_ground", "coupler"))
+
+    # Output forms a rigid triangle with crank and coupler
+    hg.add_edge(Edge("crank_output", "crank", "output"))
+    hg.add_hyperedge(Hyperedge("triangle_output", nodes=("crank", "coupler", "output")))
+
+    # --- Dimensions ---
+    dims = Dimensions(
+        node_positions={
+            "ground": (0, 0),
+            "crank": (crank_length, 0),
+            "rocker_ground": (3, 0),
+            "coupler": (crank_length, coupler_length),
+            "output": (crank_length * 0.5, coupler_length * 0.5),
+        },
+        driver_angles={
+            "crank": DriverAngle(angular_velocity=pi / 12),  # 15 degrees per step
+        },
+        edge_distances={
+            "ground_crank": crank_length,
+            "crank_coupler": coupler_length,
+            "rocker_coupler": 2.5,
+            "crank_output": 1.2,
+        },
     )
 
-    rocker_ground = Static(x=3, y=0, name=f"{name}_RockerGround")
-
-    coupler = Revolute(
-        x=crank_length, y=coupler_length,
-        joint0=crank,
-        joint1=rocker_ground,
-        distance0=coupler_length,
-        distance1=2.5,
-        name=f"{name}_Coupler"
-    )
-
-    output = Fixed(
-        joint0=crank,
-        joint1=coupler,
-        distance=1.2,
-        angle=-np.pi/4,
-        name=f"{name}_Output"
-    )
-
-    linkage = Linkage(
-        joints=(ground, crank, rocker_ground, coupler, output),
-        name=name
-    )
+    walker = Walker(hg, dims, name=name)
 
     # Perform one kinematic step to solve initial joint positions
-    list(linkage.step())
+    list(walker.step(iterations=1))
 
-    return linkage
+    return walker
 
 
 def main():

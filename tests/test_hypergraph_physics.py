@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Tests for the hypergraph_physics module.
-"""
+"""Tests for the hypergraph_physics module."""
 
 import unittest
-from math import pi
+from math import pi, tau
 
 import pymunk as pm
-from pylinkage import Static, Crank, Fixed, Pivot, Linkage
-from pylinkage.hypergraph import from_linkage
+from pylinkage.dimensions import Dimensions, DriverAngle
+from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, Hyperedge, NodeRole
 
 from leggedsnake.hypergraph_physics import (
     PhysicsMapping,
@@ -18,23 +16,56 @@ from leggedsnake.hypergraph_physics import (
 )
 
 
-class TestPhysicsMapping(unittest.TestCase):
-    """Test PhysicsMapping dataclass."""
+def _make_simple_crank() -> tuple[HypergraphLinkage, Dimensions]:
+    """Create a simple crank: ground -> driver."""
+    hg = HypergraphLinkage(name="simple_crank")
+    hg.add_node(Node("base", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_edge(Edge("base_crank", "base", "crank"))
 
+    dims = Dimensions(
+        node_positions={"base": (0, 0), "crank": (1, 0)},
+        driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
+        edge_distances={"base_crank": 1.0},
+    )
+    return hg, dims
+
+
+def _make_four_bar() -> tuple[HypergraphLinkage, Dimensions]:
+    """Create a four-bar linkage: base-crank-follower-output."""
+    hg = HypergraphLinkage(name="fourbar")
+    hg.add_node(Node("base", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_node(Node("follower", role=NodeRole.DRIVEN))
+
+    hg.add_edge(Edge("base_crank", "base", "crank"))
+    hg.add_edge(Edge("base_follower", "base", "follower"))
+    hg.add_edge(Edge("crank_follower", "crank", "follower"))
+
+    dims = Dimensions(
+        node_positions={"base": (0, 0), "crank": (1, 0), "follower": (0, 2)},
+        driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
+        edge_distances={
+            "base_crank": 1.0,
+            "base_follower": 2.0,
+            "crank_follower": 1.5,
+        },
+    )
+    return hg, dims
+
+
+class TestPhysicsMapping(unittest.TestCase):
     def test_physics_mapping_creation(self):
-        """Test creating an empty PhysicsMapping."""
         mapping = PhysicsMapping()
         self.assertEqual(mapping.edge_to_body, {})
         self.assertEqual(mapping.node_to_bodies, {})
         self.assertEqual(mapping.constraints, [])
         self.assertEqual(mapping.motors, [])
+        self.assertEqual(mapping.motor_node_ids, [])
 
 
 class TestCreateBodiesFromHypergraph(unittest.TestCase):
-    """Test create_bodies_from_hypergraph function."""
-
     def setUp(self):
-        """Create a basic linkage setup for testing."""
         self.space = pm.Space()
         self.space.gravity = (0, -9.8)
         self.load_body = pm.Body(1, 1)
@@ -43,121 +74,163 @@ class TestCreateBodiesFromHypergraph(unittest.TestCase):
         self.filter = pm.ShapeFilter(group=1)
 
     def test_simple_crank_linkage(self):
-        """Test body creation for a simple crank."""
-        # Create a simple crank: Static -> Crank
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-
-        linkage = Linkage(joints=(base, crank), name="simple_crank")
-        hg, dims = from_linkage(linkage)
-
+        hg, dims = _make_simple_crank()
         mapping = create_bodies_from_hypergraph(
-            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
         )
 
-        # Should have one edge (base -> crank) which creates one body
         self.assertEqual(len(mapping.edge_to_body), 1)
-
-        # Base (ground) should be on load_body
         self.assertIn("base", mapping.node_to_bodies)
         self.assertIn(self.load_body, mapping.node_to_bodies["base"])
-
-        # Crank (driver) should have a motor
         self.assertGreater(len(mapping.motors), 0)
 
     def test_four_bar_linkage(self):
-        """Test body creation for a four-bar linkage."""
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        output = Fixed(
-            joint0=crank, joint1=follower,
-            distance=1, angle=-pi/2, name="output"
-        )
-
-        linkage = Linkage(joints=(base, crank, follower, output), name="fourbar")
-        hg, dims = from_linkage(linkage)
-
+        hg, dims = _make_four_bar()
         mapping = create_bodies_from_hypergraph(
-            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
         )
 
-        # Should have edges for each bar connection
         self.assertGreater(len(mapping.edge_to_body), 0)
-
-        # All nodes should have at least one body
-        for node_id in hg.nodes.keys():
+        for node_id in hg.nodes:
             self.assertIn(node_id, mapping.node_to_bodies)
             self.assertGreater(len(mapping.node_to_bodies[node_id]), 0)
 
     def test_pivot_constraints_created(self):
-        """Test that pivot constraints are created at shared nodes."""
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-
-        linkage = Linkage(joints=(base, crank, follower), name="test")
-        hg, dims = from_linkage(linkage)
-
+        hg, dims = _make_four_bar()
         mapping = create_bodies_from_hypergraph(
-            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
         )
-
-        # Should have pivot constraints where multiple bodies meet
-        # (at least at the base and crank positions)
         self.assertGreater(len(mapping.constraints), 0)
 
     def test_motor_constraints_for_drivers(self):
-        """Test that motor constraints are created for driver nodes."""
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0.5, name="crank")
-
-        linkage = Linkage(joints=(base, crank), name="test")
-        hg, dims = from_linkage(linkage)
-
+        hg, dims = _make_simple_crank()
         mapping = create_bodies_from_hypergraph(
-            hg, dims, self.space, self.load_body, density=1, thickness=0.1, shape_filter=self.filter
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
+        )
+        self.assertEqual(len(mapping.motors), 1)
+        self.assertEqual(mapping.motor_node_ids, ["crank"])
+
+    def test_multi_driver_rates(self):
+        """Two independent drivers with different motor rates."""
+        hg = HypergraphLinkage(name="multi_dof")
+        hg.add_node(Node("ground", role=NodeRole.GROUND))
+        hg.add_node(Node("driver_a", role=NodeRole.DRIVER))
+        hg.add_node(Node("driver_b", role=NodeRole.DRIVER))
+        hg.add_edge(Edge("g_a", "ground", "driver_a"))
+        hg.add_edge(Edge("g_b", "ground", "driver_b"))
+
+        dims = Dimensions(
+            node_positions={"ground": (0, 0), "driver_a": (1, 0), "driver_b": (-1, 0)},
+            driver_angles={
+                "driver_a": DriverAngle(angular_velocity=0.1),
+                "driver_b": DriverAngle(angular_velocity=0.2),
+            },
+            edge_distances={"g_a": 1.0, "g_b": 1.0},
         )
 
-        # Should have a motor for the crank
-        self.assertEqual(len(mapping.motors), 1)
-        # Motor pivot is now created by _create_pivot_constraints (not separately)
-        # The pivot at the ground connection is included in mapping.constraints
+        mapping = create_bodies_from_hypergraph(
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
+            motor_rates={"driver_a": -3.0, "driver_b": -5.0},
+        )
+
+        self.assertEqual(len(mapping.motors), 2)
+        self.assertEqual(len(mapping.motor_node_ids), 2)
+        self.assertIn("driver_a", mapping.motor_node_ids)
+        self.assertIn("driver_b", mapping.motor_node_ids)
+
+        # Check rates are different
+        rates = set()
+        for motor in mapping.motors:
+            rates.add(motor.rate)
+        self.assertEqual(len(rates), 2)
+
+    def test_single_float_motor_rate(self):
+        """Single float motor_rates applies to all drivers."""
+        hg = HypergraphLinkage(name="multi_dof")
+        hg.add_node(Node("ground", role=NodeRole.GROUND))
+        hg.add_node(Node("driver_a", role=NodeRole.DRIVER))
+        hg.add_node(Node("driver_b", role=NodeRole.DRIVER))
+        hg.add_edge(Edge("g_a", "ground", "driver_a"))
+        hg.add_edge(Edge("g_b", "ground", "driver_b"))
+
+        dims = Dimensions(
+            node_positions={"ground": (0, 0), "driver_a": (1, 0), "driver_b": (-1, 0)},
+            driver_angles={
+                "driver_a": DriverAngle(angular_velocity=0.1),
+                "driver_b": DriverAngle(angular_velocity=0.2),
+            },
+            edge_distances={"g_a": 1.0, "g_b": 1.0},
+        )
+
+        mapping = create_bodies_from_hypergraph(
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
+            motor_rates=-4.0,
+        )
+
+        self.assertEqual(len(mapping.motors), 2)
+        # Both should have the same rate
+        for motor in mapping.motors:
+            self.assertAlmostEqual(motor.rate, -4.0)
+
+    def test_rigid_group_from_hyperedge(self):
+        """Hyperedge creates a single rigid body for grouped edges."""
+        hg = HypergraphLinkage(name="triangle")
+        hg.add_node(Node("A", role=NodeRole.GROUND))
+        hg.add_node(Node("B", role=NodeRole.DRIVER))
+        hg.add_node(Node("C", role=NodeRole.DRIVEN))
+        hg.add_edge(Edge("AB", "A", "B"))
+        hg.add_edge(Edge("AC", "A", "C"))
+        hg.add_edge(Edge("BC", "B", "C"))
+        # This hyperedge marks ABC as a rigid body
+        hg.add_hyperedge(Hyperedge("ABC", nodes=("A", "B", "C")))
+
+        dims = Dimensions(
+            node_positions={"A": (0, 0), "B": (1, 0), "C": (0.5, 1)},
+            driver_angles={"B": DriverAngle(angular_velocity=0.1)},
+            edge_distances={"AB": 1.0, "AC": 1.12, "BC": 1.12},
+        )
+
+        mapping = create_bodies_from_hypergraph(
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
+        )
+
+        # Edges AC and BC should share a body (rigid group)
+        # AB has ground on one end so may be on load_body
+        non_load_bodies = {
+            eid: body for eid, body in mapping.edge_to_body.items()
+            if body is not self.load_body
+        }
+        # The non-ground edges should share a body
+        bodies = list(non_load_bodies.values())
+        if len(bodies) >= 2:
+            self.assertIs(bodies[0], bodies[1])
 
 
 class TestGetNodeWorldPosition(unittest.TestCase):
-    """Test get_node_world_position function."""
-
     def test_get_position_from_mapping(self):
-        """Test getting world position from physics mapping."""
         space = pm.Space()
         load_body = pm.Body(1, 1)
         load_body.position = (0, 0)
         space.add(load_body)
 
-        base = Static(0, 0, name="base")
-        crank = Crank(1, 0, joint0=base, distance=1, angle=0, name="crank")
-
-        linkage = Linkage(joints=(base, crank), name="test")
-        hg, dims = from_linkage(linkage)
-
+        hg, dims = _make_simple_crank()
         mapping = create_bodies_from_hypergraph(
-            hg, dims, space, load_body, density=1, thickness=0.1, shape_filter=None
+            hg, dims, space, load_body,
+            density=1, thickness=0.1, shape_filter=None,
         )
 
-        # Get position of base node
         pos = get_node_world_position("base", mapping)
         self.assertAlmostEqual(pos.x, 0, places=5)
         self.assertAlmostEqual(pos.y, 0, places=5)
 
     def test_get_position_unknown_node(self):
-        """Test getting position for unknown node returns zero."""
         mapping = PhysicsMapping()
         pos = get_node_world_position("unknown", mapping)
         self.assertEqual(pos.x, 0)
