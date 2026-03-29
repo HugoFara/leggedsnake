@@ -67,29 +67,47 @@ In a nutshell, the two main parts are:
 
 ### Defining a ``Walker``
 
-you need to define joints for your ``Walker`` as described in [pylinkage](https://github.com/HugoFara/pylinkage)
-documentation.
-You may use a dictionary, that looks like that:
+You define a mechanism using pylinkage's hypergraph API:
+nodes (joints), edges (links), and dimensions (positions + distances).
 
 ```python3
 import leggedsnake as ls
+from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
+from pylinkage.dimensions import Dimensions, DriverAngle
+from math import tau
 
-# Quick definition of a linkage as a dict of joints
-linkage = {
-    "A": ls.Static(x=0, y=0, name="A"),
-    "B": ls.Crank(1, 0, distance=1, angle=0.31, name="Crank")
-    # etc...
-}
-# Conversion to a dynamic linkage
-my_walker = ls.Walker(
-    joints=linkage.values(),
-    name="My Walker"
+# 1. Define the topology (what connects to what)
+hg = HypergraphLinkage(name="MyWalker")
+hg.add_node(Node("frame", role=NodeRole.GROUND))
+hg.add_node(Node("frame2", role=NodeRole.GROUND))
+hg.add_node(Node("crank", role=NodeRole.DRIVER))
+hg.add_node(Node("upper", role=NodeRole.DRIVEN))
+hg.add_node(Node("foot", role=NodeRole.DRIVEN))
+hg.add_edge(Edge("frame_crank", "frame", "crank"))
+hg.add_edge(Edge("frame2_upper", "frame2", "upper"))
+hg.add_edge(Edge("crank_upper", "crank", "upper"))
+hg.add_edge(Edge("crank_foot", "crank", "foot"))
+hg.add_edge(Edge("upper_foot", "upper", "foot"))
+
+# 2. Define the geometry (positions, link lengths, driver speed)
+dims = Dimensions(
+    node_positions={
+        "frame": (0, 0), "frame2": (2, 0),
+        "crank": (1, 0), "upper": (1, 2), "foot": (1, 3),
+    },
+    driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
+    edge_distances={
+        "frame_crank": 1.0, "frame2_upper": 2.24,
+        "crank_upper": 2.0, "crank_foot": 3.16, "upper_foot": 1.0,
+    },
 )
-# It is often faster to add pairs of legs this way
-my_walker.add_legs(3)
 
+# 3. Create the Walker and add legs
+my_walker = ls.Walker(hg, dims, name="My Walker")
+my_walker.add_opposite_leg(axis_x=1.0)  # mirror for left/right pair
+my_walker.add_legs(1)  # add a second pair with phase offset
 
-# Then, run launch a GUI simulation with
+# 4. Launch a GUI simulation
 ls.video(my_walker)
 ```
 
@@ -103,15 +121,21 @@ The next step is to optimize your linkage. We use a genetic algorithm here.
 
 ```python
 # Definition of an individual as (fitness, dimensions, initial coordinates)
-dna = [0, list(my_walker.get_num.constraints()), list(my_walker.get_coords())]
+dna = [0, list(my_walker.get_num_constraints()), list(my_walker.get_coords())]
 population = 10
 
-def total_distance(walker):
+def total_distance(dna):
     """
     Evaluates the final horizontal position of the input linkage.
-    
+
     Return final distance and initial position of joints.
     """
+    # Rebuild walker from DNA
+    walker = ls.Walker(hg, dims, name="candidate")
+    walker.set_num_constraints(dna[1])
+    walker.set_coords(dna[2])
+    walker.add_legs(1)
+
     pos = tuple(walker.step())[-1]
     world = ls.World()
     # We handle all the conversions
@@ -124,9 +148,9 @@ def total_distance(walker):
     return world.linkages[0].body.position.x, pos
 
 
-# Prepare the optimization, with any fitness_function(dna) -> score 
+# Prepare the optimization, with any fitness_function(dna) -> score
 optimizer = ls.GeneticOptimization(
-        dna=dna, 
+        dna=dna,
         fitness=total_distance,
         max_pop=population,
 )
@@ -192,11 +216,11 @@ This set of rules should work well for a stride **maximisation** problem:
 We handle planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism)
 in three main parts:
 
-* Linkage conception in simple Python relies on
-  [pylinkage](https://github.com/HugoFara/pylinkage).
-* *Optional* kinematic optimization with ``Walker`` class,
-  inherits from pylinkage's ``Linkage`` class.
-* Dynamic simulation and its optimization use genetic algorithms.
+* Mechanism definition via pylinkage's hypergraph API
+  (``HypergraphLinkage`` + ``Dimensions``), wrapped in the ``Walker`` class.
+* *Optional* kinematic optimization with ``Walker.step()`` and pylinkage
+  optimizers (PSO, differential evolution, multi-objective).
+* Dynamic simulation with pymunk physics and genetic algorithm optimization.
 
 ## Advice
 

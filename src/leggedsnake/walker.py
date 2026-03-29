@@ -11,9 +11,10 @@ multiple DRIVER nodes with independent angular velocities.
 from __future__ import annotations
 
 from collections.abc import Generator
+from math import tau
 from typing import TYPE_CHECKING
 
-from pylinkage.dimensions import Dimensions
+from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole, to_mechanism
 from pylinkage.hypergraph.core import Edge, Hyperedge, Node
 
@@ -118,6 +119,8 @@ class Walker:
 
         Each copy shares the same ground nodes but has its driver(s)
         phase-offset by ``tau / (number + 1)`` from the existing legs.
+        Cloned drivers remain DRIVER nodes with offset ``initial_angle``,
+        so each leg is independently driven at the same angular velocity.
 
         Parameters
         ----------
@@ -132,35 +135,13 @@ class Walker:
         driver_ids = {n.id for n in self.topology.driver_nodes()}
         template_node_ids = [nid for nid in self.topology.nodes if nid not in ground_ids]
 
-        # Compute positions at each phase offset by stepping kinematically
-        mechanism = self.to_mechanism()
-        period = mechanism.get_rotation_period()
         total_legs = number + 1  # existing + new
-        step_size = period // total_legs
-        if step_size < 1:
-            step_size = 1
-
-        # Run mechanism to collect positions at each phase offset
-        phase_positions: list[dict[str, tuple[float, float]]] = []
-        steps_done = 0
-        for positions in mechanism.step():
-            steps_done += 1
-            if steps_done % step_size == 0 and len(phase_positions) < number:
-                pos_dict = {}
-                for joint, pos in zip(mechanism.joints, positions):
-                    if pos[0] is not None and pos[1] is not None:
-                        pos_dict[joint.id] = (pos[0], pos[1])
-                phase_positions.append(pos_dict)
-
-        # For each phase offset, clone the non-ground nodes and edges
-        edge_counter = max(
-            (int(eid.split("_")[-1]) for eid in self.topology.edges if "_" in eid),
-            default=0,
-        ) + 1
+        edge_counter = len(self.topology.edges)
         node_counter = 0
 
-        for leg_idx, offset_positions in enumerate(phase_positions, start=1):
+        for leg_idx in range(1, number + 1):
             suffix = f" ({leg_idx})"
+            phase_offset = tau * leg_idx / total_legs
             old_to_new: dict[str, str] = {}
 
             # Map ground nodes to themselves
@@ -175,26 +156,27 @@ class Walker:
                     node_counter += 1
                     new_id = f"{nid}_{node_counter}"
 
-                # For drivers in additional legs, make them DRIVEN (Fixed joint
-                # sharing the original crank's motor, like the old Walker)
-                new_role = NodeRole.DRIVEN if nid in driver_ids else orig_node.role
                 new_node = Node(
                     id=new_id,
-                    role=new_role,
+                    role=orig_node.role,
                     joint_type=orig_node.joint_type,
                     name=f"{orig_node.name}{suffix}" if orig_node.name else new_id,
                 )
                 self.topology.add_node(new_node)
                 old_to_new[nid] = new_id
 
-                # Set position from kinematic simulation
-                if nid in offset_positions:
-                    self.dimensions.node_positions[new_id] = offset_positions[nid]
-                else:
-                    # Fallback: use original position
-                    orig_pos = self.dimensions.get_node_position(nid)
-                    if orig_pos is not None:
-                        self.dimensions.node_positions[new_id] = orig_pos
+                # Copy position from original
+                orig_pos = self.dimensions.get_node_position(nid)
+                if orig_pos is not None:
+                    self.dimensions.node_positions[new_id] = orig_pos
+
+                # For driver nodes, copy DriverAngle with phase offset
+                if nid in driver_ids and nid in self.dimensions.driver_angles:
+                    orig_da = self.dimensions.driver_angles[nid]
+                    self.dimensions.driver_angles[new_id] = DriverAngle(
+                        angular_velocity=orig_da.angular_velocity,
+                        initial_angle=orig_da.initial_angle + phase_offset,
+                    )
 
             # Clone edges
             for edge_id, edge in list(self.topology.edges.items()):
@@ -215,21 +197,6 @@ class Walker:
                 dist = self.dimensions.get_edge_distance(edge_id)
                 if dist is not None:
                     self.dimensions.edge_distances[new_edge_id] = dist
-
-                # If the original driver has a crank edge to ground, create
-                # a new edge from original driver to the new "driven" copy
-                # (mechanical linkage sharing the motor)
-                if edge.source in driver_ids and edge.target in ground_ids:
-                    link_edge_id = f"edge_{edge_counter}"
-                    edge_counter += 1
-                    link_edge = Edge(
-                        id=link_edge_id,
-                        source=old_to_new[edge.source],  # the new driven copy
-                        target=edge.source,  # the original driver
-                    )
-                    self.topology.add_edge(link_edge)
-                    if dist is not None:
-                        self.dimensions.edge_distances[link_edge_id] = dist
 
             # Clone hyperedges
             for he_id, he in list(self.topology.hyperedges.items()):
@@ -264,10 +231,7 @@ class Walker:
         suffix = " (opposite)"
         old_to_new: dict[str, str] = {}
 
-        edge_counter = max(
-            (int(eid.split("_")[-1]) for eid in self.topology.edges if "_" in eid),
-            default=0,
-        ) + 1
+        edge_counter = len(self.topology.edges)
 
         # Map ground nodes: share if on axis, clone if off-axis
         for gid in ground_ids:
@@ -292,14 +256,13 @@ class Walker:
                     )
 
         # Clone non-ground nodes
+        driver_ids = {n.id for n in self.topology.driver_nodes()}
         for nid in template_node_ids:
             orig_node = self.topology.nodes[nid]
             new_id = f"{nid}{suffix}"
-            # Drivers in opposite leg become DRIVEN (share original motor)
-            new_role = NodeRole.DRIVEN if orig_node.role == NodeRole.DRIVER else orig_node.role
             new_node = Node(
                 id=new_id,
-                role=new_role,
+                role=orig_node.role,
                 joint_type=orig_node.joint_type,
                 name=f"{orig_node.name}{suffix}" if orig_node.name else new_id,
             )
@@ -314,8 +277,15 @@ class Walker:
                     pos[1],
                 )
 
+            # For driver nodes, copy DriverAngle with pi phase offset
+            if nid in driver_ids and nid in self.dimensions.driver_angles:
+                orig_da = self.dimensions.driver_angles[nid]
+                self.dimensions.driver_angles[new_id] = DriverAngle(
+                    angular_velocity=orig_da.angular_velocity,
+                    initial_angle=orig_da.initial_angle + tau / 2,
+                )
+
         # Clone edges
-        driver_ids = {n.id for n in self.topology.driver_nodes()}
         for edge_id, edge in list(self.topology.edges.items()):
             src_is_template = edge.source in old_to_new
             tgt_is_template = edge.target in old_to_new
@@ -335,19 +305,6 @@ class Walker:
             dist = self.dimensions.get_edge_distance(edge_id)
             if dist is not None:
                 self.dimensions.edge_distances[new_edge_id] = dist
-
-            # Link opposite driver copy to original driver (shared motor)
-            if edge.source in driver_ids and edge.target in ground_ids:
-                link_edge_id = f"edge_{edge_counter}"
-                edge_counter += 1
-                link_edge = Edge(
-                    id=link_edge_id,
-                    source=old_to_new[edge.source],
-                    target=edge.source,
-                )
-                self.topology.add_edge(link_edge)
-                if dist is not None:
-                    self.dimensions.edge_distances[link_edge_id] = dist
 
         # Clone hyperedges
         for he_id, he in list(self.topology.hyperedges.items()):

@@ -79,6 +79,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Multi-motor energy accounting: ``World.update()`` now sums power from
   all motors (was using only the first motor's power).
+- ``add_legs()`` / ``add_opposite_leg()`` no longer crash with semantic
+  edge IDs (e.g., ``"frame_crank"``). The edge counter no longer assumes
+  numeric suffixes.
+- ``add_legs()`` no longer requires ``to_mechanism()`` to succeed on the
+  current topology. Cloned drivers use ``DriverAngle.initial_angle``
+  phase offsets instead of kinematic simulation.
+- ``add_opposite_leg()`` now creates independent DRIVER nodes with pi
+  phase offset (was creating DRIVEN nodes linked to original driver).
 - Project links fixed in pyproject.toml.
 
 ### Removed
