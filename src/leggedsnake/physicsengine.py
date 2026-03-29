@@ -20,7 +20,7 @@ from typing import Any, TypedDict
 import numpy as np
 import pymunk as pm
 
-# Legacy joint classes used for isinstance checks in simulation loop.
+# Legacy joint classes used for isinstance checks on kinematic input.
 with warnings.catch_warnings():
     warnings.filterwarnings(
         "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
@@ -28,6 +28,8 @@ with warnings.catch_warnings():
     from pylinkage import bounding_box, Static, Crank, Fixed, Pivot
 
 from pylinkage.geometry import norm, cyl_to_cart
+
+from .dynamiclinkage import Motor
 from pylinkage.linkage import Linkage
 
 from . import dynamiclinkage
@@ -230,7 +232,7 @@ class World:
         """Update a specific linkage."""
         # Get all crank joints (there may be multiple for mechanisms with
         # opposite legs or multiple independent motors)
-        linkage_cranks = [j for j in linkage.joints if isinstance(j, Crank)]
+        linkage_cranks = [j for j in linkage.joints if isinstance(j, (Crank, Motor))]
         vel = linkage.body.velocity
         # Check if any motor needs enabling (use first crank as reference)
         if linkage_cranks and linkage_cranks[0].actuator.max_force == 0:
@@ -274,14 +276,14 @@ class World:
             dt = params["simul"]["physics_period"]
         # Motor power in this simulation step
         powers = [
-            [0 for j in lin.joints if isinstance(j, Crank)] 
+            [0 for j in lin.joints if isinstance(j, (Crank, Motor))]
             for lin in self.linkages
         ]
         self.space.step(dt)
         for i, linkage in enumerate(self.linkages):
             index = -1
             for crank in linkage.joints:
-                if not isinstance(crank, Crank):
+                if not isinstance(crank, (Crank, Motor)):
                     continue
                 index += 1
                 # Get offset for crank rotation speed

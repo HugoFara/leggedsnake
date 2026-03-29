@@ -30,6 +30,7 @@ from pylinkage.linkage import Linkage
 
 from . import physicsengine as pe
 from . import dynamiclinkage
+from .dynamiclinkage import Motor
 
 
 class CameraSettings(TypedDict):
@@ -227,7 +228,7 @@ class VisualWorld(pe.World):
 
     def _get_joint_color(self, joint: Any) -> tuple[int, int, int, int]:
         """Get the color for a joint based on its type."""
-        if isinstance(joint, Crank):
+        if isinstance(joint, (Crank, Motor)):
             return COLORS["crank"]
         elif isinstance(joint, (Fixed, FixedDyad)):
             return COLORS["fixed"]

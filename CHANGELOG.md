@@ -41,6 +41,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ``.dimensions``, ``.init_positions``.
 - ``examples/strider.py`` updated with ``chained_optimizer()`` demonstrating
   PSO → DE pipeline via ``chain_optimizers``.
+- **DynamicJoint hierarchy migrated to modern pylinkage API**:
+  - ``Nail`` now inherits ``Ground`` (was ``Static``).
+  - ``PinUp`` now inherits ``FixedDyad`` (was ``Fixed``).
+  - ``DynamicPivot`` now inherits ``RRRDyad`` (was ``Pivot``).
+  - ``Motor`` now inherits ``actuators.Crank`` (was legacy ``Crank``).
+  - Adapter classes (``_joint_adapters.py``) provide backward-compatible
+    ``joint0``/``joint1``/``r``/``set_anchor0()`` interface on top of the
+    modern ``anchor1``/``anchor2``/``distance`` attributes.
+  - ``DynamicJoint.radius`` renamed to ``_hull_radius`` to avoid conflicting
+    with ``actuators.Crank.radius``.
+  - ``isinstance(nail, Ground)`` and ``isinstance(motor, actuators.Crank)``
+    now return ``True``.
 - ``examples/`` is now in the main folder. It was in ``docs/`` previously.
 - Minimum Python version is now 3.10 (was 3.7).
 - Support for Python 3.12, 3.13, and 3.14.
@@ -48,8 +60,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Adapted to topology/geometry split: ``from_linkage()`` now returns
     ``(HypergraphLinkage, Dimensions)``; ``Node`` no longer carries position.
   - Threaded ``Dimensions`` through ``hypergraph_physics`` and ``dynamiclinkage``.
-  - Suppressed ``pylinkage.joints`` deprecation warnings (legacy classes still
-    required for ``DynamicJoint`` inheritance).
   - Added forward-compatible ``isinstance`` checks for new API types
     (``Ground``, ``FixedDyad``, ``RRRDyad``) alongside legacy types.
   - ``convert_to_dynamic_joints`` now bridges both legacy and new attribute

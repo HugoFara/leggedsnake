@@ -18,14 +18,15 @@ from typing import TYPE_CHECKING, Any
 
 import pymunk as pm
 
-# Legacy joint classes required for DynamicJoint inheritance (Nail, PinUp,
-# DynamicPivot, Motor all extend these).  Suppress pylinkage 0.8.0 deprecation.
+# Legacy joint classes — still needed for isinstance checks in
+# convert_to_dynamic_joints (which receives kinematic input joints).
 with warnings.catch_warnings():
     warnings.filterwarnings(
         "ignore", category=DeprecationWarning, message=r"pylinkage\.joints"
     )
     from pylinkage import (
-        Crank, Fixed, Linkage, Pivot, Static, UnbuildableError
+        Crank as LegacyCrank,
+        Fixed, Linkage, Pivot, Static, UnbuildableError,
     )
     from pylinkage.joints.joint import Joint
 
@@ -35,6 +36,15 @@ from pylinkage.dyads import FixedDyad, RRRDyad
 from pylinkage.geometry import cyl_to_cart
 from pylinkage.geometry.core import dist
 from pylinkage.hypergraph import NodeRole, from_linkage
+
+from pylinkage.actuators import Crank as ActuatorCrank
+
+from ._joint_adapters import (
+    GroundAdapter,
+    FixedDyadAdapter,
+    RRRDyadAdapter,
+    CrankAdapter,
+)
 
 from .hypergraph_physics import (
     PhysicsMapping,
@@ -53,7 +63,7 @@ class DynamicJoint(abc.ABC):
     _anchor_a: pm.Vec2d
     _anchor_b: pm.Vec2d
     space: pm.Space | None
-    radius: float
+    _hull_radius: float
     density: float
     filter: pm.ShapeFilter | None
     superposed: set[Any]
@@ -82,7 +92,9 @@ class DynamicJoint(abc.ABC):
             Simulation space in which the DynamicJoint exists.
             The default is None.
         radius : float, optional
-            DynamicJoint will generate hulls of this radius. The default is .3.
+            DynamicJoint will generate segment hulls of this radius.
+            The default is .3.  Stored as ``_hull_radius`` to avoid
+            conflicting with ``actuators.Crank.radius``.
         density : float, optional
             Density of the hull, mass will be computed accordingly.
             The default is 1.
@@ -97,7 +109,7 @@ class DynamicJoint(abc.ABC):
             self._b = body1
             self._anchor_b = body1.world_to_local(self.coord())
         self.space = space
-        self.radius = radius
+        self._hull_radius = radius
         self.density = density
         self.filter = shape_filter
         # All the Joint/constraint that are on the same bar
@@ -148,7 +160,7 @@ class DynamicJoint(abc.ABC):
         seg = pm.Segment(
             body, body.world_to_local(self.coord()),
             body.world_to_local(parent_pos),
-            self.radius)
+            self._hull_radius)
         seg.density = self.density
         if self.filter is not None:
             seg.filter = self.filter
@@ -177,10 +189,8 @@ class DynamicJoint(abc.ABC):
             self.__generate_body__(1)
             return
         sindex = str(index)
-        if (
-                hasattr(self, 'joint' + sindex)
-                and isinstance(getattr(self, 'joint' + sindex), Joint)
-        ):
+        parent = getattr(self, 'joint' + sindex, None)
+        if parent is not None and hasattr(parent, 'coord'):
             body = pm.Body()
             body.mass = 1
             parent_pos = pm.Vec2d(*getattr(self, 'joint' + sindex).coord())
@@ -234,7 +244,7 @@ class DynamicJoint(abc.ABC):
             self.set_coord(*self._b.local_to_world(self._anchor_b))
 
 
-class Nail(Static, DynamicJoint):  # type: ignore[misc]
+class Nail(GroundAdapter, DynamicJoint):  # type: ignore[misc]
     """
     A simple point to follow a rigidbody.
 
@@ -255,31 +265,31 @@ class Nail(Static, DynamicJoint):  # type: ignore[misc]
         density: float = 1,
         shape_filter: pm.ShapeFilter | None = None,
     ) -> None:
-        Static.__init__(self, x, y, name=name)
+        GroundAdapter.__init__(self, x, y, name=name)
         DynamicJoint.__init__(
             self, body0=body, body1=body, space=space, radius=radius,
             density=density, shape_filter=shape_filter)
         if body is not None:
             self._a = self._b = body
         self.space = space
-        self.radius = radius
+        self._hull_radius = radius
         self.density = density
         self.filter = shape_filter
         if hasattr(self, '_a') and self._a is not None:
             self.__set_offset__()
-            if hasattr(self, 'joint0') and isinstance(self.joint0, Joint):
+            if self.joint0 is not None and hasattr(self.joint0, 'coord'):
                 seg = pm.Segment(self._a, self._a.world_to_local(self.coord()),
                                  self._a.world_to_local(self.joint0.coord()),
-                                 self.radius)
+                                 self._hull_radius)
                 seg.density = self.density
                 if self.filter is not None:
                     seg.filter = self.filter
                 assert self.space is not None
                 self.space.add(seg)
-            if hasattr(self, 'joint1') and isinstance(self.joint1, Joint):
+            if self.joint1 is not None and hasattr(self.joint1, 'coord'):
                 seg = pm.Segment(self._a, self._a.world_to_local(self.coord()),
                                  self._a.world_to_local(self.joint1.coord()),
-                                 self.radius)
+                                 self._hull_radius)
                 seg.density = self.density
                 if self.filter is not None:
                     seg.filter = self.filter
@@ -296,12 +306,13 @@ class Nail(Static, DynamicJoint):  # type: ignore[misc]
         """Reload position based on linked body rotation and position."""
         # Unpack Vec2d position for cyl_to_cart (takes ori_x, ori_y separately)
         pos = self._a.position
-        self.set_coord(cyl_to_cart(self._distance0,
-                                   self._a.angle + self._angle0,
-                                   pos.x, pos.y))
+        new_pos = cyl_to_cart(self._distance0,
+                              self._a.angle + self._angle0,
+                              pos.x, pos.y)
+        self.set_coord(new_pos[0], new_pos[1])
 
 
-class PinUp(Fixed, DynamicJoint):  # type: ignore[misc]
+class PinUp(FixedDyadAdapter, DynamicJoint):  # type: ignore[misc]
     """
     Dynamic counterpart of Fixed joint.
 
@@ -322,17 +333,16 @@ class PinUp(Fixed, DynamicJoint):  # type: ignore[misc]
         density: float = 1,
         shape_filter: pm.ShapeFilter | None = None,
     ) -> None:
-        Fixed.__init__(
+        FixedDyadAdapter.__init__(
             self, x, y, joint0=joint0, joint1=joint1, name=name,
             distance=distance, angle=angle)
         DynamicJoint.__init__(
             self, space=space, radius=radius, density=density,
             shape_filter=shape_filter)
-        if (
-                isinstance(self.joint0, Joint) and
-                isinstance(self.joint1, Joint)
-        ):
-            Fixed.reload(self)
+        if self.joint0 is not None and self.joint1 is not None:
+            # Compute initial position from parents if both are available
+            if hasattr(self.joint0, 'x') and self.joint0.x is not None:
+                FixedDyadAdapter.reload(self)
         if self.joint0 is not None:
             self.set_anchor_a(self.joint0, self.r, self.angle)
         if self.joint1 is not None:
@@ -361,7 +371,7 @@ class PinUp(Fixed, DynamicJoint):  # type: ignore[misc]
         None.
 
         """
-        Fixed.set_anchor0(self, joint, distance, angle)
+        FixedDyadAdapter.set_anchor0(self, joint, distance, angle)
 
     def set_anchor_b(self, joint: DynamicJoint) -> None:
         """
@@ -380,8 +390,8 @@ class PinUp(Fixed, DynamicJoint):  # type: ignore[misc]
         None.
 
         """
-        Fixed.set_anchor1(self, joint)
-        Fixed.reload(self)
+        FixedDyadAdapter.set_anchor1(self, joint)
+        FixedDyadAdapter.reload(self)
         self._b = self._a = super().__find_common_body__()
         self._anchor_a = self._a.world_to_local(self.coord())
         assert self.space is not None
@@ -405,7 +415,7 @@ class PinUp(Fixed, DynamicJoint):  # type: ignore[misc]
         DynamicJoint.reload(self)
 
 
-class DynamicPivot(Pivot, DynamicJoint):  # type: ignore[misc]
+class DynamicPivot(RRRDyadAdapter, DynamicJoint):  # type: ignore[misc]
     """Dynamic counterpart of a Pivot joint."""
 
     pivot: pm.PivotJoint
@@ -424,15 +434,15 @@ class DynamicPivot(Pivot, DynamicJoint):  # type: ignore[misc]
         density: float = 1,
         shape_filter: pm.ShapeFilter | None = None,
     ) -> None:
-        Pivot.__init__(
+        RRRDyadAdapter.__init__(
             self, x, y,
             joint0=joint0, joint1=joint1,
             name=name,
-            distance0=distance0, distance1=distance1
+            distance0=distance0, distance1=distance1,
         )
         DynamicJoint.__init__(
             self, space=space, radius=radius, density=density,
-            shape_filter=shape_filter
+            shape_filter=shape_filter,
         )
         if self.joint0 is not None:
             self.set_anchor_a(self.joint0, self.r0)
@@ -458,7 +468,7 @@ class DynamicPivot(Pivot, DynamicJoint):  # type: ignore[misc]
         None.
 
         """
-        Pivot.set_anchor0(self, joint, distance)
+        RRRDyadAdapter.set_anchor0(self, joint, distance)
         if not hasattr(self, '_a'):
             self.__generate_body__(0)
             if isinstance(joint, Nail):
@@ -492,7 +502,7 @@ class DynamicPivot(Pivot, DynamicJoint):  # type: ignore[misc]
         None.
 
         """
-        Pivot.set_anchor1(self, joint, distance)
+        RRRDyadAdapter.set_anchor1(self, joint, distance)
         if not hasattr(self, '_b'):
             self.__generate_body__(1)
             # PivotJoint on self position
@@ -521,7 +531,7 @@ class DynamicPivot(Pivot, DynamicJoint):  # type: ignore[misc]
         DynamicJoint.reload(self)
 
 
-class Motor(Crank, DynamicJoint):  # type: ignore[misc]
+class Motor(CrankAdapter, DynamicJoint):  # type: ignore[misc]
     """
     A Motor is a crank.
 
@@ -548,9 +558,9 @@ class Motor(Crank, DynamicJoint):  # type: ignore[misc]
         density: float = 1,
         shape_filter: pm.ShapeFilter | None = None,
     ) -> None:
-        Crank.__init__(self, x, y, joint0=joint0,
-                               distance=distance, angle=angle, name=name)
-        Crank.reload(self, dt=0)
+        CrankAdapter.__init__(self, x, y, joint0=joint0,
+                              distance=distance, angle=angle, name=name)
+        CrankAdapter.reload(self, dt=0)
         DynamicJoint.__init__(self, space=space, density=density,
                               shape_filter=shape_filter, radius=radius)
         if joint0 is not None:
@@ -589,7 +599,7 @@ class Motor(Crank, DynamicJoint):  # type: ignore[misc]
 
     def __generate_body__(self) -> None:  # type: ignore[override]
         """Generate the crank body only."""
-        if hasattr(self, 'joint0') and isinstance(self.joint0, Joint):
+        if self.joint0 is not None and hasattr(self.joint0, 'coord'):
             body = pm.Body()
             body.position = (pm.Vec2d(*self.coord()) + self.joint0.coord()) / 2
             seg = self.__generate_link__(body, self.joint0.coord())
@@ -617,7 +627,7 @@ class Motor(Crank, DynamicJoint):  # type: ignore[misc]
         None.
 
         """
-        Crank.set_anchor0(self, joint, distance)
+        CrankAdapter.set_anchor0(self, joint, distance)
         ref_body = self.__get_reference_body__()
         if not hasattr(self, '_b'):
             self.__generate_body__()
@@ -899,7 +909,7 @@ class DynamicLinkage(Linkage):  # type: ignore[misc]
                         joint1=conversion_dict[j1],
                         **common
                     )
-                elif isinstance(joint, Crank):
+                elif isinstance(joint, (LegacyCrank, ActuatorCrank)):
                     # Legacy: joint0/r/angle; New (actuators.Crank): anchor/radius/angular_velocity
                     j0 = getattr(joint, 'joint0', None) or getattr(joint, 'anchor', None)
                     dist_val = getattr(joint, 'r', None) or getattr(joint, 'radius', None)
