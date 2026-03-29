@@ -35,6 +35,7 @@ from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph import HypergraphLinkage
 
 from .physicsengine import World, WorldConfig
+from .stability import StabilityTimeSeries, compute_stability_snapshot
 from .utility import step as step_check, stride, Point
 
 
@@ -282,6 +283,146 @@ class StrideFitness:
         )
 
 
+class StabilityFitness:
+    """Evaluate walking stability via physics simulation.
+
+    Primary score is the mean tip-over margin. Stability metrics are
+    included in ``FitnessResult.metrics``.
+
+    Parameters
+    ----------
+    duration : float
+        Simulation duration in seconds.
+    n_legs : int
+        Number of leg pairs.
+    motor_rates : float | dict[str, float]
+        Motor angular velocity.
+    min_distance : float
+        Minimum travel distance for a non-zero score.
+    record_loci : bool
+        If True, record joint trajectories.
+    """
+
+    def __init__(
+        self,
+        duration: float = 40.0,
+        n_legs: int = 4,
+        motor_rates: float | dict[str, float] = -4.0,
+        min_distance: float = 2.0,
+        record_loci: bool = False,
+    ) -> None:
+        self.duration = duration
+        self.n_legs = n_legs
+        self.motor_rates = motor_rates
+        self.min_distance = min_distance
+        self.record_loci = record_loci
+
+    def __call__(
+        self,
+        topology: HypergraphLinkage,
+        dimensions: Dimensions,
+        config: WorldConfig | None = None,
+    ) -> FitnessResult:
+        result = _run_simulation(
+            topology, dimensions, config,
+            duration=self.duration,
+            n_legs=self.n_legs,
+            motor_rates=self.motor_rates,
+            record_loci=self.record_loci,
+            record_stability=True,
+        )
+        if not result.valid or result.distance < self.min_distance:
+            return FitnessResult(score=0.0, valid=result.valid, loci=result.loci)
+
+        stability = result.stability
+        if stability is None or not stability.snapshots:
+            return FitnessResult(score=0.0, valid=True, loci=result.loci)
+
+        score = stability.mean_tip_over_margin
+        metrics = {
+            "distance": result.distance,
+            **stability.summary_metrics(),
+        }
+        return FitnessResult(
+            score=score, metrics=metrics, valid=True, loci=result.loci,
+        )
+
+
+class CompositeFitness:
+    """Evaluate multiple objectives in a single simulation run.
+
+    Runs physics once, then extracts distance, efficiency, stability,
+    and gait metrics from the shared simulation data. This avoids
+    redundant simulation when optimizing multiple objectives.
+
+    The primary ``score`` is the distance; all requested objectives
+    appear in ``FitnessResult.metrics``.
+
+    Parameters
+    ----------
+    duration : float
+        Simulation duration in seconds.
+    n_legs : int
+        Number of leg pairs.
+    motor_rates : float | dict[str, float]
+        Motor angular velocity.
+    objectives : sequence of str
+        Which metrics to compute. Supported: ``"distance"``,
+        ``"efficiency"``, ``"stability"``.
+    """
+
+    def __init__(
+        self,
+        duration: float = 40.0,
+        n_legs: int = 4,
+        motor_rates: float | dict[str, float] = -4.0,
+        objectives: Sequence[str] = ("distance", "efficiency", "stability"),
+    ) -> None:
+        self.duration = duration
+        self.n_legs = n_legs
+        self.motor_rates = motor_rates
+        self.objectives = tuple(objectives)
+
+    def __call__(
+        self,
+        topology: HypergraphLinkage,
+        dimensions: Dimensions,
+        config: WorldConfig | None = None,
+    ) -> FitnessResult:
+        needs_stability = "stability" in self.objectives
+        result = _run_simulation(
+            topology, dimensions, config,
+            duration=self.duration,
+            n_legs=self.n_legs,
+            motor_rates=self.motor_rates,
+            record_loci=True,
+            record_stability=needs_stability,
+        )
+        if not result.valid:
+            return FitnessResult(score=0.0, valid=False, loci=result.loci)
+
+        metrics: dict[str, float] = {}
+
+        if "distance" in self.objectives:
+            metrics["distance"] = result.distance
+
+        if "efficiency" in self.objectives:
+            if result.total_energy > 0:
+                metrics["efficiency"] = result.total_efficiency / result.total_energy
+            else:
+                metrics["efficiency"] = 0.0
+
+        if needs_stability and result.stability is not None:
+            metrics.update(result.stability.summary_metrics())
+
+        return FitnessResult(
+            score=result.distance,
+            metrics=metrics,
+            valid=True,
+            loci=result.loci,
+        )
+
+
 # ---------------------------------------------------------------------------
 # Adapter functions for optimizer compatibility
 # ---------------------------------------------------------------------------
@@ -438,6 +579,8 @@ class _SimulationResult:
     total_energy: float = 0.0
     valid: bool = True
     loci: dict[str, list[Point]] = field(default_factory=dict)
+    stability: StabilityTimeSeries | None = None
+    foot_ids: list[str] = field(default_factory=list)
 
 
 def _run_simulation(
@@ -449,8 +592,15 @@ def _run_simulation(
     n_legs: int,
     motor_rates: float | dict[str, float],
     record_loci: bool,
+    record_stability: bool = False,
 ) -> _SimulationResult:
-    """Build a Walker, run physics, and collect results."""
+    """Build a Walker, run physics, and collect results.
+
+    Parameters
+    ----------
+    record_stability : bool
+        If True, collect ``StabilitySnapshot`` at each physics step.
+    """
     from .walker import Walker
 
     walker = Walker(
@@ -465,9 +615,12 @@ def _run_simulation(
     except UnbuildableError:
         return _SimulationResult(valid=False)
 
+    foot_ids = walker.get_feet()
+
     # Add legs
     if n_legs > 1:
         walker.add_legs(n_legs - 1)
+        foot_ids = walker.get_feet()
 
     world = World(config=config)
     world.add_linkage(walker)
@@ -484,16 +637,35 @@ def _run_simulation(
         for proxy in dl.joints:
             loci[proxy.name] = []
 
-    for _ in range(steps):
+    # Set up stability recording
+    stability_series: StabilityTimeSeries | None = None
+    prev_snap = None
+    if record_stability:
+        stability_series = StabilityTimeSeries()
+        gravity_mag = abs(world.space.gravity[1])
+
+    for step_i in range(steps):
         result = world.update()
         if result is not None:
             total_efficiency += result[0]
             total_energy += result[1]
 
+        dl = world.linkages[0]
+
         if record_loci:
-            dl = world.linkages[0]
             for proxy in dl.joints:
                 loci[proxy.name].append((proxy.x, proxy.y))
+
+        if record_stability:
+            snap = compute_stability_snapshot(
+                dl, prev_snap,
+                time=step_i * dt,
+                dt=dt,
+                gravity=gravity_mag,
+                foot_ids=foot_ids,
+            )
+            stability_series.snapshots.append(snap)  # type: ignore[union-attr]
+            prev_snap = snap
 
     distance = float(world.linkages[0].body.position.x)
 
@@ -503,4 +675,6 @@ def _run_simulation(
         total_energy=total_energy,
         valid=True,
         loci=loci,
+        stability=stability_series,
+        foot_ids=foot_ids,
     )

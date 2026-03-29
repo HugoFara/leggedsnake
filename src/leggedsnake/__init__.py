@@ -50,14 +50,33 @@ from .co_design import (
     optimize_walking_mechanism,
 )
 from .fitness import (
+    CompositeFitness,
     DynamicFitness,
     DistanceFitness,
     EfficiencyFitness,
     FitnessResult,
+    StabilityFitness,
     StrideFitness,
     as_eval_func,
     as_ga_fitness,
     co_optimize_objective,
+)
+from .gait_analysis import (
+    GaitAnalysisResult,
+    GaitCycle,
+    FootEvent,
+    analyze_gait,
+)
+from .nsga_optimizer import (
+    NsgaWalkingConfig,
+    NsgaWalkingResult,
+    nsga_walking_optimization,
+)
+from .stability import (
+    StabilitySnapshot,
+    StabilityTimeSeries,
+    compute_com,
+    compute_tip_over_margin,
 )
 from .geneticoptimizer import GeneticOptimization, genetic_algorithm_optimization
 from .physicsengine import (
@@ -140,14 +159,30 @@ __all__ = [
     "DynamicLinkage",
     "convert_to_dynamic_linkage",
     # fitness protocol
+    "CompositeFitness",
     "DynamicFitness",
     "DistanceFitness",
     "EfficiencyFitness",
     "FitnessResult",
+    "StabilityFitness",
     "StrideFitness",
     "as_eval_func",
     "as_ga_fitness",
     "co_optimize_objective",
+    # gait analysis
+    "GaitAnalysisResult",
+    "GaitCycle",
+    "FootEvent",
+    "analyze_gait",
+    # stability
+    "StabilitySnapshot",
+    "StabilityTimeSeries",
+    "compute_com",
+    "compute_tip_over_margin",
+    # nsga optimizer
+    "NsgaWalkingConfig",
+    "NsgaWalkingResult",
+    "nsga_walking_optimization",
     # co_design
     "WalkingDesignSpec",
     "WalkingDesignResult",
