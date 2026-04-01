@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Selective foot–ground collision**: only edges touching foot nodes
+  collide with the ground surface, preventing non-foot linkage parts
+  (frame, crank, coupler) from scraping the road and distorting the gait.
+  - ``Walker.get_foot_edges()`` auto-detects which edges should touch
+    the ground based on ``get_feet()`` topology analysis.
+  - ``Walker.foot_edge_ids`` property allows explicit override.
+  - Uses pymunk collision categories internally: foot edges (``0x1``),
+    non-foot edges (``0x2``), ground segments (``0x4``).
+  - Fully backward-compatible: when no feet are detected or
+    ``foot_edge_ids`` is empty, all edges collide as before.
+- **Improved foot detection** in ``Walker.get_feet()``: now detects
+  "outermost driven nodes" in addition to terminal (degree-1) nodes,
+  correctly identifying coupler points (P) in synthesised four-bars.
 - **Multi-DOF mechanism support**: mechanisms can now have multiple
   independent drivers, each with its own angular velocity.
   - ``Walker.motor_rates`` accepts a ``dict[str, float]`` mapping driver

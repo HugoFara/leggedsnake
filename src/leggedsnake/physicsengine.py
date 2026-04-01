@@ -394,6 +394,7 @@ class World:
         seg.friction = self.config.ground_friction
         self.space.add(seg)
         self.linkages = []
+        self._has_foot_filtering = False
 
     def add_linkage(
         self,
@@ -421,10 +422,36 @@ class World:
             motor.max_force = 0
 
         self.linkages.append(dl)
+
+        # When the linkage uses selective foot collision, tag road
+        # segments with the ground filter so only foot edges touch them.
+        if dl._non_foot_filter is not None:
+            self._has_foot_filtering = True
+            self._apply_ground_filter()
+
         for s in self.space.shapes:
             s.friction = self.config.ground_friction
 
         self.tune_solver()
+
+    def _apply_ground_filter(self) -> None:
+        """Tag all static-body shapes with the ground collision filter.
+
+        Called once when a linkage with foot-edge filtering is added.
+        Also patches newly built road segments in the road-building
+        methods via ``_tag_ground_segment``.
+        """
+        from . import dynamiclinkage as _dl
+
+        for shape in self.space.shapes:
+            if shape.body is self.space.static_body:
+                shape.filter = _dl.GROUND_FILTER
+
+    def _tag_ground_segment(self, seg: pm.Segment) -> None:
+        """Apply ground collision filter to *seg* when foot filtering is on."""
+        if self._has_foot_filtering:
+            from . import dynamiclinkage as _dl
+            seg.filter = _dl.GROUND_FILTER
 
     def tune_solver(self) -> None:
         """Auto-tune solver parameters for stability."""
@@ -540,6 +567,7 @@ class World:
             s = pm.Segment(self.space.static_body, p, q, .1)
             s.friction = friction
             self.space.add(s)
+            self._tag_ground_segment(s)
         self.road.insert(-index * len(self.road), a)
         self.road.insert(-index * len(self.road), b)
 
@@ -553,6 +581,7 @@ class World:
         s = pm.Segment(self.space.static_body, a, self.road[index], .1)
         s.friction = self._segment_friction(terrain)
         self.space.add(s)
+        self._tag_ground_segment(s)
         self.road.insert(-index * len(self.road), a)
 
     def __build_road_gap__(self, terrain: TerrainConfig, index: int) -> None:
@@ -583,6 +612,7 @@ class World:
             s = pm.Segment(self.space.static_body, p, q, .1)
             s.friction = friction
             self.space.add(s)
+            self._tag_ground_segment(s)
 
         # Road continues from the far base of the obstacle
         self.road.insert(-index * len(self.road), br)

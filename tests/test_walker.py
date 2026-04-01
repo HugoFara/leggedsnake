@@ -195,13 +195,13 @@ class TestWalkerStep(unittest.TestCase):
 class TestWalkerFeet(unittest.TestCase):
     """Test get_feet() — terminal node identification."""
 
-    def test_fourbar_has_no_feet(self):
-        """In the 4-bar, all non-ground/non-driver nodes have degree > 1."""
+    def test_fourbar_follower_is_foot(self):
+        """In the 4-bar, the follower is the outermost driven node."""
         walker = _make_fourbar_walker()
         feet = walker.get_feet()
-        # 'follower' participates in 2 edges (frame_follower, crank_follower)
-        # so it is NOT a foot (degree 2)
-        self.assertEqual(feet, [])
+        # 'follower' neighbours are frame (GROUND) and crank (DRIVER),
+        # making it the outermost driven node — effectively the foot.
+        self.assertEqual(feet, ["follower"])
 
     def test_walker_with_foot_finds_foot(self):
         """A linkage with a degree-1 DRIVEN node reports it as a foot."""
@@ -221,12 +221,13 @@ class TestWalkerFeet(unittest.TestCase):
         feet = walker.get_feet()
         self.assertNotIn("crank", feet)
 
-    def test_solvable_walker_no_degree1_feet(self):
-        """In the solvable 5-node walker, 'foot' has degree 2 (not a foot)."""
+    def test_solvable_walker_finds_feet(self):
+        """In the solvable 5-node walker, 'foot' and 'upper' are outermost driven."""
         walker = _make_walker_with_foot()
         feet = walker.get_feet()
-        # 'foot' connects to both 'crank' and 'upper', so degree == 2
-        self.assertNotIn("foot", feet)
+        # Both 'foot' and 'upper' are DRIVEN with only ground/driver/driven
+        # neighbours, so the heuristic identifies them.
+        self.assertIn("foot", feet)
 
 
 class TestAddLegs(unittest.TestCase):

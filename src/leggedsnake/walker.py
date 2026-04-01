@@ -54,6 +54,7 @@ class Walker:
     name: str
     motor_rates: dict[str, float] | float
     _mechanism: Mechanism | None
+    _foot_edge_ids: list[str] | None
 
     def __init__(
         self,
@@ -61,12 +62,14 @@ class Walker:
         dimensions: Dimensions,
         name: str = "",
         motor_rates: dict[str, float] | float = -4.0,
+        foot_edge_ids: list[str] | None = None,
     ) -> None:
         self.topology = topology
         self.dimensions = dimensions
         self.name = name or topology.name
         self.motor_rates = motor_rates
         self._mechanism = None
+        self._foot_edge_ids = foot_edge_ids
 
     # --- Factory class methods ---
 
@@ -419,25 +422,85 @@ class Walker:
     # --- Topology queries ---
 
     def get_feet(self) -> list[str]:
-        """Return node IDs of foot joints (terminal, non-ground, non-driver).
+        """Return node IDs of foot joints.
 
-        Feet are nodes that don't appear as parents of other nodes —
-        i.e., nodes with degree 1 that are not ground or driver nodes.
+        Detection heuristic (in priority order):
+
+        1. Terminal nodes (degree 1, non-ground, non-driver) — classic
+           walking linkages like Theo Jansen or Klann.
+        2. *Outermost driven nodes* — nodes that are DRIVEN and whose
+           neighbours are all either GROUND, DRIVER, or already
+           identified as feet.  This catches coupler points (``P``) in
+           synthesised four-bars where P connects to B and C but is the
+           true foot.
+
+        If auto-detection returns nothing, every DRIVEN node is
+        considered a candidate (safe fallback that preserves the old
+        "all edges collide" behaviour until the user specifies manually).
         """
         ground_ids = {n.id for n in self.topology.ground_nodes()}
         driver_ids = {n.id for n in self.topology.driver_nodes()}
+        privileged = ground_ids | driver_ids
 
-        # Count how many edges each node participates in
         degree: dict[str, int] = {nid: 0 for nid in self.topology.nodes}
+        neighbors: dict[str, set[str]] = {nid: set() for nid in self.topology.nodes}
         for edge in self.topology.edges.values():
             degree[edge.source] += 1
             degree[edge.target] += 1
+            neighbors[edge.source].add(edge.target)
+            neighbors[edge.target].add(edge.source)
 
-        return [
-            nid
-            for nid, d in degree.items()
-            if d == 1 and nid not in ground_ids and nid not in driver_ids
+        # 1. Terminal non-ground/non-driver nodes
+        feet = [
+            nid for nid, d in degree.items()
+            if d == 1 and nid not in privileged
         ]
+        if feet:
+            return feet
+
+        # 2. Outermost driven nodes: DRIVEN nodes all of whose
+        #    neighbours are ground, driver, or other driven nodes
+        #    already connected to ground/driver.  In a four-bar with
+        #    coupler point, P's neighbours are B (driver) and C
+        #    (driven), so P qualifies.
+        driven = {
+            nid for nid, node in self.topology.nodes.items()
+            if node.role == NodeRole.DRIVEN
+        }
+        for nid in driven:
+            if all(nb in privileged or nb in driven for nb in neighbors[nid]):
+                feet.append(nid)
+        if feet:
+            return feet
+
+        return []
+
+    def get_foot_edges(self) -> list[str]:
+        """Return edge IDs of edges that connect to foot nodes.
+
+        Foot edges are the only edges that should collide with the ground
+        during physics simulation.  By default, every edge with at least
+        one foot endpoint (as returned by :meth:`get_feet`) is considered
+        a foot edge.  Override or set ``foot_edge_ids`` to customise.
+        """
+        if self._foot_edge_ids is not None:
+            return list(self._foot_edge_ids)
+
+        foot_ids = set(self.get_feet())
+        return [
+            eid
+            for eid, edge in self.topology.edges.items()
+            if edge.source in foot_ids or edge.target in foot_ids
+        ]
+
+    @property
+    def foot_edge_ids(self) -> list[str] | None:
+        """Explicit foot-edge override, or *None* for auto-detection."""
+        return self._foot_edge_ids
+
+    @foot_edge_ids.setter
+    def foot_edge_ids(self, value: list[str] | None) -> None:
+        self._foot_edge_ids = value
 
     # --- Optimization interface ---
     # These methods bridge the pylinkage optimizer contract.

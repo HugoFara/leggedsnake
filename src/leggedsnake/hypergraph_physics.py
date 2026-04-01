@@ -248,6 +248,8 @@ def create_bodies_from_hypergraph(
     thickness: float,
     shape_filter: pm.ShapeFilter | None,
     motor_rates: MotorRates | None = None,
+    foot_edge_ids: set[str] | None = None,
+    non_foot_filter: pm.ShapeFilter | None = None,
 ) -> PhysicsMapping:
     """Create pymunk bodies from a hypergraph representation.
 
@@ -270,11 +272,20 @@ def create_bodies_from_hypergraph(
     thickness : float
         Radius of segment shapes.
     shape_filter : pm.ShapeFilter | None
-        Collision filter for segments (typically to prevent self-collision).
+        Collision filter for foot segments (collide with ground).
     motor_rates : MotorRates | None
         Motor angular velocities. Single float applies to all drivers.
         Dict maps driver node IDs to individual rates (multi-DOF).
         If None, falls back to driver angular velocity from dimensions.
+    foot_edge_ids : set[str] | None
+        Edge IDs that should collide with the ground.  When set, only
+        these edges use *shape_filter*; all other edges use
+        *non_foot_filter* instead (which should mask out ground
+        collisions).  *None* disables selective collision — every edge
+        uses *shape_filter*.
+    non_foot_filter : pm.ShapeFilter | None
+        Collision filter for edges that are **not** in *foot_edge_ids*.
+        Typically configured to ignore ground collisions.
 
     Returns
     -------
@@ -306,6 +317,12 @@ def create_bodies_from_hypergraph(
     # Track which groups have been created
     group_bodies: dict[int, pm.Body] = {}
 
+    def _filter_for(eid: str) -> pm.ShapeFilter | None:
+        """Return the collision filter appropriate for *eid*."""
+        if foot_edge_ids is None:
+            return shape_filter
+        return shape_filter if eid in foot_edge_ids else non_foot_filter
+
     # Create bodies for edges
     for edge_id, edge in hg.edges.items():
         source_is_ground = edge.source in effective_ground
@@ -317,7 +334,8 @@ def create_bodies_from_hypergraph(
         if source_is_ground and target_is_ground:
             # Both endpoints are ground - add segment to load_body
             seg = _create_segment(
-                load_body, source_pos, target_pos, thickness, density, shape_filter
+                load_body, source_pos, target_pos, thickness, density,
+                _filter_for(edge_id),
             )
             space.add(seg)
             mapping.edge_to_body[edge_id] = load_body
@@ -348,7 +366,8 @@ def create_bodies_from_hypergraph(
 
             # Add segment to the group body
             seg = _create_segment(
-                body, source_pos, target_pos, thickness, density, shape_filter
+                body, source_pos, target_pos, thickness, density,
+                _filter_for(edge_id),
             )
             space.add(seg)
             mapping.edge_to_body[edge_id] = body
@@ -371,7 +390,8 @@ def create_bodies_from_hypergraph(
             body.position = (source_pos + target_pos) / 2
 
             seg = _create_segment(
-                body, source_pos, target_pos, thickness, density, shape_filter
+                body, source_pos, target_pos, thickness, density,
+                _filter_for(edge_id),
             )
             space.add(body, seg)
             mapping.edge_to_body[edge_id] = body

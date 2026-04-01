@@ -25,6 +25,15 @@ from .hypergraph_physics import (
 if TYPE_CHECKING:
     from .walker import Walker
 
+#: Collision filter for ground / road segments.
+#:
+#: Category bit 2 (``0x4``).  Mask ``0x1`` means the ground only
+#: collides with foot edges (category ``0x1``), ignoring non-foot
+#: linkage parts (category ``0x2``).  When no foot edges are specified
+#: (legacy mode) every linkage shape stays in pymunk's default collision
+#: regime and this filter is unused.
+GROUND_FILTER = pm.ShapeFilter(categories=0x4, mask=0x1)
+
 
 class NodeProxy:
     """Lightweight proxy for reading a node's physics position.
@@ -98,7 +107,8 @@ class DynamicLinkage:
 
     __slots__ = [
         'body', 'rigidbodies', 'joints', 'mass', 'space',
-        'density', '_thickness', 'filter', 'physics_mapping',
+        'density', '_thickness', 'filter', '_non_foot_filter',
+        'physics_mapping',
         '_hypergraph', '_dimensions', 'height', 'mechanical_energy',
         'name',
     ]
@@ -128,6 +138,7 @@ class DynamicLinkage:
         load: float = 0,
         thickness: float = 0.1,
         name: str = "",
+        foot_edge_ids: set[str] | None = None,
     ) -> None:
         """Create a DynamicLinkage from a hypergraph.
 
@@ -150,6 +161,11 @@ class DynamicLinkage:
             Radius of segment shapes.
         name : str
             Human-readable name.
+        foot_edge_ids : set[str] | None
+            Edge IDs whose segments should collide with the ground.
+            All other edges (and the load body) will pass through the
+            ground.  *None* disables selective collision (all edges
+            collide with the ground, legacy behaviour).
         """
         self._hypergraph = topology
         self._dimensions = dimensions
@@ -157,7 +173,24 @@ class DynamicLinkage:
         self._thickness = thickness
         self.space = space
         self.name = name
-        self.filter = pm.ShapeFilter(group=1)
+
+        # --- collision filters ---
+        # When foot_edge_ids is given we use pymunk collision categories:
+        #   bit 0 (0x1): foot edges
+        #   bit 1 (0x2): non-foot linkage edges / load body
+        #   bit 2 (0x4): ground / road  (assigned in World)
+        # Foot filter:     category=foot, collides with ground + linkage
+        # Non-foot filter: category=non-foot, collides with linkage only
+        if foot_edge_ids is not None:
+            self.filter = pm.ShapeFilter(
+                group=1, categories=0x1, mask=pm.ShapeFilter.ALL_MASKS(),
+            )
+            self._non_foot_filter: pm.ShapeFilter | None = pm.ShapeFilter(
+                group=1, categories=0x2, mask=0x2 | 0x1,
+            )
+        else:
+            self.filter = pm.ShapeFilter(group=1)
+            self._non_foot_filter = None
 
         # Build load body (the frame/chassis)
         first_ground = next(iter(topology.ground_nodes()), None)
@@ -167,7 +200,7 @@ class DynamicLinkage:
         else:
             init_pos = pm.Vec2d(0, 0)
 
-        self.body = self._build_load(init_pos, load)
+        self.body = self._build_load(init_pos, load, foot_edge_ids is not None)
 
         # Generate physics bodies from hypergraph
         self.physics_mapping = create_bodies_from_hypergraph(
@@ -179,6 +212,8 @@ class DynamicLinkage:
             thickness,
             self.filter,
             motor_rates=motor_rates,
+            foot_edge_ids=foot_edge_ids,
+            non_foot_filter=self._non_foot_filter,
         )
 
         # Create NodeProxy wrappers for position tracking
@@ -203,10 +238,21 @@ class DynamicLinkage:
         self.height = 0.0
         self.mechanical_energy = 0.0
 
-    def _build_load(self, position: pm.Vec2d, load_mass: float) -> pm.Body:
+    def _build_load(
+        self,
+        position: pm.Vec2d,
+        load_mass: float,
+        use_non_foot: bool = False,
+    ) -> pm.Body:
         """Create the load/chassis body."""
         load = pm.Body()
         load.position = position
+        # The load body is never a foot — use non-foot filter when
+        # selective collision is enabled so the chassis doesn't scrape
+        # the ground.
+        filt = self._non_foot_filter if use_non_foot else self.filter
+        if filt is None:
+            filt = self.filter
         vertices = (-.5, -.5), (-.5, .5), (.5, .5), (.5, -.5)
         segs: list[pm.Segment] = []
         for i, vertex in enumerate(vertices):
@@ -215,7 +261,7 @@ class DynamicLinkage:
                 self._thickness,
             )
             segment.density = self.density
-            segment.filter = self.filter
+            segment.filter = filt
             segs.append(segment)
         self.space.add(load, *segs)
 
@@ -266,6 +312,7 @@ def convert_to_dynamic_linkage(
     if isinstance(source, Walker):
         if motor_rates is None:
             motor_rates = source.motor_rates
+        foot_edges = source.get_foot_edges()
         return DynamicLinkage(
             topology=source.topology,
             dimensions=source.dimensions,
@@ -274,6 +321,7 @@ def convert_to_dynamic_linkage(
             density=density,
             load=load,
             name=source.name,
+            foot_edge_ids=set(foot_edges) if foot_edges else None,
         )
 
     # Legacy Linkage path
