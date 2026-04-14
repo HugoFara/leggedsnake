@@ -169,173 +169,29 @@ class TestWalkerFromHierarchy(unittest.TestCase):
         self.assertEqual(len(walker.topology.nodes), 5)
 
 
-class TestWalkerFromSynthesis(unittest.TestCase):
-    """Test Walker.from_synthesis() factory."""
-
-    def test_from_synthesis_with_linkage(self):
-        """from_synthesis converts a solution with .linkage attribute."""
-        # Create a mock solution object with a .linkage attribute
-        from pylinkage.joints.joint import Static
-        from pylinkage.joints.crank import Crank
-        from pylinkage.joints.revolute import Revolute
-        from pylinkage.linkage import Linkage
-
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            base = Static(0, 0, name="base")
-            crank = Crank(1, 0, joint0=base, distance=1, angle=-tau / 12, name="crank")
-            follower = Revolute(0, 2, joint0=base, joint1=crank, distance0=2, distance1=1.5, name="follower")
-            linkage = Linkage(joints=[base, crank, follower], name="test")
-
-        class MockSolution:
-            def __init__(self, lk):
-                self.linkage = lk
-
-        sol = MockSolution(linkage)
-        walker = Walker.from_synthesis(sol, motor_rates=-5.0)
-        self.assertIsInstance(walker, Walker)
-        self.assertEqual(walker.motor_rates, -5.0)
-
-    def test_from_synthesis_with_n_legs(self):
-        """from_synthesis adds legs when n_legs > 1."""
-        from pylinkage.joints.joint import Static
-        from pylinkage.joints.crank import Crank
-        from pylinkage.joints.revolute import Revolute
-        from pylinkage.linkage import Linkage
-
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            base = Static(0, 0, name="base")
-            crank = Crank(1, 0, joint0=base, distance=1, angle=-tau / 12, name="crank")
-            follower = Revolute(0, 2, joint0=base, joint1=crank, distance0=2, distance1=1.5, name="follower")
-            linkage = Linkage(joints=[base, crank, follower], name="test")
-
-        class MockSolution:
-            def __init__(self, lk):
-                self.linkage = lk
-
-        sol = MockSolution(linkage)
-        walker = Walker.from_synthesis(sol, n_legs=2)
-        # Should have more nodes than base 3 (ground + crank + follower)
-        self.assertGreater(len(walker.topology.nodes), 3)
-
-    def test_from_synthesis_none_linkage_raises(self):
-        """from_synthesis raises ValueError when linkage is None."""
-        class MockSolution:
-            linkage = None
-
-        with self.assertRaises(ValueError):
-            Walker.from_synthesis(MockSolution())
-
-    def test_from_synthesis_missing_linkage_raises(self):
-        """from_synthesis raises ValueError when no .linkage attribute."""
-        class MockSolution:
-            pass
-
-        with self.assertRaises(ValueError):
-            Walker.from_synthesis(MockSolution())
-
-
 class TestCoOptimizeObjective(unittest.TestCase):
-    """Test co_optimize_objective() adapter."""
+    """Test co_optimize_objective() adapter.
+
+    The pylinkage SimLinkage → Walker bridge was deleted alongside the
+    legacy joints module. ``co_optimize_objective`` is retained as a
+    stub that raises ``NotImplementedError`` until pylinkage 1.0 ships
+    a hypergraph-native replacement. Once that lands, restore the full
+    test suite from git history (commits before this one).
+    """
 
     def test_returns_callable(self):
-        """co_optimize_objective returns a callable."""
+        """co_optimize_objective still returns a callable (stub)."""
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         obj = co_optimize_objective(fitness)
         self.assertTrue(callable(obj))
 
-    def test_negates_score(self):
-        """Returned objective negates the DynamicFitness score."""
-        # Custom fitness that always returns score=5.0
-        def constant_fitness(topology, dimensions, config=None):
-            return FitnessResult(score=5.0)
-
-        obj = co_optimize_objective(constant_fitness)
-
-        # Build a real Linkage for the objective to convert
-        from pylinkage.joints.joint import Static
-        from pylinkage.joints.crank import Crank
-        from pylinkage.joints.revolute import Revolute
-        from pylinkage.linkage import Linkage
-
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            base = Static(0, 0, name="base")
-            crank = Crank(1, 0, joint0=base, distance=1, angle=-tau / 12, name="crank")
-            follower = Revolute(0, 2, joint0=base, joint1=crank, distance0=2, distance1=1.5, name="follower")
-            linkage = Linkage(joints=[base, crank, follower], name="test")
-
-        result = obj(linkage)
-        self.assertAlmostEqual(result, -5.0)
-
-    def test_invalid_linkage_returns_inf(self):
-        """Objective returns inf for objects that can't be converted."""
+    def test_raises_until_bridge_lands(self):
+        """The stub raises NotImplementedError with a clear message."""
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         obj = co_optimize_objective(fitness)
-        result = obj("not a linkage")
-        self.assertEqual(result, float("inf"))
-
-    def test_prefilter_rejects(self):
-        """When pre-filter returns score=0, objective returns inf."""
-        def always_zero(topology, dimensions, config=None):
-            return FitnessResult(score=0.0)
-
-        def always_ten(topology, dimensions, config=None):
-            return FitnessResult(score=10.0)
-
-        obj = co_optimize_objective(
-            always_ten,
-            kinematic_prefilter=always_zero,
-        )
-
-        from pylinkage.joints.joint import Static
-        from pylinkage.joints.crank import Crank
-        from pylinkage.joints.revolute import Revolute
-        from pylinkage.linkage import Linkage
-
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            base = Static(0, 0, name="base")
-            crank = Crank(1, 0, joint0=base, distance=1, angle=-tau / 12, name="crank")
-            follower = Revolute(0, 2, joint0=base, joint1=crank, distance0=2, distance1=1.5, name="follower")
-            linkage = Linkage(joints=[base, crank, follower], name="test")
-
-        result = obj(linkage)
-        self.assertEqual(result, float("inf"))
-
-    def test_prefilter_passes(self):
-        """When pre-filter score > 0, full fitness runs."""
-        def always_five(topology, dimensions, config=None):
-            return FitnessResult(score=5.0)
-
-        def always_ten(topology, dimensions, config=None):
-            return FitnessResult(score=10.0)
-
-        obj = co_optimize_objective(
-            always_ten,
-            kinematic_prefilter=always_five,
-        )
-
-        from pylinkage.joints.joint import Static
-        from pylinkage.joints.crank import Crank
-        from pylinkage.joints.revolute import Revolute
-        from pylinkage.linkage import Linkage
-
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            base = Static(0, 0, name="base")
-            crank = Crank(1, 0, joint0=base, distance=1, angle=-tau / 12, name="crank")
-            follower = Revolute(0, 2, joint0=base, joint1=crank, distance0=2, distance1=1.5, name="follower")
-            linkage = Linkage(joints=[base, crank, follower], name="test")
-
-        result = obj(linkage)
-        self.assertAlmostEqual(result, -10.0)
+        with self.assertRaises(NotImplementedError) as cm:
+            obj("anything")
+        self.assertIn("pylinkage 1.0", str(cm.exception))
 
 
 class TestWalkingDesignSpec(unittest.TestCase):
@@ -392,8 +248,6 @@ class TestExports(unittest.TestCase):
     def test_walker_from_hierarchy(self):
         self.assertTrue(hasattr(ls.Walker, 'from_hierarchy'))
 
-    def test_walker_from_synthesis(self):
-        self.assertTrue(hasattr(ls.Walker, 'from_synthesis'))
 
 
 if __name__ == "__main__":

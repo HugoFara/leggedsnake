@@ -126,7 +126,7 @@ from .topology_optimization import (
     topology_walking_optimization,
 )
 from .urdf_export import URDFConfig, to_urdf, to_urdf_file
-from .walker import Walker, walker_from_legacy
+from .walker import Walker
 
 __version__ = "0.5.0"
 
@@ -182,7 +182,6 @@ __all__ = [
     "stride",
     # walker
     "Walker",
-    "walker_from_legacy",
     # dynamiclinkage
     "DynamicLinkage",
     "convert_to_dynamic_linkage",

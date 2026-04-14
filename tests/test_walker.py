@@ -9,7 +9,7 @@ from math import pi, tau
 
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
-from leggedsnake.walker import Walker, walker_from_legacy
+from leggedsnake.walker import Walker
 
 
 def _make_fourbar_walker() -> Walker:
@@ -420,64 +420,6 @@ class TestOptimizationInterface(unittest.TestCase):
         self.assertIsNotNone(frame_pos)
         self.assertAlmostEqual(frame_pos[0], 10.0)
         self.assertAlmostEqual(frame_pos[1], 10.0)
-
-
-class TestWalkerFromLegacy(unittest.TestCase):
-    """Test walker_from_legacy() — conversion from legacy Linkage."""
-
-    def _make_legacy_linkage(self):
-        """Create a legacy pylinkage Linkage for conversion."""
-        from pylinkage import Static, Crank, Pivot
-
-        base = Static(0, 0, name="base")
-        crank = Crank(
-            1, 0, joint0=base, distance=1, angle=0.1, name="crank"
-        )
-        follower = Pivot(
-            0, 2, joint0=base, joint1=crank,
-            distance0=2, distance1=1.5, name="follower"
-        )
-        from pylinkage import Linkage
-
-        linkage = Linkage(
-            joints=(base, crank, follower),
-            order=(base, crank, follower),
-            name="legacy_fourbar",
-        )
-        return linkage
-
-    def test_returns_walker(self):
-        """walker_from_legacy returns a Walker instance."""
-        linkage = self._make_legacy_linkage()
-        walker = walker_from_legacy(linkage)
-        self.assertIsInstance(walker, Walker)
-
-    def test_preserves_name(self):
-        """The converted Walker keeps the legacy linkage's name."""
-        linkage = self._make_legacy_linkage()
-        walker = walker_from_legacy(linkage)
-        self.assertEqual(walker.name, "legacy_fourbar")
-
-    def test_has_topology(self):
-        """The converted Walker has a valid HypergraphLinkage topology."""
-        linkage = self._make_legacy_linkage()
-        walker = walker_from_legacy(linkage)
-        self.assertIsInstance(walker.topology, HypergraphLinkage)
-        self.assertGreater(len(walker.topology.nodes), 0)
-
-    def test_has_dimensions(self):
-        """The converted Walker has Dimensions with positions."""
-        linkage = self._make_legacy_linkage()
-        walker = walker_from_legacy(linkage)
-        self.assertIsInstance(walker.dimensions, Dimensions)
-        self.assertGreater(len(walker.dimensions.node_positions), 0)
-
-    def test_can_step(self):
-        """The converted Walker can run kinematic simulation."""
-        linkage = self._make_legacy_linkage()
-        walker = walker_from_legacy(linkage)
-        positions = list(walker.step())
-        self.assertGreater(len(positions), 0)
 
 
 if __name__ == "__main__":

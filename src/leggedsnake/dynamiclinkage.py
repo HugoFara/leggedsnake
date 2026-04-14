@@ -280,17 +280,17 @@ class DynamicLinkage:
 
 
 def convert_to_dynamic_linkage(
-    source: Walker | object,
+    source: Walker,
     space: pm.Space,
     density: float = 1,
     load: float = 1,
     motor_rates: MotorRates | None = None,
 ) -> DynamicLinkage:
-    """Convert a Walker (or legacy Linkage) to a DynamicLinkage.
+    """Convert a Walker to a DynamicLinkage.
 
     Parameters
     ----------
-    source : Walker or Linkage
+    source : Walker
         The mechanism to convert.
     space : pm.Space
         Pymunk simulation space.
@@ -299,43 +299,18 @@ def convert_to_dynamic_linkage(
     load : float
         Mass of the load/chassis.
     motor_rates : MotorRates | None
-        Motor angular velocities. If None and source is a Walker,
-        uses ``source.motor_rates``.
-
-    Returns
-    -------
-    DynamicLinkage
+        Motor angular velocities. If None, uses ``source.motor_rates``.
     """
-    # Import here to avoid circular imports
-    from .walker import Walker
-
-    if isinstance(source, Walker):
-        if motor_rates is None:
-            motor_rates = source.motor_rates
-        foot_edges = source.get_foot_edges()
-        return DynamicLinkage(
-            topology=source.topology,
-            dimensions=source.dimensions,
-            space=space,
-            motor_rates=motor_rates,
-            density=density,
-            load=load,
-            name=source.name,
-            foot_edge_ids=set(foot_edges) if foot_edges else None,
-        )
-
-    # Legacy Linkage path
-    from pylinkage.hypergraph import from_linkage
-
-    hg, dims = from_linkage(source)  # type: ignore[arg-type]
-    if motor_rates is None and hasattr(source, 'motor_rate'):
-        motor_rates = source.motor_rate
+    if motor_rates is None:
+        motor_rates = source.motor_rates
+    foot_edges = source.get_foot_edges()
     return DynamicLinkage(
-        topology=hg,
-        dimensions=dims,
+        topology=source.topology,
+        dimensions=source.dimensions,
         space=space,
         motor_rates=motor_rates,
         density=density,
         load=load,
-        name=getattr(source, 'name', '') or '',
+        name=source.name,
+        foot_edge_ids=set(foot_edges) if foot_edges else None,
     )

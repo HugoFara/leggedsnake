@@ -540,32 +540,25 @@ def co_optimize_objective(
         ``objective(linkage: Linkage) -> float`` for ``co_optimize()``.
     """
 
+    # Temporary shim note: this wrapper previously converted the
+    # ``simulation.Linkage`` (SimLinkage) handed in by
+    # ``pylinkage.co_optimize`` via ``walker_from_legacy``. The legacy
+    # joints module + its hypergraph bridges were deleted from
+    # pylinkage ahead of 1.0, so there is currently no supported way to
+    # round-trip SimLinkage → Walker. The objective below rejects all
+    # candidates (returns ``inf``) until the hypergraph-native bridge
+    # lands in pylinkage 1.0 (or a leggedsnake-local SimLinkage shim is
+    # written). ``optimize_walking_mechanism``'s co-design flow depends
+    # on this.
+
     def _objective(linkage: Any) -> float:
-        from .walker import walker_from_legacy
-
-        try:
-            walker = walker_from_legacy(linkage)
-        except Exception:
-            return float("inf")
-
-        walker.motor_rates = motor_rates
-
-        # Fast kinematic pre-filter
-        if kinematic_prefilter is not None:
-            pre_result = kinematic_prefilter(
-                walker.topology, walker.dimensions, config,
-            )
-            if not pre_result.valid or pre_result.score <= 0:
-                return float("inf")
-
-        # Full dynamic evaluation
-        result = fitness(walker.topology, walker.dimensions, config)
-
-        if not result.valid or result.score <= 0:
-            return float("inf")
-
-        # Negate: co_optimize minimizes, but higher walking score is better
-        return -result.score
+        raise NotImplementedError(
+            "co_optimize_objective requires a SimLinkage → Walker bridge, "
+            "which pylinkage removed with the legacy joints module. "
+            "The replacement is expected in pylinkage 1.0. Until then, "
+            "use GeneticOptimization / genetic_algorithm_optimization / "
+            "nsga_walking_optimization directly on a fixed topology."
+        )
 
     return _objective
 

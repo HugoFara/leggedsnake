@@ -121,44 +121,6 @@ class Walker:
         flat = hierarchy.flatten()
         return cls(flat, dimensions, name=hierarchy.name, motor_rates=motor_rates)
 
-    @classmethod
-    def from_synthesis(
-        cls,
-        solution: object,
-        motor_rates: dict[str, float] | float = -4.0,
-        n_legs: int = 1,
-    ) -> Walker:
-        """Create a Walker from a synthesis or co-optimization solution.
-
-        Accepts ``TopologySolution`` (from ``multi_topology_synthesize``)
-        or ``CoOptSolution`` (from ``co_optimize``). Both carry a
-        ``.linkage`` attribute that is converted via ``walker_from_legacy``.
-
-        Parameters
-        ----------
-        solution : TopologySolution | CoOptSolution
-            A solution with a ``.linkage`` attribute.
-        motor_rates : float | dict[str, float]
-            Motor angular velocities for dynamic simulation.
-        n_legs : int
-            Number of legs. If > 1, ``add_legs(n_legs - 1)`` is called.
-
-        Raises
-        ------
-        ValueError
-            If ``solution.linkage`` is None.
-        """
-        linkage = getattr(solution, "linkage", None)
-        if linkage is None:
-            raise ValueError(
-                "Solution has no linkage. Cannot convert to Walker."
-            )
-        walker = walker_from_legacy(linkage)
-        walker.motor_rates = motor_rates
-        if n_legs > 1:
-            walker.add_legs(n_legs - 1)
-        return walker
-
     def _invalidate_cache(self) -> None:
         """Invalidate cached Mechanism after topology/dimension changes."""
         self._mechanism = None
@@ -606,35 +568,3 @@ class Walker:
         edge = self.topology.get_edge_between(j0_id, j1_id)
         if edge is not None:
             self.dimensions.edge_distances[edge.id] = distance
-
-
-def walker_from_legacy(linkage: object) -> Walker:
-    """Create a Walker from a legacy pylinkage Linkage.
-
-    Uses ``from_linkage()`` to convert the joint-based representation
-    to a hypergraph. Useful for migrating existing code.
-
-    Parameters
-    ----------
-    linkage : pylinkage.Linkage
-        A legacy joint-based linkage.
-
-    Returns
-    -------
-    Walker
-        A hypergraph-native Walker.
-    """
-    from pylinkage.hypergraph import from_linkage
-
-    hg, dims = from_linkage(linkage)  # type: ignore[arg-type]
-
-    motor_rate: dict[str, float] | float = -4.0
-    if hasattr(linkage, 'motor_rate'):
-        motor_rate = linkage.motor_rate
-
-    return Walker(
-        topology=hg,
-        dimensions=dims,
-        name=getattr(linkage, 'name', '') or '',
-        motor_rates=motor_rate,
-    )
