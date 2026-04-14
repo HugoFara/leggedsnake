@@ -505,6 +505,79 @@ def as_ga_fitness(
     return _ga
 
 
+def chain_walking_optimizers(
+    fitness: DynamicFitness,
+    linkage: Any,
+    stages: Sequence[tuple[Callable[..., Any], dict[str, Any]]],
+    config: WorldConfig | None = None,
+    order_relation: Callable[[float, float], float] = max,
+    verbose: bool = True,
+) -> Any:
+    """Chain optimizer stages on a walking ``DynamicFitness``.
+
+    Thin wrapper around :func:`pylinkage.optimization.chain_optimizers`
+    that adapts a leggedsnake ``DynamicFitness`` via :func:`as_eval_func`
+    and forwards to pylinkage. Each stage receives the previous stage's
+    best solution as its starting point (``center`` for population
+    methods, ``x0`` for local ones) — same contract as pylinkage.
+
+    Parameters
+    ----------
+    fitness : DynamicFitness
+        Walking fitness evaluator (e.g., ``DistanceFitness``).
+    linkage : Walker
+        Mechanism to optimize. Must implement ``set_num_constraints``
+        / ``set_coords`` / ``get_coords`` (Walker does).
+    stages : sequence of (optimizer, kwargs)
+        Each optimizer is one of pylinkage's
+        (``particle_swarm_optimization``, ``differential_evolution_optimization``,
+        ``dual_annealing_optimization``, ``minimize_linkage``, ...) or
+        leggedsnake's ``genetic_algorithm_optimization``. ``kwargs`` are
+        passed through, minus ``eval_func`` / ``linkage``.
+    config : WorldConfig | None
+        Simulation config passed into the fitness.
+    order_relation : callable
+        ``max`` for maximize (default), ``min`` for minimize.
+    verbose : bool
+        Print stage headers.
+
+    Returns
+    -------
+    Ensemble
+        Result of the final stage — same type pylinkage returns.
+
+    Example
+    -------
+    A global → local pipeline for a walker:
+
+        from leggedsnake import (
+            DistanceFitness, chain_walking_optimizers,
+            differential_evolution_optimization, minimize_linkage,
+            dual_annealing_optimization,
+        )
+
+        result = chain_walking_optimizers(
+            DistanceFitness(duration=20.0, n_legs=4),
+            my_walker,
+            stages=[
+                (differential_evolution_optimization, {"maxiter": 200}),
+                (dual_annealing_optimization, {"maxiter": 100}),
+                (minimize_linkage, {"method": "Nelder-Mead", "maxiter": 500}),
+            ],
+        )
+        best = result[0]  # Member from the final stage
+    """
+    from pylinkage.optimization import chain_optimizers
+
+    return chain_optimizers(
+        eval_func=as_eval_func(fitness, config=config),
+        linkage=linkage,
+        stages=stages,
+        order_relation=order_relation,
+        verbose=verbose,
+    )
+
+
 def co_optimize_objective(
     fitness: DynamicFitness,
     config: WorldConfig | None = None,

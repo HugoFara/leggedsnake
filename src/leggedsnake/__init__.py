@@ -60,6 +60,7 @@ from .fitness import (
     StrideFitness,
     as_eval_func,
     as_ga_fitness,
+    chain_walking_optimizers,
     co_optimize_objective,
 )
 from .gait_analysis import (
@@ -200,6 +201,7 @@ __all__ = [
     "StrideFitness",
     "as_eval_func",
     "as_ga_fitness",
+    "chain_walking_optimizers",
     "co_optimize_objective",
     # gait analysis
     "GaitAnalysisResult",

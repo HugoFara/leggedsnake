@@ -188,6 +188,17 @@ class Walker:
         """Number of steps for one full rotation cycle."""
         return self.to_mechanism().get_rotation_period()
 
+    @property
+    def joints(self) -> list[Any]:
+        """Mechanism joints in solve order.
+
+        Surface pylinkage's compatibility hook: ``pylinkage._compat.get_parts``
+        sniffs for ``.joints`` or ``.components`` to iterate over a
+        linkage's parts. Optimizers such as ``chain_optimizers`` /
+        ``minimize_linkage`` / ``particle_swarm_optimization`` rely on it.
+        """
+        return list(self.to_mechanism().joints)
+
     # --- SimLinkage bridge (temporary compat shim) ---
     #
     # Until pylinkage 1.0 ships a stable SimLinkage → HypergraphLinkage path,

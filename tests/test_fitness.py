@@ -287,6 +287,45 @@ class TestExports(unittest.TestCase):
     def test_as_ga_fitness_exported(self):
         self.assertTrue(hasattr(ls, 'as_ga_fitness'))
 
+    def test_chain_walking_optimizers_exported(self):
+        self.assertTrue(hasattr(ls, 'chain_walking_optimizers'))
+
+
+class TestChainWalkingOptimizers(unittest.TestCase):
+    """Test the walking-fitness wrapper around chain_optimizers."""
+
+    def test_runs_two_stage_pipeline(self):
+        """Chaining trials_and_errors + minimize_linkage produces a result."""
+        from pylinkage.optimization import (
+            minimize_linkage,
+            trials_and_errors_optimization,
+        )
+        from leggedsnake import chain_walking_optimizers
+
+        # Custom fitness: maximize sum of crank distance constraints.
+        def linear_fitness(topology, dimensions, config=None):
+            score = sum(dimensions.edge_distances.values())
+            return FitnessResult(score=score, valid=True)
+
+        walker = _make_fourbar_walker()
+        result = chain_walking_optimizers(
+            linear_fitness,
+            walker,
+            stages=[
+                (trials_and_errors_optimization, {
+                    "n_results": 3,
+                    "divisions": 3,
+                    "bounds": ([0.5, 1.0, 0.5], [2.0, 3.0, 2.0]),
+                }),
+                (minimize_linkage, {
+                    "method": "Nelder-Mead",
+                    "bounds": ([0.5, 1.0, 0.5], [2.0, 3.0, 2.0]),
+                }),
+            ],
+            verbose=False,
+        )
+        self.assertGreater(result.n_members, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
