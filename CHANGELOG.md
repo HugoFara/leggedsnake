@@ -188,6 +188,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     terrain configurations.
   - ``SlopeProfile``, ``SLOPE_PROFILES``, and ``TerrainPreset`` are
     re-exported from the package.
+- **Six-bar walker factories**: ``Walker.from_watt(...)`` and
+  ``Walker.from_stephenson(...)`` wrap pylinkage 0.9's
+  ``watt_from_lengths`` / ``stephenson_from_lengths`` and feed the
+  resulting SimLinkage through ``_walker_from_sim_linkage``. Both
+  topologies yield a 6-node Walker (2 grounds + driver + 3 driven
+  joints) usable with the physics stepper, optimizers, and
+  ``add_legs()``. Watt and Stephenson six-bars open richer foot-path
+  geometries than the four-bar baseline for leg design.
 - **pylinkage 0.9 adoption**:
   - ``Walker.step(skip_unbuildable=True)``: mirrors pylinkage 0.9's
     ``Linkage.step`` flag — dead-zone frames yield ``(None, None)``

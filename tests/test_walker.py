@@ -514,6 +514,60 @@ class TestOptimizationInterface(unittest.TestCase):
         self.assertAlmostEqual(frame_pos[1], 10.0)
 
 
+class TestWalkerSixBarFactories(unittest.TestCase):
+    """Test Walker.from_watt / from_stephenson (six-bar factories)."""
+
+    def test_watt_builds_six_node_walker(self):
+        walker = Walker.from_watt(
+            crank=1.5, coupler1=4.0, rocker1=3.5,
+            link4=3.0, link5=2.5, rocker2=3.0,
+            ground_length=6.0,
+        )
+        self.assertEqual(walker.name, "watt")
+        # Watt six-bar: 2 grounds + 4 dependent joints = 6 nodes.
+        self.assertEqual(len(walker.topology.nodes), 6)
+        roles = {nid: n.role for nid, n in walker.topology.nodes.items()}
+        self.assertEqual(roles["A"], NodeRole.GROUND)
+        self.assertEqual(roles["D"], NodeRole.GROUND)
+        self.assertEqual(roles["B"], NodeRole.DRIVER)
+
+    def test_watt_is_steppable(self):
+        walker = Walker.from_watt(
+            crank=1.5, coupler1=4.0, rocker1=3.5,
+            link4=3.0, link5=2.5, rocker2=3.0,
+            ground_length=6.0,
+        )
+        positions = list(walker.step(iterations=8, skip_unbuildable=True))
+        self.assertEqual(len(positions), 8)
+
+    def test_watt_accepts_custom_motor_rates(self):
+        walker = Walker.from_watt(
+            crank=1.5, coupler1=4.0, rocker1=3.5,
+            link4=3.0, link5=2.5, rocker2=3.0,
+            ground_length=6.0,
+            motor_rates=-2.5,
+        )
+        self.assertEqual(walker.motor_rates, -2.5)
+
+    def test_stephenson_builds_six_node_walker(self):
+        walker = Walker.from_stephenson(
+            crank=1.0, coupler=3.0, rocker=2.5,
+            link4=2.0, link5=3.5, link6=2.0,
+            ground_length=5.0,
+        )
+        self.assertEqual(walker.name, "stephenson")
+        self.assertEqual(len(walker.topology.nodes), 6)
+
+    def test_stephenson_is_steppable(self):
+        walker = Walker.from_stephenson(
+            crank=1.0, coupler=3.0, rocker=2.5,
+            link4=2.0, link5=3.5, link6=2.0,
+            ground_length=5.0,
+        )
+        positions = list(walker.step(iterations=8, skip_unbuildable=True))
+        self.assertEqual(len(positions), 8)
+
+
 class TestWalkerFromSimLinkage(unittest.TestCase):
     """Test the temporary SimLinkage → Walker shim."""
 

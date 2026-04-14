@@ -121,6 +121,118 @@ class Walker:
         flat = hierarchy.flatten()
         return cls(flat, dimensions, name=hierarchy.name, motor_rates=motor_rates)
 
+    @classmethod
+    def from_watt(
+        cls,
+        crank: float,
+        coupler1: float,
+        rocker1: float,
+        link4: float,
+        link5: float,
+        rocker2: float,
+        ground_length: float,
+        ground_pivot_a: tuple[float, float] = (0.0, 0.0),
+        initial_crank_angle: float = 0.0,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "watt",
+    ) -> Walker:
+        """Build a Walker from a Watt six-bar specification.
+
+        Wraps :func:`pylinkage.synthesis.watt_from_lengths` and feeds its
+        result through the SimLinkage shim (``_walker_from_sim_linkage``).
+        A Watt six-bar has two four-bar loops sharing the crank output,
+        yielding two coupled rocker trajectories that can serve as foot
+        paths.
+
+        Parameters
+        ----------
+        crank, coupler1, rocker1, link4, link5, rocker2 : float
+            Link lengths. See
+            :func:`pylinkage.synthesis.watt_from_lengths` for the
+            kinematic chain diagram.
+        ground_length : float
+            Distance between ground pivots A and D.
+        ground_pivot_a : (float, float)
+            World position of ground pivot A.
+        initial_crank_angle : float
+            Starting crank angle (radians).
+        motor_rates : float | dict[str, float]
+            Motor angular velocities applied to the resulting Walker.
+        name : str
+            Name for the linkage.
+
+        Raises
+        ------
+        ValueError
+            If pylinkage cannot assemble the mechanism at the given
+            link lengths / initial angle.
+        """
+        from pylinkage.synthesis import watt_from_lengths
+
+        sim = watt_from_lengths(
+            crank=crank,
+            coupler1=coupler1,
+            rocker1=rocker1,
+            link4=link4,
+            link5=link5,
+            rocker2=rocker2,
+            ground_length=ground_length,
+            ground_pivot_a=ground_pivot_a,
+            initial_crank_angle=initial_crank_angle,
+            name=name,
+        )
+        return _walker_from_sim_linkage(sim, motor_rates=motor_rates)
+
+    @classmethod
+    def from_stephenson(
+        cls,
+        crank: float,
+        coupler: float,
+        rocker: float,
+        link4: float,
+        link5: float,
+        link6: float,
+        ground_length: float,
+        ground_pivot_a: tuple[float, float] = (0.0, 0.0),
+        initial_crank_angle: float = 0.0,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "stephenson",
+    ) -> Walker:
+        """Build a Walker from a Stephenson six-bar specification.
+
+        Wraps :func:`pylinkage.synthesis.stephenson_from_lengths` and
+        feeds its result through the SimLinkage shim.
+
+        Stephenson differs from Watt in where the second loop attaches:
+        on a Stephenson the second chain branches from the coupler
+        joint C and ground D (so the two ternary links are separated);
+        on a Watt the second chain branches from B and C (ternary
+        links adjacent). See
+        :func:`pylinkage.synthesis.stephenson_from_lengths` for the
+        kinematic chain.
+
+        Raises
+        ------
+        ValueError
+            If pylinkage cannot assemble the mechanism at the given
+            link lengths / initial angle.
+        """
+        from pylinkage.synthesis import stephenson_from_lengths
+
+        sim = stephenson_from_lengths(
+            crank=crank,
+            coupler=coupler,
+            rocker=rocker,
+            link4=link4,
+            link5=link5,
+            link6=link6,
+            ground_length=ground_length,
+            ground_pivot_a=ground_pivot_a,
+            initial_crank_angle=initial_crank_angle,
+            name=name,
+        )
+        return _walker_from_sim_linkage(sim, motor_rates=motor_rates)
+
     def _invalidate_cache(self) -> None:
         """Invalidate cached Mechanism after topology/dimension changes."""
         self._mechanism = None
