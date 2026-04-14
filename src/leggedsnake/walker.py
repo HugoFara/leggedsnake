@@ -188,6 +188,110 @@ class Walker:
         """Number of steps for one full rotation cycle."""
         return self.to_mechanism().get_rotation_period()
 
+    # --- Kinematic derivatives (temporary compat shim) ---
+    #
+    # pylinkage's ``Mechanism.step_with_derivatives`` / ``set_input_velocity`` /
+    # ``get_velocities`` / ``get_accelerations`` are committed upstream but not
+    # yet released (expected in pylinkage 1.0). Until the first release carries
+    # them, we provide a finite-difference implementation here. Consumers should
+    # depend on ``Walker.step_with_derivatives`` (this module), not on the raw
+    # pylinkage surface.
+    #
+    # DEPRECATION PLAN: once a pylinkage release pins the upstream API, drop
+    # this finite-difference path and delegate to ``Mechanism.step_with_derivatives``
+    # directly. Keep the Walker method signature stable across the switch.
+
+    def step_with_derivatives(
+        self,
+        iterations: int | None = None,
+        dt: float = 1.0,
+        skip_unbuildable: bool = False,
+    ) -> Generator[
+        tuple[
+            tuple[tuple[float, float] | tuple[float | None, float | None], ...],
+            tuple[tuple[float, float] | tuple[None, None], ...],
+            tuple[tuple[float, float] | tuple[None, None], ...],
+        ],
+        None,
+        None,
+    ]:
+        """Simulate one rotation, yielding per-frame positions, velocities, accelerations.
+
+        Velocities and accelerations are computed by three-point central
+        finite differences against ``dt`` (forward / backward at the ends).
+        Frames where a joint is unbuildable yield ``(None, None)`` for
+        that joint in all three tuples — no derivative across a dead zone.
+
+        This is a **temporary shim** awaiting pylinkage 1.0's
+        ``Mechanism.step_with_derivatives`` becoming generally available.
+
+        Parameters
+        ----------
+        iterations : int | None
+            Number of simulation steps. If *None*, one full rotation period.
+        dt : float
+            Time step used for the finite-difference denominator.
+        skip_unbuildable : bool
+            Forwarded to :meth:`step`.
+
+        Yields
+        ------
+        (positions, velocities, accelerations)
+            Each is a tuple of per-joint ``(x, y)`` (or ``(None, None)``
+            where undefined). The stream's length equals ``iterations``.
+        """
+        positions = list(self.step(
+            iterations=iterations, dt=dt, skip_unbuildable=skip_unbuildable,
+        ))
+        n = len(positions)
+        if n == 0:
+            return
+
+        n_joints = len(positions[0])
+        none_pair = (None, None)
+
+        def _central(i: int, j: int) -> tuple[float, float] | tuple[None, None]:
+            # Three-point derivative of position j at frame i.
+            if i == 0:
+                prev_, next_ = positions[0], positions[1] if n > 1 else positions[0]
+                denom = dt if n > 1 else 1.0
+            elif i == n - 1:
+                prev_, next_ = positions[n - 2], positions[n - 1]
+                denom = dt
+            else:
+                prev_, next_ = positions[i - 1], positions[i + 1]
+                denom = 2 * dt
+            p0, p1 = prev_[j], next_[j]
+            if p0[0] is None or p1[0] is None:
+                return none_pair
+            return ((p1[0] - p0[0]) / denom, (p1[1] - p0[1]) / denom)
+
+        # Pre-compute velocities so we can difference them for acceleration.
+        velocities: list[tuple[tuple[float, float] | tuple[None, None], ...]] = [
+            tuple(_central(i, j) for j in range(n_joints))
+            for i in range(n)
+        ]
+
+        def _accel_central(i: int, j: int) -> tuple[float, float] | tuple[None, None]:
+            if n < 2:
+                return none_pair
+            if i == 0:
+                v0, v1 = velocities[0][j], velocities[1][j]
+                denom = dt
+            elif i == n - 1:
+                v0, v1 = velocities[n - 2][j], velocities[n - 1][j]
+                denom = dt
+            else:
+                v0, v1 = velocities[i - 1][j], velocities[i + 1][j]
+                denom = 2 * dt
+            if v0[0] is None or v1[0] is None:
+                return none_pair
+            return ((v1[0] - v0[0]) / denom, (v1[1] - v0[1]) / denom)
+
+        for i in range(n):
+            accel = tuple(_accel_central(i, j) for j in range(n_joints))
+            yield positions[i], velocities[i], accel
+
     # --- Topological analysis (pylinkage 0.9 adoption) ---
 
     @property

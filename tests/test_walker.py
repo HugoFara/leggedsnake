@@ -198,6 +198,48 @@ class TestWalkerStep(unittest.TestCase):
         self.assertIs(m1, m2)
 
 
+class TestWalkerStepWithDerivatives(unittest.TestCase):
+    """Test step_with_derivatives — temporary finite-difference shim."""
+
+    def test_yields_triples(self):
+        """Each yielded item is a (positions, velocities, accelerations) triple."""
+        walker = _make_fourbar_walker()
+        frames = list(walker.step_with_derivatives(iterations=6))
+        self.assertEqual(len(frames), 6)
+        for pos, vel, acc in frames:
+            # All three tuples have one entry per joint (3 here).
+            self.assertEqual(len(pos), 3)
+            self.assertEqual(len(vel), 3)
+            self.assertEqual(len(acc), 3)
+
+    def test_crank_tip_speed_matches_omega_radius(self):
+        """|v| at the crank joint should approximate |omega| * radius.
+
+        Walker with unit-length crank spinning at tau/12 rad/step: the
+        crank tip moves on the unit circle, so |v| ≈ tau/12 per step
+        (central-difference estimate against dt=1).
+        """
+        from math import hypot
+        walker = _make_fourbar_walker()
+        # crank joint is index 1 in _make_fourbar_walker (frame=0, crank=1, follower=2)
+        frames = list(walker.step_with_derivatives(iterations=24, dt=1.0))
+        # Skip the first and last frame (forward/backward diff, less accurate).
+        middle = frames[5:20]
+        speeds = [hypot(vel[1][0], vel[1][1]) for _, vel, _ in middle]
+        expected = abs(-tau / 12) * 1.0  # |omega| * radius
+        for s in speeds:
+            self.assertAlmostEqual(s, expected, delta=expected * 0.1)
+
+    def test_accelerations_finite(self):
+        """Accelerations are computable from velocities (no Nones on buildable runs)."""
+        walker = _make_fourbar_walker()
+        frames = list(walker.step_with_derivatives(iterations=10))
+        for _, _, acc in frames[1:-1]:
+            for ax, ay in acc:
+                self.assertIsNotNone(ax)
+                self.assertIsNotNone(ay)
+
+
 class TestWalkerMobility(unittest.TestCase):
     """Test pylinkage 0.9 topology-analysis adoption (compute_dof)."""
 
