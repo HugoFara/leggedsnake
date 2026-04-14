@@ -639,34 +639,47 @@ class Walker:
     # --- Optimization interface ---
     # These methods bridge the pylinkage optimizer contract.
 
-    def get_num_constraints(self, flat: bool = True) -> list[float]:
+    def get_constraints(self) -> list[float]:
         """Get optimizable constraints as a flat list of floats.
 
         Returns edge distances from the Mechanism (link lengths),
-        compatible with pylinkage optimizers.
+        compatible with pylinkage optimizers that sniff
+        ``linkage.get_constraints()``.
         """
         return self.to_mechanism().get_constraints()
+
+    def set_constraints(self, values: list[float]) -> None:
+        """Set constraints from a flat list of floats.
+
+        Updates the Mechanism, then syncs edge distances back to Dimensions.
+        """
+        mechanism = self.to_mechanism()
+        mechanism.set_constraints(list(values))
+        self._sync_dimensions_from_mechanism(mechanism)
+
+    # Back-compat aliases (will be deprecated with pylinkage 0.10 which
+    # does the same rename). The ``num_`` prefix meant "numeric"
+    # historically but reads as "number of", so upstream dropped it.
+
+    def get_num_constraints(self, flat: bool = True) -> list[float]:
+        """Alias for :meth:`get_constraints` (back-compat)."""
+        return self.get_constraints()
 
     def set_num_constraints(
         self,
         constraints: list[float] | list[list[float]],
         flat: bool = True,
     ) -> None:
-        """Set constraints from a flat list of floats.
+        """Alias for :meth:`set_constraints` (back-compat).
 
-        Updates the Mechanism, then syncs edge distances back to Dimensions.
+        Accepts a flat list of floats or (with ``flat=False``) a nested
+        list that will be flattened in order.
         """
-        mechanism = self.to_mechanism()
         if not flat and isinstance(constraints, list) and constraints and isinstance(constraints[0], list):
-            # Flatten nested list
             flat_constraints = [v for sub in constraints for v in sub]
         else:
             flat_constraints = list(constraints)  # type: ignore[arg-type]
-
-        mechanism.set_constraints(flat_constraints)
-
-        # Sync back: update Dimensions.edge_distances from mechanism link lengths
-        self._sync_dimensions_from_mechanism(mechanism)
+        self.set_constraints(flat_constraints)
 
     def get_coords(self) -> list[tuple[float, float]]:
         """Get current joint positions as a list of (x, y) tuples."""
