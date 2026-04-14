@@ -120,6 +120,8 @@ from .plotting import (
     plot_optimization_dashboard,
     plot_pareto_front,
     plot_stability_timeseries,
+    plot_walker_plotly,
+    save_walker_svg,
 )
 from .topology_optimization import (
     TopologyCoOptConfig,
@@ -264,6 +266,8 @@ __all__ = [
     "plot_com_trajectory",
     "plot_foot_trajectories",
     "plot_optimization_dashboard",
+    "plot_walker_plotly",
+    "save_walker_svg",
     # topology_optimization
     "TopologyCoOptConfig",
     "TopologySolutionInfo",

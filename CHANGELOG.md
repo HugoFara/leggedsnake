@@ -188,6 +188,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     terrain configurations.
   - ``SlopeProfile``, ``SLOPE_PROFILES``, and ``TerrainPreset`` are
     re-exported from the package.
+- **Plotly / SVG renderings**: ``plot_walker_plotly(walker)`` returns
+  an interactive plotly ``Figure`` of a Walker's one-revolution
+  trajectory; ``save_walker_svg(walker, path)`` writes a drawsvg
+  export to disk. Both delegate to pylinkage's visualizers
+  (``plot_linkage_plotly`` / ``save_linkage_svg``) with a
+  pre-computed locus from ``Walker.step`` so they work against
+  hypergraph-backed Walkers. ``plotly`` and ``drawsvg`` are
+  imported lazily — callers only pay for them when they use them.
 - **Six-bar walker factories**: ``Walker.from_watt(...)`` and
   ``Walker.from_stephenson(...)`` wrap pylinkage 0.9's
   ``watt_from_lengths`` / ``stephenson_from_lengths`` and feed the

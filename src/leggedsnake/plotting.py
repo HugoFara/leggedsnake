@@ -582,3 +582,93 @@ def _draw_metrics_table(
     table.set_fontsize(9)
     table.scale(1, 1.3)
     ax.set_title("Metrics Summary")
+
+
+# ---------------------------------------------------------------------------
+# Interactive / SVG renderings via pylinkage's visualizer
+# ---------------------------------------------------------------------------
+
+
+def plot_walker_plotly(
+    walker: Any,
+    iterations: int | None = None,
+    skip_unbuildable: bool = True,
+    *,
+    title: str | None = None,
+    show_loci: bool = True,
+    show_labels: bool = True,
+    width: int = 800,
+    height: int = 600,
+) -> Any:
+    """Interactive Plotly diagram of a Walker's kinematic trajectory.
+
+    Delegates to :func:`pylinkage.visualizer.plot_linkage_plotly` with a
+    pre-computed locus from :meth:`Walker.step`. Useful for inspecting
+    optimization-run outputs in notebooks or dashboards.
+
+    Parameters
+    ----------
+    walker : Walker
+        Mechanism to render.
+    iterations : int | None
+        Simulation steps. Defaults to one full rotation period.
+    skip_unbuildable : bool
+        Forwarded to ``Walker.step``. Dead-zone frames are drawn with
+        their ``(None, None)`` positions, which pylinkage's plotly
+        renderer tolerates gracefully.
+    title, show_loci, show_labels, width, height : ...
+        Forwarded to ``plot_linkage_plotly``.
+
+    Returns
+    -------
+    plotly.graph_objects.Figure
+    """
+    from pylinkage.visualizer.plotly_viz import plot_linkage_plotly
+
+    loci = list(walker.step(
+        iterations=iterations, skip_unbuildable=skip_unbuildable,
+    ))
+    return plot_linkage_plotly(
+        walker.to_mechanism(),
+        loci=loci,
+        title=title or walker.name or "walker",
+        show_loci=show_loci,
+        show_labels=show_labels,
+        width=width,
+        height=height,
+    )
+
+
+def save_walker_svg(
+    walker: Any,
+    path: str,
+    iterations: int | None = None,
+    skip_unbuildable: bool = True,
+    **kwargs: Any,
+) -> None:
+    """Save a Walker's kinematic trajectory as an SVG file.
+
+    Delegates to :func:`pylinkage.visualizer.save_linkage_svg` with a
+    pre-computed locus. Useful for embedding optimizer outputs in
+    papers or reports.
+
+    Parameters
+    ----------
+    walker : Walker
+        Mechanism to render.
+    path : str
+        Output SVG file path.
+    iterations : int | None
+        Simulation steps. Defaults to one full rotation period.
+    skip_unbuildable : bool
+        Forwarded to ``Walker.step``.
+    **kwargs
+        Forwarded to ``save_linkage_svg`` (``show_loci``, ``width``,
+        ``height``, etc.).
+    """
+    from pylinkage.visualizer.drawsvg_viz import save_linkage_svg
+
+    loci = list(walker.step(
+        iterations=iterations, skip_unbuildable=skip_unbuildable,
+    ))
+    save_linkage_svg(walker.to_mechanism(), path, loci=loci, **kwargs)

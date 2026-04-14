@@ -209,5 +209,58 @@ class TestPlotOptimizationDashboard(unittest.TestCase):
         self.assertIsInstance(fig, Figure)
 
 
+class TestWalkerRenderings(unittest.TestCase):
+    """Plotly / SVG renderings that delegate to pylinkage's visualizer."""
+
+    def _make_walker(self):
+        from math import tau
+        from pylinkage.dimensions import Dimensions, DriverAngle
+        from pylinkage.hypergraph import (
+            Edge, HypergraphLinkage, Node, NodeRole,
+        )
+        from leggedsnake.walker import Walker
+
+        hg = HypergraphLinkage(name="fourbar")
+        hg.add_node(Node("frame", role=NodeRole.GROUND))
+        hg.add_node(Node("crank", role=NodeRole.DRIVER))
+        hg.add_node(Node("follower", role=NodeRole.DRIVEN))
+        hg.add_edge(Edge("e0", "frame", "crank"))
+        hg.add_edge(Edge("e1", "frame", "follower"))
+        hg.add_edge(Edge("e2", "crank", "follower"))
+        dims = Dimensions(
+            node_positions={
+                "frame": (0, 0), "crank": (1, 0), "follower": (0, 2),
+            },
+            driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
+            edge_distances={"e0": 1.0, "e1": 2.0, "e2": 1.5},
+        )
+        return Walker(hg, dims, name="fourbar")
+
+    def test_plot_walker_plotly_returns_figure(self):
+        from leggedsnake.plotting import plot_walker_plotly
+
+        walker = self._make_walker()
+        fig = plot_walker_plotly(walker, iterations=12)
+        # plotly.graph_objects.Figure — structural check
+        self.assertEqual(type(fig).__name__, "Figure")
+        self.assertTrue(hasattr(fig, "to_dict"))
+
+    def test_save_walker_svg_writes_file(self):
+        import os
+        import tempfile
+        from leggedsnake.plotting import save_walker_svg
+
+        walker = self._make_walker()
+        with tempfile.NamedTemporaryFile(
+            suffix=".svg", delete=False,
+        ) as f:
+            path = f.name
+        try:
+            save_walker_svg(walker, path, iterations=12)
+            self.assertGreater(os.path.getsize(path), 0)
+        finally:
+            os.unlink(path)
+
+
 if __name__ == "__main__":
     unittest.main()
