@@ -262,12 +262,12 @@ class StrideFitness:
         except Exception:
             return FitnessResult(score=0.0, valid=False)
 
-        foot_locus = tuple(
-            x[self.foot_index] for x in loci
-            if x[self.foot_index][0] is not None
-        )
-        if not foot_locus:
+        from pylinkage import extract_trajectory
+
+        xs, ys = extract_trajectory(loci, self.foot_index)
+        if xs.size == 0:
             return FitnessResult(score=0.0, valid=False)
+        foot_locus = list(zip(xs.tolist(), ys.tolist()))
         if not step_check(foot_locus, self.step_height, self.step_width):
             return FitnessResult(
                 score=0.0,

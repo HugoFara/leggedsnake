@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 
+from pylinkage import extract_trajectory
+
 from theo_jansen import create_theo_jansen_linkage
 from klann_linkage import create_klann_linkage
 from chebyshev_linkage import create_chebyshev_linkage
@@ -47,12 +49,10 @@ def plot_mechanism_trajectory(ax, walker, name, iterations=48):
     joint_ids = [j.id for j in mechanism.joints]
     foot_idx = joint_ids.index(foot_id)
 
-    # Extract foot trajectory
-    foot_positions = [pos[foot_idx] for pos in loci]
-    xs = [p[0] for p in foot_positions if p[0] is not None]
-    ys = [p[1] for p in foot_positions if p[1] is not None]
+    # Extract foot trajectory (skips None frames from unbuildable configs)
+    xs, ys = extract_trajectory(loci, foot_idx)
 
-    if not xs or not ys:
+    if xs.size == 0:
         ax.set_title(f'{name}\n(ERROR: No valid positions)')
         return
 

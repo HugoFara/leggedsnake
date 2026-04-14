@@ -161,11 +161,12 @@ def stride_length_objective(
         except Exception:
             return 0.0
 
-        foot_locus = tuple(
-            x[foot_index] for x in loci if x[foot_index][0] is not None
-        )
-        if not foot_locus:
+        from pylinkage import extract_trajectory
+
+        xs, ys = extract_trajectory(loci, foot_index)
+        if xs.size == 0:
             return 0.0
+        foot_locus = list(zip(xs.tolist(), ys.tolist()))
         if not step_check(foot_locus, step_height, step_width):
             return 0.0
 
