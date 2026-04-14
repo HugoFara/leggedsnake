@@ -32,8 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ``HypergraphLinkage`` (topology) and ``Dimensions`` (geometry) directly.
   Mechanisms are constructed with ``Node``, ``Edge``, ``Hyperedge``,
   and ``Dimensions`` from pylinkage's hypergraph API.
-- ``walker_from_legacy(linkage)`` factory function to convert existing
-  joint-based ``Linkage`` objects to the new ``Walker``.
 - Re-exports of pylinkage hypergraph API: ``HypergraphLinkage``, ``Node``,
   ``Edge``, ``Hyperedge``, ``NodeRole``, ``Dimensions``, ``DriverAngle``.
 - ``Walker.to_mechanism()`` converts to pylinkage's ``Mechanism`` for
@@ -190,12 +188,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     terrain configurations.
   - ``SlopeProfile``, ``SLOPE_PROFILES``, and ``TerrainPreset`` are
     re-exported from the package.
+- **pylinkage 0.9 adoption**:
+  - ``Walker.step(skip_unbuildable=True)``: mirrors pylinkage 0.9's
+    ``Linkage.step`` flag — dead-zone frames yield ``(None, None)``
+    tuples instead of aborting. Adopted in ``StrideFitness`` and
+    ``stride_length_objective`` so non-Grashof / double-rocker
+    candidates contribute a partial locus instead of being zeroed out.
+  - ``extract_trajectory`` / ``extract_trajectories`` helpers
+    (re-exported from pylinkage) replace the manual
+    ``[(p[i][0], p[i][1]) for p in loci if p[i][0] is not None]``
+    boilerplate in ``fitness.py``, ``walking_objectives.py``, and
+    ``examples/verify_mechanisms.py``.
+  - ``Walker.dof`` / ``Walker.mobility`` properties delegating to
+    ``pylinkage.topology.compute_dof`` / ``compute_mobility``. Fast
+    pre-flight check for GA / NSGA inner loops: reject candidates
+    with DOF ≠ 1 before building the mechanism.
+  - ``compute_dof``, ``compute_mobility``, ``MobilityInfo``
+    re-exported from the package root.
+- **``chain_walking_optimizers(fitness, linkage, stages, ...)``**:
+  walking-specific wrapper around
+  ``pylinkage.optimization.chain_optimizers``. Adapts a
+  ``DynamicFitness`` via ``as_eval_func`` and forwards stages
+  verbatim. Each stage receives the previous stage's best as its
+  starting point — global → local pipelines (DE → dual annealing
+  → Nelder-Mead) just work.
+- **``Walker.joints`` property** deferring to
+  ``to_mechanism().joints`` so pylinkage's ``_compat.get_parts``
+  sniffing sees Walker as a valid linkage. Unblocks direct use of
+  ``chain_optimizers`` / ``minimize_linkage`` /
+  ``particle_swarm_optimization`` against a ``Walker``.
+- **Temporary compat shims** (to be deprecated once pylinkage 1.0
+  ships hypergraph-native equivalents):
+  - ``Walker.step_with_derivatives(iterations, dt, skip_unbuildable)``:
+    three-point central finite differences over the position stream,
+    yielding ``(positions, velocities, accelerations)`` triples. Lets
+    callers build smoothness-based fitness today against a stable API.
+    Will delegate to pylinkage's
+    ``Mechanism.step_with_derivatives`` once that lands in a release.
+  - ``leggedsnake.walker._walker_from_sim_linkage``: SimLinkage →
+    Walker bridge covering the component types pylinkage's
+    N-bar synthesis and catalog-based ``co_optimize`` emit
+    (``Ground``, ``Crank``/``ArcCrank``, ``RRRDyad``, ``FixedDyad``).
+    Unknown types raise ``NotImplementedError`` so upstream
+    additions fail loudly.
 
 ### Changed
 
 - **Breaking**: ``Walker`` no longer inherits from ``pylinkage.Linkage``.
   It is now a standalone class with ``topology`` and ``dimensions``
-  attributes. Use ``walker_from_legacy()`` to migrate existing code.
+  attributes.
 - **Breaking**: ``DynamicLinkage`` no longer inherits from ``Linkage``.
   It takes ``(topology, dimensions, space)`` instead of ``(joints, space)``.
 - **Breaking**: ``motor_rate`` parameter renamed to ``motor_rates`` in
@@ -224,6 +265,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New helper ``agents_to_ensemble(agents, linkage)`` converts legacy
   ``list[Agent]`` results (e.g. from ``GeneticOptimization.run()``) to
   an ``Ensemble`` on demand.
+- ``leggedsnake.co_design.optimize_walking_mechanism`` now routes
+  topology + dimensions co-optimization through pylinkage's
+  ``co_optimize`` and converts each returned ``CoOptSolution.linkage``
+  to a Walker via the SimLinkage shim.
+- ``leggedsnake.topology_optimization.topology_walking_optimization``
+  carries a docstring pointer marking it as a deprecation candidate.
+  Prefer ``optimize_walking_mechanism`` (pylinkage-backed) unless the
+  legacy multi-process evaluation / post-hoc gait+stability analysis
+  matters.
 - All examples rewritten to use hypergraph construction pattern.
 - ``examples/`` is now in the main folder (was in ``docs/``).
 - Minimum Python version is now 3.10 (was 3.7).
@@ -249,6 +299,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project links fixed in pyproject.toml.
 - Road step/gap/obstacle direction logic: new road features now extend
   in the correct direction (forward or backward) matching slope segments.
+- **NSGA single-objective shape bug**: ``nsga_walking_optimization``
+  and ``topology_walking_optimization`` no longer crash with
+  ``TypeError: 'numpy.float64' is not iterable`` when pymoo collapses
+  ``res.F`` to a 1-D array (single solution, or single-objective run
+  with multiple solutions). Results are now reshaped against the
+  known objective count to disambiguate the two collapse directions.
 
 ### Removed
 
@@ -261,6 +317,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ``FixedDyad``, ``RRRDyad``, ``bounding_box``, ``show_linkage``.
   Import these from ``pylinkage`` directly if needed.
 - ``Walker.get_foots()`` (replaced by ``get_feet()``).
+- ``walker_from_legacy(linkage)`` factory. Followed pylinkage's
+  removal of ``pylinkage.hypergraph.from_linkage`` alongside the
+  legacy joints module — there is no supported way to round-trip a
+  pre-0.8 joint-based ``Linkage`` into a Walker today. Rebuild with
+  ``HypergraphLinkage`` / ``Dimensions`` / ``Walker(...)`` directly.
+- ``Walker.from_synthesis(solution)`` factory. Wrapped
+  ``walker_from_legacy`` and followed it out. Will return once
+  pylinkage 1.0 ships a stable SimLinkage → HypergraphLinkage
+  bridge.
+- ``convert_to_dynamic_linkage``'s legacy-``Linkage`` fallback path.
+  Only the Walker-in code path remains.
 - ``setup.cfg``, ``setup.py``, ``requirements.txt``,
   ``requirements-dev.txt``, ``environment.yml``.
 
