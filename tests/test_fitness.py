@@ -234,6 +234,50 @@ class TestAsEvalFunc(unittest.TestCase):
         score = eval_fn(walker, dims, pos)
         self.assertIsInstance(score, float)
 
+    def test_walker_factory_mode_ignores_linkage(self):
+        """walker_factory-based adapter builds fresh walkers per call."""
+        fitness = DistanceFitness(duration=0.5, n_legs=1)
+        eval_fn = as_eval_func(fitness, walker_factory=_make_simple_walker)
+        walker = _make_simple_walker()
+        dims = walker.get_num_constraints()
+        # linkage and pos are ignored in walker_factory mode.
+        score = eval_fn(None, dims, ())
+        self.assertIsInstance(score, float)
+
+    def test_negate_flips_sign(self):
+        """negate=True returns -score for pylinkage's minimization optimizers."""
+        def always_two(topology, dimensions, config=None):
+            return FitnessResult(score=2.0, valid=True)
+
+        eval_fn = as_eval_func(
+            always_two,
+            walker_factory=_make_simple_walker,
+            negate=True,
+        )
+        walker = _make_simple_walker()
+        score = eval_fn(None, walker.get_num_constraints(), ())
+        self.assertAlmostEqual(score, -2.0)
+
+    def test_pylinkage_moo_accepts_walking_fitness(self):
+        """Adapted walking fitness feeds pylinkage's multi_objective_optimization."""
+        from pylinkage.optimization import multi_objective_optimization
+
+        fitness = DistanceFitness(duration=0.5, n_legs=1)
+        eval_fn = as_eval_func(
+            fitness, walker_factory=_make_simple_walker, negate=True,
+        )
+        walker = _make_simple_walker()
+        ensemble = multi_objective_optimization(
+            objectives=[eval_fn, eval_fn],
+            linkage=walker,
+            bounds=([0.5] * 5, [3.0] * 5),
+            objective_names=["a", "b"],
+            n_generations=2, pop_size=4, seed=42, verbose=False,
+        )
+        self.assertGreater(ensemble.n_members, 0)
+        self.assertIn("a", ensemble.scores)
+        self.assertIn("b", ensemble.scores)
+
 
 class TestAsGaFitness(unittest.TestCase):
     """Test the as_ga_fitness adapter."""

@@ -14,7 +14,6 @@ from leggedsnake.fitness import (
     StabilityFitness,
     as_ga_fitness,
 )
-from leggedsnake.geneticoptimizer import GeneticOptimization
 from leggedsnake.nsga_optimizer import (
     NsgaWalkingConfig,
     NsgaWalkingResult,

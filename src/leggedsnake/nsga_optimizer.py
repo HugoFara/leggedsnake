@@ -38,7 +38,7 @@ import numpy as np
 
 from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 
-from .fitness import CompositeFitness, DynamicFitness
+from .fitness import CompositeFitness, DynamicFitness, as_eval_func
 from .gait_analysis import GaitAnalysisResult, analyze_gait
 from .stability import StabilityTimeSeries
 
@@ -249,23 +249,15 @@ class WalkingNsgaProblem:
     def _evaluate_candidate(
         self, dims: list[float],
     ) -> list[float]:
-        """Evaluate a single candidate against all objectives."""
-        scores: list[float] = []
-        walker = self.walker_factory()
-        walker.set_num_constraints(dims)
+        """Evaluate a single candidate against all objectives.
 
-        for objective in self.objectives:
-            try:
-                result = objective(
-                    deepcopy(walker.topology),
-                    deepcopy(walker.dimensions),
-                    self.config,
-                )
-                scores.append(result.score if result.valid else 0.0)
-            except Exception:
-                scores.append(0.0)
-
-        return scores
+        Delegates to :func:`as_eval_func` (walker_factory variant) so the
+        same adapter works with pylinkage's ``multi_objective_optimization``,
+        ``chain_optimizers``, and standalone optimizers.
+        """
+        return _evaluate_candidate_worker(
+            self.walker_factory, self.objectives, self.config, dims,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -279,23 +271,147 @@ def _evaluate_candidate_worker(
     config: Any | None,
     dims: list[float],
 ) -> list[float]:
-    """Evaluate a single candidate in a worker process."""
-    scores: list[float] = []
-    walker = walker_factory()
-    walker.set_num_constraints(dims)
+    """Evaluate a single candidate via :func:`as_eval_func`.
 
-    for objective in objectives:
-        try:
-            result = objective(
-                deepcopy(walker.topology),
-                deepcopy(walker.dimensions),
-                config,
-            )
-            scores.append(result.score if result.valid else 0.0)
-        except Exception:
-            scores.append(0.0)
+    Must be top-level for multiprocessing pickling.
+    """
+    eval_funcs = [
+        as_eval_func(obj, config=config, walker_factory=walker_factory)
+        for obj in objectives
+    ]
+    # eval_func built with walker_factory ignores the linkage/pos args.
+    return [fn(None, dims, ()) for fn in eval_funcs]
 
-    return scores
+
+# ---------------------------------------------------------------------------
+# Ensemble → ParetoFront adapter and NSGA backends
+# ---------------------------------------------------------------------------
+
+
+def _ensemble_to_pareto_front(
+    ensemble: Any,
+    objective_names: Sequence[str],
+    init_positions: Sequence[Any],
+    negate_scores: bool = True,
+) -> ParetoFront:
+    """Bridge pylinkage's ``Ensemble`` → leggedsnake's ``ParetoFront``.
+
+    The Ensemble stores dimensions and scores columnarly; ParetoFront
+    holds per-solution ``ParetoSolution`` objects. Walking fitnesses
+    maximize while pylinkage minimizes, so scores are negated back when
+    ``negate_scores`` is True.
+    """
+    n = ensemble.n_members
+    dims = ensemble.dimensions
+    score_cols = [np.asarray(ensemble.scores[name]) for name in objective_names]
+
+    solutions: list[ParetoSolution] = []
+    for i in range(n):
+        raw = tuple(float(col[i]) for col in score_cols)
+        scores = tuple(-v for v in raw) if negate_scores else raw
+        solutions.append(ParetoSolution(
+            scores=scores,
+            dimensions=np.asarray(dims[i], dtype=float),
+            init_positions=init_positions,
+        ))
+    return ParetoFront(solutions, tuple(objective_names))
+
+
+def _run_via_pylinkage(
+    walker_factory: Callable[[], Any],
+    ref_walker: Any,
+    objectives: Sequence[DynamicFitness],
+    bounds: tuple[Sequence[float], Sequence[float]],
+    objective_names: Sequence[str],
+    init_pos: Sequence[Any],
+    cfg: NsgaWalkingConfig,
+    world_config: Any | None,
+) -> ParetoFront:
+    """Sequential NSGA via ``pylinkage.optimization.multi_objective_optimization``."""
+    from pylinkage.optimization import multi_objective_optimization
+
+    eval_funcs = [
+        as_eval_func(
+            obj, config=world_config,
+            walker_factory=walker_factory, negate=True,
+        )
+        for obj in objectives
+    ]
+
+    ensemble = multi_objective_optimization(
+        objectives=eval_funcs,
+        linkage=ref_walker,
+        bounds=bounds,
+        objective_names=objective_names,
+        algorithm=cfg.algorithm,
+        n_generations=cfg.n_generations,
+        pop_size=cfg.pop_size,
+        seed=cfg.seed,
+        verbose=cfg.verbose,
+    )
+    return _ensemble_to_pareto_front(
+        ensemble, objective_names, init_pos, negate_scores=True,
+    )
+
+
+def _run_via_parallel_problem(
+    walker_factory: Callable[[], Any],
+    objectives: Sequence[DynamicFitness],
+    bounds: tuple[Sequence[float], Sequence[float]],
+    objective_names: Sequence[str],
+    init_pos: Sequence[Any],
+    cfg: NsgaWalkingConfig,
+    world_config: Any | None,
+) -> ParetoFront:
+    """Parallel NSGA via custom ``WalkingNsgaProblem`` (pymoo has no built-in parallelism)."""
+    from pymoo.algorithms.moo.nsga2 import NSGA2
+    from pymoo.optimize import minimize as pymoo_minimize
+
+    problem = WalkingNsgaProblem(
+        walker_factory=walker_factory,
+        objectives=objectives,
+        bounds=bounds,
+        config=world_config,
+        n_workers=cfg.n_workers,
+    )
+
+    n_obj = len(objective_names)
+    if cfg.algorithm == "nsga3" and n_obj > 2:
+        from pymoo.algorithms.moo.nsga3 import NSGA3
+        from pymoo.util.ref_dirs import get_reference_directions
+
+        n_partitions = max(4, 12 - n_obj)
+        ref_dirs = get_reference_directions("das-dennis", n_obj, n_partitions=n_partitions)
+        algo = NSGA3(pop_size=cfg.pop_size, ref_dirs=ref_dirs)
+    else:
+        algo = NSGA2(pop_size=cfg.pop_size)
+
+    res = pymoo_minimize(
+        problem.problem,
+        algo,
+        ("n_gen", cfg.n_generations),
+        seed=cfg.seed,
+        verbose=cfg.verbose,
+    )
+
+    if res.F is None or res.X is None:
+        return ParetoFront([], tuple(objective_names))
+
+    # pymoo may return 1-D for a single solution (shape (n_obj,)) or a
+    # single-objective multi-solution run (shape (n_sol,)). Reshape against
+    # the known objective count to disambiguate.
+    F = np.asarray(res.F).reshape(-1, n_obj)
+    X = np.asarray(res.X).reshape(F.shape[0], -1)
+
+    solutions: list[ParetoSolution] = []
+    for i in range(F.shape[0]):
+        scores = tuple(-float(v) for v in F[i])
+        solutions.append(ParetoSolution(
+            scores=scores,
+            dimensions=X[i],
+            init_positions=init_pos,
+        ))
+    return ParetoFront(solutions, tuple(objective_names))
 
 
 # ---------------------------------------------------------------------------
@@ -345,8 +461,6 @@ def nsga_walking_optimization(
         Pareto front with optional gait/stability analysis.
     """
     _check_pymoo()
-    from pymoo.algorithms.moo.nsga2 import NSGA2
-    from pymoo.optimize import minimize as pymoo_minimize
 
     cfg = nsga_config or NsgaWalkingConfig()
     n_obj = len(objectives)
@@ -354,65 +468,36 @@ def nsga_walking_optimization(
     if objective_names is None:
         objective_names = [f"objective_{i}" for i in range(n_obj)]
 
-    # Build problem
-    problem = WalkingNsgaProblem(
-        walker_factory=walker_factory,
-        objectives=objectives,
-        bounds=bounds,
-        config=world_config,
-        n_workers=cfg.n_workers,
-    )
-
-    # Build algorithm
-    if cfg.algorithm == "nsga3" and n_obj > 2:
-        from pymoo.algorithms.moo.nsga3 import NSGA3
-        from pymoo.util.ref_dirs import get_reference_directions
-
-        n_partitions = max(4, 12 - n_obj)
-        ref_dirs = get_reference_directions("das-dennis", n_obj, n_partitions=n_partitions)
-        algo = NSGA3(pop_size=cfg.pop_size, ref_dirs=ref_dirs)
-    else:
-        algo = NSGA2(pop_size=cfg.pop_size)
-
-    # Run optimization
-    res = pymoo_minimize(
-        problem.problem,
-        algo,
-        ("n_gen", cfg.n_generations),
-        seed=cfg.seed,
-        verbose=cfg.verbose,
-    )
-
-    # Package results into ParetoFront
-    if res.F is None or res.X is None:
-        return NsgaWalkingResult(
-            pareto_front=ParetoFront([], tuple(objective_names)),
-            config=cfg,
-        )
-
-    # Get initial positions from a fresh walker for ParetoSolution
     ref_walker = walker_factory()
     init_pos = ref_walker.get_coords()
 
-    # Normalize to (n_solutions, n_objectives). pymoo may return 1-D for
-    # a single solution (shape becomes (n_obj,)) or for a single-objective
-    # multi-solution run (shape (n_sol,)). Reshape against the known
-    # objective count to disambiguate.
-    n_obj = len(objective_names)
-    F = np.asarray(res.F).reshape(-1, n_obj)
-    X = np.asarray(res.X).reshape(F.shape[0], -1)
+    # Delegate to pylinkage for multi-objective sequential runs. Fall back
+    # to our pymoo wrapper for parallel evaluation or single-objective
+    # (pylinkage 0.9's multi_objective_optimization assumes 2-D ``res.F``
+    # and crashes on pymoo's 1-D single-objective output).
+    if cfg.n_workers <= 1 and n_obj > 1:
+        pareto = _run_via_pylinkage(
+            walker_factory=walker_factory,
+            ref_walker=ref_walker,
+            objectives=objectives,
+            bounds=bounds,
+            objective_names=objective_names,
+            init_pos=init_pos,
+            cfg=cfg,
+            world_config=world_config,
+        )
+    else:
+        pareto = _run_via_parallel_problem(
+            walker_factory=walker_factory,
+            objectives=objectives,
+            bounds=bounds,
+            objective_names=objective_names,
+            init_pos=init_pos,
+            cfg=cfg,
+            world_config=world_config,
+        )
 
-    solutions: list[ParetoSolution] = []
-    for i in range(F.shape[0]):
-        # Negate back: pymoo minimized negated scores
-        scores = tuple(-float(v) for v in F[i])
-        solutions.append(ParetoSolution(
-            scores=scores,
-            dimensions=X[i],
-            init_positions=init_pos,
-        ))
-
-    pareto = ParetoFront(solutions, tuple(objective_names))
+    solutions = pareto.solutions
 
     # Optional post-hoc analysis on Pareto front solutions
     gait_analyses: dict[int, GaitAnalysisResult] | None = None

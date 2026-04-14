@@ -233,6 +233,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sniffing sees Walker as a valid linkage. Unblocks direct use of
   ``chain_optimizers`` / ``minimize_linkage`` /
   ``particle_swarm_optimization`` against a ``Walker``.
+- **NSGA pipeline aligned with pylinkage**:
+  ``nsga_walking_optimization`` now delegates multi-objective
+  sequential runs to ``pylinkage.optimization.multi_objective_optimization``
+  rather than maintaining a bespoke pymoo wrapper. The custom
+  ``WalkingNsgaProblem`` path is retained only for parallel evaluation
+  (``n_workers > 1``) and single-objective runs (pylinkage 0.9's
+  multi-objective wrapper assumes 2-D ``res.F``).
+  - ``as_eval_func`` gained ``walker_factory`` and ``negate``
+    parameters: use ``walker_factory`` for thread-safe fresh walkers
+    per evaluation, ``negate=True`` for pylinkage's minimization-based
+    optimizers. A single adapter now covers
+    ``multi_objective_optimization``, ``chain_optimizers``, and
+    standalone optimizers.
+  - ``_ensemble_to_pareto_front`` bridges pylinkage's ``Ensemble``
+    return into leggedsnake's ``ParetoFront``-based
+    ``NsgaWalkingResult``, preserving the public API.
 - **Temporary compat shims** (to be deprecated once pylinkage 1.0
   ships hypergraph-native equivalents):
   - ``Walker.step_with_derivatives(iterations, dt, skip_unbuildable)``:

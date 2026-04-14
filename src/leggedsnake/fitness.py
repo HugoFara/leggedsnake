@@ -436,6 +436,8 @@ class CompositeFitness:
 def as_eval_func(
     fitness: DynamicFitness,
     config: WorldConfig | None = None,
+    walker_factory: Callable[[], Any] | None = None,
+    negate: bool = False,
 ) -> Callable[..., float]:
     """Adapt a ``DynamicFitness`` to pylinkage's optimizer contract.
 
@@ -449,18 +451,60 @@ def as_eval_func(
         The fitness evaluator to adapt.
     config : WorldConfig | None
         Simulation config override.  If None, the fitness uses its own default.
+    walker_factory : callable, optional
+        Zero-argument callable returning a fresh Walker. If provided, a new
+        walker is built per evaluation (ignoring the ``linkage`` argument) —
+        required for thread/process safety in multi-worker NSGA evaluation.
+        If None, the adapter mutates the ``linkage`` passed in (pylinkage's
+        default for sequential optimizers).
+    negate : bool
+        If True, return ``-score`` so pylinkage's minimization-based
+        optimizers (``multi_objective_optimization``, ``minimize_linkage``,
+        etc.) treat walking scores as maximization. Default False.
 
     Returns
     -------
     callable
         ``eval_func(linkage, dims, pos) -> float``
+
+    Example
+    -------
+    Feed a walking fitness into pylinkage's multi-objective optimizer::
+
+        from leggedsnake import DistanceFitness, as_eval_func
+        from pylinkage.optimization import multi_objective_optimization
+
+        eval_fn = as_eval_func(
+            DistanceFitness(duration=20, n_legs=4),
+            walker_factory=make_walker,
+            negate=True,  # pylinkage minimizes
+        )
+        ensemble = multi_objective_optimization(
+            objectives=[eval_fn],
+            linkage=make_walker(),
+            bounds=bounds,
+        )
     """
 
     def _eval(linkage: Any, dims: Sequence[float], pos: Sequence[Any]) -> float:
-        linkage.set_num_constraints(dims)
-        linkage.set_coords(pos)
-        result = fitness(linkage.topology, linkage.dimensions, config)
-        return result.score
+        if walker_factory is not None:
+            walker = walker_factory()
+            try:
+                walker.set_num_constraints(list(dims))
+                result = fitness(
+                    deepcopy(walker.topology),
+                    deepcopy(walker.dimensions),
+                    config,
+                )
+                score = result.score if result.valid else 0.0
+            except Exception:
+                score = 0.0
+        else:
+            linkage.set_num_constraints(dims)
+            linkage.set_coords(pos)
+            result = fitness(linkage.topology, linkage.dimensions, config)
+            score = result.score
+        return -score if negate else score
 
     return _eval
 
