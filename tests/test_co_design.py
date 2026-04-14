@@ -170,28 +170,64 @@ class TestWalkerFromHierarchy(unittest.TestCase):
 
 
 class TestCoOptimizeObjective(unittest.TestCase):
-    """Test co_optimize_objective() adapter.
+    """Test co_optimize_objective() adapter wiring through the SimLinkage shim."""
 
-    The pylinkage SimLinkage → Walker bridge was deleted alongside the
-    legacy joints module. ``co_optimize_objective`` is retained as a
-    stub that raises ``NotImplementedError`` until pylinkage 1.0 ships
-    a hypergraph-native replacement. Once that lands, restore the full
-    test suite from git history (commits before this one).
-    """
+    def _make_sim_linkage(self):
+        """Build a minimal four-bar SimLinkage (Ground + Crank + RRRDyad)."""
+        from pylinkage.actuators import Crank
+        from pylinkage.components import Ground
+        from pylinkage.dyads import RRRDyad
+        from pylinkage.simulation import Linkage as SimLinkage
+
+        g_a = Ground(0, 0, name="A")
+        g_d = Ground(3, 0, name="D")
+        crank = Crank(
+            g_a, radius=1.0, angular_velocity=0.1, name="B",
+        )
+        follower = RRRDyad(
+            anchor1=crank, anchor2=g_d,
+            distance1=2.5, distance2=2.0, x=3, y=2, name="C",
+        )
+        return SimLinkage((g_a, g_d, crank, follower), name="test")
 
     def test_returns_callable(self):
-        """co_optimize_objective still returns a callable (stub)."""
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         obj = co_optimize_objective(fitness)
         self.assertTrue(callable(obj))
 
-    def test_raises_until_bridge_lands(self):
-        """The stub raises NotImplementedError with a clear message."""
+    def test_negates_score(self):
+        """Walking scores (higher = better) are negated for minimization."""
+        def constant_fitness(topology, dimensions, config=None):
+            return FitnessResult(score=5.0)
+
+        obj = co_optimize_objective(constant_fitness)
+        result = obj(self._make_sim_linkage())
+        self.assertAlmostEqual(result, -5.0)
+
+    def test_invalid_linkage_returns_inf(self):
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         obj = co_optimize_objective(fitness)
-        with self.assertRaises(NotImplementedError) as cm:
-            obj("anything")
-        self.assertIn("pylinkage 1.0", str(cm.exception))
+        self.assertEqual(obj("not a linkage"), float("inf"))
+
+    def test_prefilter_rejects(self):
+        def always_zero(topology, dimensions, config=None):
+            return FitnessResult(score=0.0)
+
+        def always_ten(topology, dimensions, config=None):
+            return FitnessResult(score=10.0)
+
+        obj = co_optimize_objective(always_ten, kinematic_prefilter=always_zero)
+        self.assertEqual(obj(self._make_sim_linkage()), float("inf"))
+
+    def test_prefilter_passes(self):
+        def always_five(topology, dimensions, config=None):
+            return FitnessResult(score=5.0)
+
+        def always_ten(topology, dimensions, config=None):
+            return FitnessResult(score=10.0)
+
+        obj = co_optimize_objective(always_ten, kinematic_prefilter=always_five)
+        self.assertAlmostEqual(obj(self._make_sim_linkage()), -10.0)
 
 
 class TestWalkingDesignSpec(unittest.TestCase):

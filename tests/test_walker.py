@@ -514,5 +514,65 @@ class TestOptimizationInterface(unittest.TestCase):
         self.assertAlmostEqual(frame_pos[1], 10.0)
 
 
+class TestWalkerFromSimLinkage(unittest.TestCase):
+    """Test the temporary SimLinkage → Walker shim."""
+
+    def _make_sim_linkage(self):
+        from pylinkage.actuators import Crank
+        from pylinkage.components import Ground
+        from pylinkage.dyads import RRRDyad
+        from pylinkage.simulation import Linkage as SimLinkage
+
+        g_a = Ground(0, 0, name="A")
+        g_d = Ground(3, 0, name="D")
+        crank = Crank(
+            g_a, radius=1.0, angular_velocity=0.1, name="B",
+        )
+        follower = RRRDyad(
+            anchor1=crank, anchor2=g_d,
+            distance1=2.5, distance2=2.0, x=3, y=2, name="C",
+        )
+        return SimLinkage((g_a, g_d, crank, follower), name="fourbar")
+
+    def test_roundtrip_four_bar_produces_walker(self):
+        from leggedsnake.walker import _walker_from_sim_linkage
+
+        walker = _walker_from_sim_linkage(self._make_sim_linkage())
+        self.assertIsInstance(walker, Walker)
+        self.assertEqual(walker.name, "fourbar")
+        # 4 components → 4 nodes (2 ground + 1 driver + 1 driven)
+        self.assertEqual(len(walker.topology.nodes), 4)
+
+    def test_node_roles_mapped(self):
+        from leggedsnake.walker import _walker_from_sim_linkage
+
+        walker = _walker_from_sim_linkage(self._make_sim_linkage())
+        roles = {nid: n.role for nid, n in walker.topology.nodes.items()}
+        self.assertEqual(roles["A"], NodeRole.GROUND)
+        self.assertEqual(roles["D"], NodeRole.GROUND)
+        self.assertEqual(roles["B"], NodeRole.DRIVER)
+        self.assertEqual(roles["C"], NodeRole.DRIVEN)
+
+    def test_walker_is_steppable(self):
+        from leggedsnake.walker import _walker_from_sim_linkage
+
+        walker = _walker_from_sim_linkage(self._make_sim_linkage())
+        positions = list(walker.step(iterations=6, skip_unbuildable=True))
+        self.assertEqual(len(positions), 6)
+
+    def test_unknown_component_raises(self):
+        from leggedsnake.walker import _walker_from_sim_linkage
+
+        class Foo:
+            x, y, name = 0, 0, "foo"
+
+        class FakeSim:
+            components = (Foo(),)
+            name = "fake"
+
+        with self.assertRaises(NotImplementedError):
+            _walker_from_sim_linkage(FakeSim())
+
+
 if __name__ == "__main__":
     unittest.main()

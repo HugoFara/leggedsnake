@@ -541,6 +541,17 @@ def topology_walking_optimization(
     and link dimensions using NSGA-II/III with physics-based fitness
     evaluation.
 
+    .. note::
+       This function reimplements the NSGA-II + mixed-chromosome plumbing
+       that now ships in ``pylinkage.optimization.co_optimize``. The
+       pylinkage-backed path — :func:`leggedsnake.optimize_walking_mechanism`
+       — delegates the optimizer loop to pylinkage and wraps walking
+       fitness through :func:`leggedsnake.fitness.co_optimize_objective`.
+       Prefer it for new code. This standalone implementation is kept
+       for backwards compatibility and will be deprecated once the
+       pylinkage-backed path reaches feature parity (multi-process
+       evaluation, gait / stability post-analysis).
+
     Parameters
     ----------
     objectives : sequence of DynamicFitness

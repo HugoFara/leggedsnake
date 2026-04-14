@@ -191,23 +191,29 @@ def optimize_walking_mechanism(
             objective_names=names,
         )
 
-    # 4. Convert solutions to Walkers
-    # TEMPORARY: pylinkage removed the legacy joints module and the
-    # SimLinkage → HypergraphLinkage bridge alongside it. Until
-    # pylinkage 1.0 ships a hypergraph-native replacement, we can't
-    # round-trip co_optimize solutions back into Walkers. The loop
-    # below will therefore always skip every solution. See
-    # fitness.co_optimize_objective for the matching stub.
+    # 4. Convert solutions to Walkers via the temporary SimLinkage shim.
+    # Drop this routing in favor of a direct pylinkage call once 1.0
+    # exposes a supported SimLinkage → Walker bridge.
+    from .walker import _walker_from_sim_linkage
+
     walkers: list[Walker] = []
     fitness_results_list: list[dict[str, FitnessResult]] = []
 
     for sol in co_result.solutions:
-        try:
-            raise NotImplementedError(
-                "SimLinkage → Walker conversion pending pylinkage 1.0"
-            )
-        except (ValueError, Exception):
+        sim_linkage = getattr(sol, "linkage", None)
+        if sim_linkage is None:
             continue
+        try:
+            walker = _walker_from_sim_linkage(
+                sim_linkage, motor_rates=spec.motor_rates,
+            )
+        except Exception:
+            continue
+        if spec.n_legs > 1:
+            try:
+                walker.add_legs(spec.n_legs - 1)
+            except Exception:
+                continue
 
         # 5. Re-evaluate with full fitness for rich metrics
         result_dict: dict[str, FitnessResult] = {}
