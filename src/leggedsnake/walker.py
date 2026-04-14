@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from math import tau
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole, to_mechanism
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from pylinkage.hypergraph import HierarchicalLinkage
     from pylinkage.mechanism import Mechanism
     from pylinkage.topology.catalog import CatalogEntry
+    from pylinkage.topology.analysis import MobilityInfo
 
 
 class Walker:
@@ -298,7 +299,7 @@ class Walker:
 
     def get_rotation_period(self) -> int:
         """Number of steps for one full rotation cycle."""
-        return self.to_mechanism().get_rotation_period()
+        return int(self.to_mechanism().get_rotation_period())
 
     @property
     def joints(self) -> list[Any]:
@@ -393,7 +394,7 @@ class Walker:
                 prev_, next_ = positions[i - 1], positions[i + 1]
                 denom = 2 * dt
             p0, p1 = prev_[j], next_[j]
-            if p0[0] is None or p1[0] is None:
+            if p0[0] is None or p0[1] is None or p1[0] is None or p1[1] is None:
                 return none_pair
             return ((p1[0] - p0[0]) / denom, (p1[1] - p0[1]) / denom)
 
@@ -415,7 +416,7 @@ class Walker:
             else:
                 v0, v1 = velocities[i - 1][j], velocities[i + 1][j]
                 denom = 2 * dt
-            if v0[0] is None or v1[0] is None:
+            if v0[0] is None or v0[1] is None or v1[0] is None or v1[1] is None:
                 return none_pair
             return ((v1[0] - v0[0]) / denom, (v1[1] - v0[1]) / denom)
 
@@ -439,10 +440,10 @@ class Walker:
         paying the cost of building the mechanism and stepping it.
         """
         from pylinkage.topology import compute_dof
-        return compute_dof(self.topology)
+        return int(compute_dof(self.topology))
 
     @property
-    def mobility(self) -> Any:
+    def mobility(self) -> MobilityInfo:
         """Full ``MobilityInfo`` (DOF, link count, joint counts).
 
         See :attr:`dof` for the scalar-only variant. Delegates to
@@ -758,7 +759,7 @@ class Walker:
         compatible with pylinkage optimizers that sniff
         ``linkage.get_constraints()``.
         """
-        return self.to_mechanism().get_constraints()
+        return list(self.to_mechanism().get_constraints())
 
     def set_constraints(self, values: list[float]) -> None:
         """Set constraints from a flat list of floats.
@@ -787,16 +788,22 @@ class Walker:
         Accepts a flat list of floats or (with ``flat=False``) a nested
         list that will be flattened in order.
         """
-        if not flat and isinstance(constraints, list) and constraints and isinstance(constraints[0], list):
-            flat_constraints = [v for sub in constraints for v in sub]
+        flat_constraints: list[float]
+        if (
+            not flat
+            and constraints
+            and isinstance(constraints[0], list)
+        ):
+            nested: list[list[float]] = constraints  # type: ignore[assignment]
+            flat_constraints = [v for sub in nested for v in sub]
         else:
-            flat_constraints = list(constraints)  # type: ignore[arg-type]
+            flat_constraints = [float(v) for v in constraints]  # type: ignore[arg-type]
         self.set_constraints(flat_constraints)
 
     def get_coords(self) -> list[tuple[float, float]]:
         """Get current joint positions as a list of (x, y) tuples."""
         mechanism = self.to_mechanism()
-        return mechanism.get_joint_positions()
+        return list(mechanism.get_joint_positions())
 
     def set_coords(
         self,
@@ -804,7 +811,7 @@ class Walker:
     ) -> None:
         """Set joint positions."""
         mechanism = self.to_mechanism()
-        mechanism.set_joint_positions(coords)  # type: ignore[arg-type]
+        mechanism.set_joint_positions(coords)
 
         # Sync back to Dimensions
         for joint in mechanism.joints:
@@ -935,9 +942,10 @@ def _walker_from_sim_linkage(
             hg.add_edge(Edge(eid, anchor_id, this_id))
             # Crank uses ``radius``; ArcCrank / older variants may use
             # ``distance``.
-            edge_distances[eid] = float(
-                getattr(comp, "radius", None) or getattr(comp, "distance", 1.0)
-            )
+            raw_len: Any = getattr(comp, "radius", None)
+            if raw_len is None:
+                raw_len = getattr(comp, "distance", 1.0)
+            edge_distances[eid] = float(raw_len)
             omega = float(getattr(comp, "angular_velocity", -tau / 12))
             driver_angles[this_id] = DriverAngle(angular_velocity=omega)
             continue

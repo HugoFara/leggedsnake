@@ -513,7 +513,7 @@ class World:
         for i, linkage in enumerate(self.linkages):
             for j, motor in enumerate(linkage.physics_mapping.motors):
                 # Motor angular velocity relative to chassis
-                driver_body = motor.a  # type: ignore[attr-defined]
+                driver_body = motor.a
                 w = driver_body.angular_velocity - linkage.body.angular_velocity
                 powers[i][j] = abs(w) * abs(motor.impulse) / dt
 
@@ -654,7 +654,10 @@ def linkage_bb(
 
     if isinstance(linkage, dynamiclinkage.DynamicLinkage):
         positions = list(linkage.get_all_positions().values())
-        positions.extend(tuple(b.position) for b in linkage.rigidbodies)
+        positions.extend(
+            (float(b.position[0]), float(b.position[1]))
+            for b in linkage.rigidbodies
+        )
     elif isinstance(linkage, Walker):
         positions = list(linkage.dimensions.node_positions.values())
     else:

@@ -104,7 +104,7 @@ def _prepare_walker(
     if n_legs > 1 and current_legs <= 2:
         linkage.add_legs(n_legs - 1)
 
-    return linkage
+    return linkage  # type: ignore[no-any-return]
 
 
 def stride_length_objective(

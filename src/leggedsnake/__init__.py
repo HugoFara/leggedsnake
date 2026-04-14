@@ -140,7 +140,7 @@ _VISUALIZER_NAMES = frozenset({
 })
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
     if name in _VISUALIZER_NAMES:
         from . import worldvisualizer as _wv
         # Populate module namespace so subsequent access is direct

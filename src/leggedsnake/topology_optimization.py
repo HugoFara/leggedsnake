@@ -391,7 +391,7 @@ class _TopologyWalkingProblem:
 
         outer = self
 
-        class _Problem(Problem):
+        class _Problem(Problem):  # type: ignore[misc]  # pymoo Problem is Any-typed
             def __init__(self_inner) -> None:
                 super().__init__(
                     n_var=n_var,
@@ -402,7 +402,11 @@ class _TopologyWalkingProblem:
                 )
 
             def _evaluate(
-                self_inner, X: np.ndarray, out: dict, *args: Any, **kwargs: Any,
+                self_inner,
+                X: np.ndarray,
+                out: dict[str, Any],
+                *args: Any,
+                **kwargs: Any,
             ) -> None:
                 out["F"] = outer._evaluate_batch(X)
 

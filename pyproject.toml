@@ -120,5 +120,8 @@ module = [
     "pylinkage.*",
     "tqdm.*",
     "pyglet.*",
+    "pymoo.*",
+    "plotly.*",
+    "drawsvg.*",
 ]
 ignore_missing_imports = true

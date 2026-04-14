@@ -21,7 +21,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .topology_optimization import TopologyWalkingResult
 
 import numpy as np
 
@@ -248,7 +251,9 @@ def result_to_dict(result: NsgaWalkingResult) -> dict[str, Any]:
     return data
 
 
-def result_from_dict(data: dict[str, Any]) -> NsgaWalkingResult:
+def result_from_dict(
+    data: dict[str, Any],
+) -> "NsgaWalkingResult | TopologyWalkingResult":
     """Deserialize an NsgaWalkingResult from a plain dict.
 
     Parameters
@@ -287,7 +292,7 @@ def result_from_dict(data: dict[str, Any]) -> NsgaWalkingResult:
         n_workers=cfg_data.get("n_workers", 1),
     )
 
-    result = NsgaWalkingResult(
+    result: NsgaWalkingResult | TopologyWalkingResult = NsgaWalkingResult(
         pareto_front=pareto,
         config=config,
     )
@@ -330,7 +335,9 @@ def save_result(result: NsgaWalkingResult, path: str | Path) -> None:
         json.dump(data, f, indent=2)
 
 
-def load_result(path: str | Path) -> NsgaWalkingResult:
+def load_result(
+    path: str | Path,
+) -> "NsgaWalkingResult | TopologyWalkingResult":
     """Load an NsgaWalkingResult from a JSON file.
 
     Parameters

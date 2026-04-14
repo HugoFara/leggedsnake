@@ -227,7 +227,10 @@ def to_urdf(
                 for i in range(1, len(incident_urdf_links)):
                     parent_link = incident_urdf_links[i - 1]
                     child_link = incident_urdf_links[i]
-                    pair_key = tuple(sorted((parent_link, child_link)))
+                    # sorted() over a 2-tuple yields a 2-element list;
+                    # assign both halves to keep the type ``tuple[str, str]``.
+                    a, b = sorted((parent_link, child_link))
+                    pair_key: tuple[str, str] = (a, b)
                     if pair_key in created_joint_pairs:
                         continue
                     created_joint_pairs.add(pair_key)
@@ -417,7 +420,7 @@ def _add_joint_element(
             limit_attrs["velocity"] = f"{velocity:.1f}"
         else:
             limit_attrs["velocity"] = "10.0"
-        ET.SubElement(joint, "limit", **limit_attrs)
+        ET.SubElement(joint, "limit", attrib=limit_attrs)
 
     if joint_type == "continuous" and (effort is not None or velocity is not None):
         limit_attrs = {}
@@ -426,6 +429,6 @@ def _add_joint_element(
         if velocity is not None:
             limit_attrs["velocity"] = f"{velocity:.1f}"
         if limit_attrs:
-            ET.SubElement(joint, "limit", **limit_attrs)
+            ET.SubElement(joint, "limit", attrib=limit_attrs)
 
     return joint

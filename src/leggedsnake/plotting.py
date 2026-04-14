@@ -28,13 +28,14 @@ Example::
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
 if TYPE_CHECKING:
     import matplotlib.figure
     from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
 
     from .gait_analysis import GaitAnalysisResult
     from .nsga_optimizer import NsgaWalkingResult
@@ -46,6 +47,18 @@ def _import_plt() -> Any:
     import matplotlib.pyplot as plt
 
     return plt
+
+
+def _as_figure(fig: Any) -> "Figure":
+    """Cast an ``Any`` (from the lazy plt handle) to ``Figure``.
+
+    All plotting helpers below follow the same pattern: ``plt.subplots``
+    returns ``Any`` through our lazy import, and every function returns
+    a ``Figure``. Routing every return through this helper keeps the
+    cast in one place and keeps mypy's ``no-any-return`` check active
+    everywhere else.
+    """
+    return cast("Figure", fig)
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +134,7 @@ def plot_pareto_front(
 
     ax.set_title("Pareto Front")
     fig.tight_layout()
-    return fig
+    return _as_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -157,7 +170,7 @@ def plot_gait_diagram(
                 transform=ax.transAxes)
         ax.set_title("Gait Timing Diagram")
         fig.tight_layout()
-        return fig
+        return _as_figure(fig)
 
     colors_stance = plt.cm.Set2(np.linspace(0, 1, max(len(foot_ids), 1)))
 
@@ -192,7 +205,7 @@ def plot_gait_diagram(
         loc="upper right",
     )
     fig.tight_layout()
-    return fig
+    return _as_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +242,7 @@ def plot_stability_timeseries(
                     transform=ax.transAxes)
         fig.suptitle("Stability Time Series")
         fig.tight_layout()
-        return fig
+        return _as_figure(fig)
 
     times = [s.time for s in series.snapshots]
 
@@ -269,7 +282,7 @@ def plot_stability_timeseries(
         ax.grid(True, alpha=0.3)
 
     fig.tight_layout()
-    return fig
+    return _as_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -301,7 +314,7 @@ def plot_com_trajectory(
         ax.text(0.5, 0.5, "No data", ha="center", va="center",
                 transform=ax.transAxes)
         fig.tight_layout()
-        return fig
+        return _as_figure(fig)
 
     com_xs = [s.com[0] for s in series.snapshots]
     com_ys = [s.com[1] for s in series.snapshots]
@@ -329,7 +342,7 @@ def plot_com_trajectory(
     ax.set_aspect("equal", adjustable="datalim")
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
-    return fig
+    return _as_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -365,7 +378,7 @@ def plot_foot_trajectories(
         ax.text(0.5, 0.5, "No foot trajectories", ha="center", va="center",
                 transform=ax.transAxes)
         fig.tight_layout()
-        return fig
+        return _as_figure(fig)
 
     cols = min(n_feet, 3)
     rows = (n_feet + cols - 1) // cols
@@ -396,7 +409,7 @@ def plot_foot_trajectories(
 
     fig.suptitle("Foot Trajectories")
     fig.tight_layout()
-    return fig
+    return _as_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -458,7 +471,7 @@ def plot_optimization_dashboard(
 
     fig.suptitle(f"Optimization Dashboard - Solution {solution_index}", fontsize=14)
     fig.tight_layout(rect=[0, 0, 1, 0.96])
-    return fig
+    return _as_figure(fig)
 
 
 # ---------------------------------------------------------------------------
