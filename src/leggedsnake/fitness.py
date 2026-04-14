@@ -252,17 +252,22 @@ class StrideFitness:
         )
 
         try:
-            from pylinkage import UnbuildableError
             loci = tuple(
                 tuple(i) for i in walker.step(
                     iterations=self.lap_points,
                     dt=self.lap_points / self.lap_points,
+                    skip_unbuildable=True,
                 )
             )
-        except (UnbuildableError, Exception):
+        except Exception:
             return FitnessResult(score=0.0, valid=False)
 
-        foot_locus = tuple(x[self.foot_index] for x in loci)
+        foot_locus = tuple(
+            x[self.foot_index] for x in loci
+            if x[self.foot_index][0] is not None
+        )
+        if not foot_locus:
+            return FitnessResult(score=0.0, valid=False)
         if not step_check(foot_locus, self.step_height, self.step_width):
             return FitnessResult(
                 score=0.0,

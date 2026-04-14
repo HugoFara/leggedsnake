@@ -140,8 +140,6 @@ def stride_length_objective(
     callable
         ``objective(linkage, dims, pos) -> float``
     """
-    from . import UnbuildableError
-
     def _objective(
         linkage: Any,
         dims: Sequence[float],
@@ -155,13 +153,19 @@ def stride_length_objective(
         try:
             loci = tuple(
                 tuple(i) for i in linkage.step(
-                    iterations=lap_points, dt=lap_points / lap_points
+                    iterations=lap_points,
+                    dt=lap_points / lap_points,
+                    skip_unbuildable=True,
                 )
             )
-        except UnbuildableError:
+        except Exception:
             return 0.0
 
-        foot_locus = tuple(x[foot_index] for x in loci)
+        foot_locus = tuple(
+            x[foot_index] for x in loci if x[foot_index][0] is not None
+        )
+        if not foot_locus:
+            return 0.0
         if not step_check(foot_locus, step_height, step_width):
             return 0.0
 

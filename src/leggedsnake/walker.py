@@ -176,6 +176,7 @@ class Walker:
         self,
         iterations: int | None = None,
         dt: float = 1.0,
+        skip_unbuildable: bool = False,
     ) -> Generator[tuple[tuple[float, float] | tuple[float | None, float | None], ...], None, None]:
         """Simulate one full rotation of the mechanism.
 
@@ -187,15 +188,35 @@ class Walker:
             Number of simulation steps. If None, uses one full rotation period.
         dt : float
             Time step multiplier.
+        skip_unbuildable : bool
+            If True, yield ``(None, None)`` tuples for iterations where the
+            mechanism cannot be assembled, instead of raising
+            ``UnbuildableError``. Drivers keep advancing so the trajectory
+            resumes on the buildable side of dead zones. Mirrors
+            ``pylinkage.linkage.Linkage.step``'s parameter of the same name.
 
         Yields
         ------
         tuple of (x, y) coordinate tuples
             Joint positions at each step.
         """
+        from pylinkage import UnbuildableError
+
         mechanism = self.to_mechanism()
         if iterations is None:
-            yield from mechanism.step(dt)
+            iterations = mechanism.get_rotation_period()
+
+        if skip_unbuildable:
+            none_positions = tuple(
+                (None, None) for _ in mechanism.joints
+            )
+            for _ in range(iterations):
+                try:
+                    mechanism._step_once(dt)
+                except UnbuildableError:
+                    yield none_positions
+                else:
+                    yield tuple(j.coord() for j in mechanism.joints)
         else:
             for _ in range(iterations):
                 mechanism._step_once(dt)

@@ -177,6 +177,12 @@ class TestWalkerStep(unittest.TestCase):
         positions = list(walker.step(iterations=n))
         self.assertEqual(len(positions), n)
 
+    def test_step_skip_unbuildable_accepts_kwarg(self):
+        """skip_unbuildable=True is accepted and returns the requested count."""
+        walker = _make_fourbar_walker()
+        positions = list(walker.step(iterations=8, skip_unbuildable=True))
+        self.assertEqual(len(positions), 8)
+
     def test_to_mechanism(self):
         """to_mechanism() returns a Mechanism object."""
         walker = _make_fourbar_walker()
