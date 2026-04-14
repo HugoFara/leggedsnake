@@ -390,13 +390,21 @@ def nsga_walking_optimization(
     ref_walker = walker_factory()
     init_pos = ref_walker.get_coords()
 
+    # Normalize to (n_solutions, n_objectives). pymoo may return 1-D for
+    # a single solution (shape becomes (n_obj,)) or for a single-objective
+    # multi-solution run (shape (n_sol,)). Reshape against the known
+    # objective count to disambiguate.
+    n_obj = len(objective_names)
+    F = np.asarray(res.F).reshape(-1, n_obj)
+    X = np.asarray(res.X).reshape(F.shape[0], -1)
+
     solutions: list[ParetoSolution] = []
-    for i in range(res.F.shape[0]):
+    for i in range(F.shape[0]):
         # Negate back: pymoo minimized negated scores
-        scores = tuple(-float(v) for v in res.F[i])
+        scores = tuple(-float(v) for v in F[i])
         solutions.append(ParetoSolution(
             scores=scores,
-            dimensions=res.X[i],
+            dimensions=X[i],
             init_positions=init_pos,
         ))
 

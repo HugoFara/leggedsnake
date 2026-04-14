@@ -633,9 +633,13 @@ def topology_walking_optimization(
 
     solutions: list[ParetoSolution] = []
     topo_info: dict[int, TopologySolutionInfo] = {}
-    # Ensure F is 2D (single-objective pymoo may return 1D)
-    F = np.atleast_2d(res.F)
-    X = np.atleast_2d(res.X)
+    # Normalize to (n_solutions, n_objectives). pymoo may return 1-D for
+    # a single solution (shape becomes (n_obj,)) or for a single-objective
+    # multi-solution run (shape (n_sol,)). Reshape against the known
+    # objective count to disambiguate.
+    n_obj = len(objective_names)
+    F = np.asarray(res.F).reshape(-1, n_obj)
+    X = np.asarray(res.X).reshape(F.shape[0], -1)
     for i in range(F.shape[0]):
         scores = tuple(-float(v) for v in F[i])
         topo_idx = int(round(X[i][0]))
