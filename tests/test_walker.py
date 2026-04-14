@@ -198,6 +198,56 @@ class TestWalkerStep(unittest.TestCase):
         self.assertIs(m1, m2)
 
 
+class TestWalkerMobility(unittest.TestCase):
+    """Test pylinkage 0.9 topology-analysis adoption (compute_dof)."""
+
+    def _make_real_fourbar(self) -> Walker:
+        """Build a canonical 4-bar (4 nodes, 4 edges: two ground pins + coupler)."""
+        hg = HypergraphLinkage(name="real_fourbar")
+        hg.add_node(Node("O1", role=NodeRole.GROUND))
+        hg.add_node(Node("O2", role=NodeRole.GROUND))
+        hg.add_node(Node("A", role=NodeRole.DRIVER))
+        hg.add_node(Node("B", role=NodeRole.DRIVEN))
+        hg.add_edge(Edge("crank", "O1", "A"))
+        hg.add_edge(Edge("coupler", "A", "B"))
+        hg.add_edge(Edge("rocker", "O2", "B"))
+        dims = Dimensions(
+            node_positions={"O1": (0, 0), "O2": (3, 0), "A": (1, 0), "B": (3, 2)},
+            driver_angles={"A": DriverAngle(angular_velocity=-tau / 12)},
+            edge_distances={"crank": 1.0, "coupler": 2.5, "rocker": 2.0},
+        )
+        return Walker(hg, dims, name="real_fourbar")
+
+    def test_real_fourbar_dof_is_one(self):
+        """A canonical 4-bar (4 nodes, 3 edges + ground) is 1-DOF."""
+        walker = self._make_real_fourbar()
+        self.assertEqual(walker.dof, 1)
+
+    def test_triangle_dof_is_three(self):
+        """A 3-node / 3-edge triangle is under-constrained (DOF=3).
+
+        Sanity-check against Grübler: 4 links − 2·3 joints = 9 − 6 = 3.
+        The triangle walker used elsewhere in the test suite is really a
+        crank-follower pair without a second ground pin.
+        """
+        walker = _make_fourbar_walker()  # misnomer: actually a triangle
+        self.assertEqual(walker.dof, 3)
+
+    def test_mobility_reports_links_and_joints(self):
+        """``mobility`` surfaces the full MobilityInfo."""
+        walker = self._make_real_fourbar()
+        info = walker.mobility
+        self.assertEqual(info.dof, 1)
+        self.assertEqual(info.num_full_joints, 4)
+        # ground + 3 driven edges = 4 links
+        self.assertEqual(info.num_links, 4)
+
+    def test_dof_is_integer(self):
+        """DOF is always an integer (Grübler returns an int)."""
+        walker = self._make_real_fourbar()
+        self.assertIsInstance(walker.dof, int)
+
+
 class TestWalkerFeet(unittest.TestCase):
     """Test get_feet() — terminal node identification."""
 

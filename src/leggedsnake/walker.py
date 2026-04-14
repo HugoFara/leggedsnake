@@ -188,6 +188,34 @@ class Walker:
         """Number of steps for one full rotation cycle."""
         return self.to_mechanism().get_rotation_period()
 
+    # --- Topological analysis (pylinkage 0.9 adoption) ---
+
+    @property
+    def dof(self) -> int:
+        """Mobility of the underlying hypergraph via Grübler's formula.
+
+        Returns 1 for a well-formed single-input walking mechanism,
+        0 for a rigid structure, negative for overconstrained, >1 for
+        under-constrained (needs more inputs).
+
+        Delegates to :func:`pylinkage.topology.compute_dof` on
+        ``self.topology``. Intended for fast pre-flight screening of
+        candidates during optimization — reject DOF != 1 without
+        paying the cost of building the mechanism and stepping it.
+        """
+        from pylinkage.topology import compute_dof
+        return compute_dof(self.topology)
+
+    @property
+    def mobility(self) -> Any:
+        """Full ``MobilityInfo`` (DOF, link count, joint counts).
+
+        See :attr:`dof` for the scalar-only variant. Delegates to
+        :func:`pylinkage.topology.compute_mobility`.
+        """
+        from pylinkage.topology import compute_mobility
+        return compute_mobility(self.topology)
+
     # --- Leg management ---
 
     def add_legs(self, number: int = 1) -> None:

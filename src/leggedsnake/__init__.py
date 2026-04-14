@@ -42,6 +42,7 @@ from pylinkage.hypergraph import (
     NodeRole,
 )
 from pylinkage.dimensions import Dimensions, DriverAngle
+from pylinkage.topology import MobilityInfo, compute_dof, compute_mobility
 
 from .dynamiclinkage import DynamicLinkage, convert_to_dynamic_linkage
 from .co_design import (
@@ -177,6 +178,10 @@ __all__ = [
     "NodeRole",
     "Dimensions",
     "DriverAngle",
+    # topology analysis (pylinkage 0.9)
+    "MobilityInfo",
+    "compute_dof",
+    "compute_mobility",
     # utility
     "step",
     "stride",
