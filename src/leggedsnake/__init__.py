@@ -78,7 +78,11 @@ from .stability import (
     compute_com,
     compute_tip_over_margin,
 )
-from .geneticoptimizer import GeneticOptimization, genetic_algorithm_optimization
+from .geneticoptimizer import (
+    GeneticOptimization,
+    agents_to_ensemble,
+    genetic_algorithm_optimization,
+)
 from .physicsengine import (
     DEFAULT_CONFIG,
     SLOPE_PROFILES,
@@ -213,6 +217,7 @@ __all__ = [
     "optimize_walking_mechanism",
     # geneticoptimizer
     "GeneticOptimization",
+    "agents_to_ensemble",
     "genetic_algorithm_optimization",
     # physicsengine
     "DEFAULT_CONFIG",

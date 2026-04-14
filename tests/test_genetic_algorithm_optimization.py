@@ -9,6 +9,7 @@ from math import tau
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 from pylinkage.optimization.collections import Agent
+from pylinkage.population import Ensemble, Member
 
 from leggedsnake.geneticoptimizer import genetic_algorithm_optimization
 from leggedsnake.walker import Walker
@@ -42,22 +43,22 @@ def _simple_minimizer(linkage, dims, pos):
 
 
 class TestGeneticAlgorithmOptimization(unittest.TestCase):
-    def test_returns_list_of_agents(self):
+    def test_returns_ensemble_of_members(self):
         walker = _make_walker()
         results = genetic_algorithm_optimization(
             _simple_evaluator, walker,
             center=[1.0, 2.0, 1.5],
             iters=3, max_pop=5, verbose=False,
         )
-        self.assertIsInstance(results, list)
-        self.assertGreater(len(results), 0)
-        for agent in results:
-            self.assertIsInstance(agent, Agent)
-            self.assertIsInstance(agent.score, float)
-            self.assertIsNotNone(agent.dimensions)
-            self.assertIsNotNone(agent.init_positions)
+        self.assertIsInstance(results, Ensemble)
+        self.assertGreater(results.n_members, 0)
+        for member in results:
+            self.assertIsInstance(member, Member)
+            self.assertIsInstance(member.score, float)
+            self.assertEqual(member.dimensions.shape, (3,))
+            self.assertEqual(member.initial_positions.shape, (3, 2))
 
-    def test_agent_indexing_backward_compat(self):
+    def test_agent_backward_compat_conversion(self):
         walker = _make_walker()
         results = genetic_algorithm_optimization(
             _simple_evaluator, walker,
@@ -65,9 +66,9 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
             iters=2, max_pop=5, verbose=False,
         )
         best = results[0]
-        self.assertEqual(best[0], best.score)
-        self.assertEqual(best[1], best.dimensions)
-        self.assertEqual(best[2], best.init_positions)
+        agent = best.to_agent()
+        self.assertIsInstance(agent, Agent)
+        self.assertEqual(agent.score, best.score)
 
     def test_maximization(self):
         walker = _make_walker()
@@ -98,7 +99,7 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
             center=center,
             iters=1, max_pop=3, verbose=False,
         )
-        self.assertEqual(len(results[0].dimensions), len(center))
+        self.assertEqual(results[0].dimensions.shape[0], len(center))
 
     def test_chainable_signature(self):
         sig = inspect.signature(genetic_algorithm_optimization)
@@ -115,9 +116,21 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
             center=[3.0, 3.0, 3.0],
             iters=3, max_pop=6, verbose=False,
         )
-        if len(results) > 1:
-            for i in range(len(results) - 1):
+        if results.n_members > 1:
+            for i in range(results.n_members - 1):
                 self.assertGreaterEqual(results[i].score, results[i + 1].score)
+
+    def test_top_and_rank(self):
+        """Ensemble exposes .top() and .rank() from pylinkage 0.9."""
+        walker = _make_walker()
+        results = genetic_algorithm_optimization(
+            _simple_evaluator, walker,
+            center=[3.0, 3.0, 3.0],
+            iters=3, max_pop=6, verbose=False,
+        )
+        top2 = results.top(2, key="score", ascending=False)
+        self.assertIsInstance(top2, Ensemble)
+        self.assertLessEqual(top2.n_members, 2)
 
 
 class TestGeneticOptimizationRunReturnsAgent(unittest.TestCase):

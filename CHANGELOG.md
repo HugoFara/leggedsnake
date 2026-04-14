@@ -215,6 +215,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (GROUND/DRIVER/DRIVEN) instead of ``isinstance`` checks on legacy
   joint classes.
 - ``GeneticOptimization.run()`` returns ``list[Agent]`` (was raw lists).
+- **Breaking**: ``genetic_algorithm_optimization()`` returns a pylinkage
+  ``Ensemble`` instead of ``list[Agent]``, matching the pylinkage 0.9
+  optimizer contract. Use ``ensemble[i].score`` / ``.dimensions`` /
+  ``.initial_positions`` (numpy array), or ``ensemble[i].to_agent()``
+  for the legacy tuple shape. ``ensemble.top()``, ``.rank()``,
+  ``.filter_by_score()`` are now available.
+- New helper ``agents_to_ensemble(agents, linkage)`` converts legacy
+  ``list[Agent]`` results (e.g. from ``GeneticOptimization.run()``) to
+  an ``Ensemble`` on demand.
 - All examples rewritten to use hypergraph construction pattern.
 - ``examples/`` is now in the main folder (was in ``docs/``).
 - Minimum Python version is now 3.10 (was 3.7).

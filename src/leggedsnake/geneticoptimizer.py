@@ -24,12 +24,53 @@ import numpy.random as nprand
 import tqdm
 
 from pylinkage.optimization.collections import Agent
+from pylinkage.population import Ensemble, Member
 
 # Type aliases for DNA structure
 # DNA format: [fitness_score, dimensions_list, coordinates_list]
 DNA: TypeAlias = list[Any]  # [float, list[float], list[tuple[float, float]]]
 Population: TypeAlias = list[DNA]
 FitnessFunc: TypeAlias = Callable[..., tuple[float, list[tuple[float, float]]]]
+
+
+def agents_to_ensemble(agents: Sequence[Agent], linkage: Any) -> Ensemble:
+    """Wrap a list of Agents in a pylinkage Ensemble.
+
+    Provides ``.rank()``, ``.top()``, ``.filter()``, ``.filter_by_score()``
+    and numpy-style indexing over optimization results. The template
+    linkage is only used for topology metadata; batch simulation via
+    ``Ensemble.simulate()`` is not supported for Walker-based mechanisms.
+
+    Parameters
+    ----------
+    agents : sequence of Agent
+        Optimization results (e.g. from ``genetic_algorithm_optimization``).
+    linkage : Walker, Mechanism, or Linkage
+        Template. A ``Walker`` is converted to its underlying Mechanism.
+
+    Returns
+    -------
+    Ensemble
+        One member per agent, with ``scores={"score": agent.score}``.
+    """
+    template = linkage.to_mechanism() if hasattr(linkage, "to_mechanism") else linkage
+
+    if not agents:
+        n_constraints = len(linkage.get_num_constraints()) if hasattr(linkage, "get_num_constraints") else 0
+        n_joints = len(template.joints) if hasattr(template, "joints") else 0
+        return Ensemble(
+            template,
+            np.zeros((0, n_constraints), dtype=np.float64),
+            np.zeros((0, n_joints, 2), dtype=np.float64),
+            {"score": np.zeros(0, dtype=np.float64)},
+        )
+
+    n_joints = len(agents[0].init_positions)
+    members = [Member.from_agent(a, n_joints) for a in agents]
+    dims = np.stack([m.dimensions for m in members])
+    positions = np.stack([m.initial_positions for m in members])
+    scores = {"score": np.array([a.score for a in agents], dtype=np.float64)}
+    return Ensemble(template, dims, positions, scores)
 
 
 def kwargs_switcher(arg_name: str, kwargs: dict[str, Any], default: Any = None) -> Any:
@@ -415,7 +456,7 @@ def genetic_algorithm_optimization(
     startnstop: str | bool = False,
     verbose: bool = True,
     **kwargs: Any,
-) -> list[Agent]:
+) -> Ensemble:
     """Genetic algorithm optimization with the standard pylinkage interface.
 
     This wrapper bridges leggedsnake's ``GeneticOptimization`` to pylinkage's
@@ -458,8 +499,14 @@ def genetic_algorithm_optimization(
 
     Returns
     -------
-    list[Agent]
-        Population sorted by score (best first), as ``Agent`` namedtuples.
+    Ensemble
+        Population wrapped in a pylinkage ``Ensemble`` (one member per
+        candidate, columnar scores). Ranking is already applied: the
+        member at index 0 is the best under ``order_relation``. Iterate,
+        slice, or call ``.top()`` / ``.rank()`` / ``.filter_by_score()``
+        to drill down. Use ``ensemble[i].score`` / ``.dimensions`` /
+        ``.initial_positions`` to access fields — or call
+        ``ensemble[i].to_agent()`` for the legacy tuple shape.
     """
     minimize = order_relation is min
     dims = list(center) if center is not None else linkage.get_num_constraints()
@@ -499,4 +546,4 @@ def genetic_algorithm_optimization(
             for a in results
         ]
         results.sort(key=lambda a: a.score)
-    return results
+    return agents_to_ensemble(results, linkage)
