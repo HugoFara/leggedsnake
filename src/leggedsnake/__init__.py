@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pylinkage import (
     UnbuildableError,
-    HypostaticError,
+    UnderconstrainedError,
     generate_bounds,
     kinematic_maximization,
     kinematic_minimization,
@@ -148,7 +148,7 @@ __all__ = [
     "kinematic_minimization",
     "kinematic_maximization",
     "UnbuildableError",
-    "HypostaticError",
+    "UnderconstrainedError",
     # pylinkage optimization (new)
     "Agent",
     "MutableAgent",

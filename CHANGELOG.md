@@ -219,7 +219,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ``examples/`` is now in the main folder (was in ``docs/``).
 - Minimum Python version is now 3.10 (was 3.7).
 - Support for Python 3.12, 3.13, and 3.14.
-- Requires ``pylinkage>=0.8.0``.
+- Requires ``pylinkage>=0.9.0``. The removed ``HypostaticError`` alias is
+  replaced by ``UnderconstrainedError`` in the package re-exports.
 - Requires ``pymoo>=0.6.1.6`` (for NSGA-II/III and topology co-optimization).
 - Requires ``scipy>=1.15.3``.
 - Version bumped to 0.5.0.
