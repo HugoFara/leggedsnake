@@ -5,7 +5,7 @@ Tests for the hypergraph-native Walker module.
 """
 
 import unittest
-from math import pi, tau
+from math import tau
 
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
