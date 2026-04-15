@@ -319,6 +319,142 @@ class Walker:
         return cls(hg, dims, name=name, motor_rates=motor_rates)
 
     @classmethod
+    def from_strider(
+        cls,
+        crank: float = 1.0,
+        triangle: float = 2.0,
+        femur: float = 1.8,
+        rocker_l: float = 2.6,
+        rocker_s: float = 1.4,
+        tibia: float = 2.5,
+        foot: float = 1.8,
+        angular_velocity: float = -tau / 10,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "strider",
+    ) -> Walker:
+        """Build a Walker for the Strider mechanism (Farajallah, leggedsnake).
+
+        The Strider is a symmetric 11-node mechanism producing two feet
+        per crank. Its kinematic chain: ground pair (``A``, ``Y``) →
+        rigidly attached frame points (``B``, ``B_p``) → knees
+        (``D``, ``E``) driven off crank ``C`` → ankles (``F``, ``G``)
+        rigid on the ``C-E`` / ``C-D`` rockers → feet (``H``, ``I``).
+
+        Parameters
+        ----------
+        crank, triangle, femur, rocker_l, rocker_s, tibia, foot : float
+            Link lengths. Defaults reproduce the canonical Strider used
+            throughout the ``leggedsnake`` optimisation examples.
+        angular_velocity : float
+            Kinematic crank step (rad per ``step()`` iteration). Default
+            traces 10 samples per revolution (matches the example).
+        motor_rates : float | dict[str, float]
+            Motor angular velocity (rad/s) for physics simulation.
+        name : str
+            Name for the linkage.
+        """
+        from ._classical import build_strider
+
+        hg, dims = build_strider(
+            crank=crank,
+            triangle=triangle,
+            femur=femur,
+            rocker_l=rocker_l,
+            rocker_s=rocker_s,
+            tibia=tibia,
+            foot=foot,
+            angular_velocity=angular_velocity,
+            name=name,
+        )
+        return cls(hg, dims, name=name, motor_rates=motor_rates)
+
+    @classmethod
+    def from_ghassaei(
+        cls,
+        scale: float = 1.0,
+        initial_crank_angle: float = 0.0,
+        angular_velocity: float = -tau / 48,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "ghassaei",
+    ) -> Walker:
+        """Build a Walker for Amanda Ghassaei's 2011 leg mechanism.
+
+        *Stub — not yet implemented.* Reference data is available:
+
+        - Canonical link lengths (Mathematica units, 25 units = 1 foot)
+          are exposed as :data:`leggedsnake._classical.GHASSAEI_DIMENSIONS`
+          (crank = 26, ground offset = 53, near-bar = 56, far-bar = 77,
+          per Figure 5.4.4 of Ghassaei's Pomona thesis).
+        - The published foot-locus is tabulated at
+          https://en.wikibooks.org/wiki/Comparison_of_crank_based_leg_mechanism/locus/Ghassaei
+          (normalised to stride = 1.0, step-height ~0.24).
+
+        The joint-edge topology has not yet been reconstructed; a simple
+        "1 crank + 3 RRR dyads" interpretation of the figure produced a
+        valid mechanism whose foot traces a ~round path rather than the
+        published flat walking locus.
+
+        Raises
+        ------
+        NotImplementedError
+            Until the authoritative topology is supplied.
+        """
+        from ._classical import build_ghassaei
+
+        hg, dims = build_ghassaei(
+            scale=scale,
+            initial_crank_angle=initial_crank_angle,
+            angular_velocity=angular_velocity,
+            name=name,
+        )
+        return cls(hg, dims, name=name, motor_rates=motor_rates)
+
+    @classmethod
+    def from_trotbot(
+        cls,
+        scale: float = 1.0,
+        initial_crank_angle: float = 0.0,
+        angular_velocity: float = -tau / 48,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "trotbot",
+    ) -> Walker:
+        """Build a Walker for the TrotBot mechanism (Vagle, DIYwalkers).
+
+        Uses the bar lengths from Wade & Ben Vagle's combined Python
+        simulator published at https://www.diywalkers.com, scaled by
+        ``scale``. The mechanism has 10 joints, 15 binary edges, and
+        three collinear rigid ternaries (``j3-j2-j4``, ``j5-j4-j6``,
+        ``j1-j2-j9``) modelled as hyperedges. The foot is ``j7``.
+
+        Parameters
+        ----------
+        scale : float
+            Multiplier applied to every link length and the frame offset.
+        initial_crank_angle : float
+            Starting crank angle (radians).
+        angular_velocity : float
+            Kinematic crank step (rad per ``step()`` iteration).
+        motor_rates : float | dict[str, float]
+            Motor angular velocity (rad/s) for physics simulation.
+        name : str
+            Name for the linkage.
+
+        Raises
+        ------
+        ValueError
+            If the mechanism cannot be assembled at the given crank angle.
+        """
+        from ._classical import build_trotbot
+
+        hg, dims = build_trotbot(
+            scale=scale,
+            initial_crank_angle=initial_crank_angle,
+            angular_velocity=angular_velocity,
+            name=name,
+        )
+        return cls(hg, dims, name=name, motor_rates=motor_rates)
+
+    @classmethod
     def from_chebyshev(
         cls,
         crank: float = 0.75,

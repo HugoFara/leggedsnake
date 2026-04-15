@@ -674,6 +674,90 @@ class TestWalkerClassicalFactories(unittest.TestCase):
         # Driver count should be 2 (original + opposite) * 3 phase copies = 6.
         self.assertEqual(len(walker.topology.driver_nodes()), 6)
 
+    def test_strider_topology(self):
+        walker = Walker.from_strider()
+        self.assertEqual(walker.name, "strider")
+        # 2 ground + 1 driver + 8 driven = 11 nodes, 17 edges, 4 rigid triangles.
+        self.assertEqual(len(walker.topology.nodes), 11)
+        self.assertEqual(len(walker.topology.edges), 17)
+        self.assertEqual(len(walker.topology.hyperedges), 4)
+        for he in ("triangle_B", "triangle_B_p", "triangle_F", "triangle_G"):
+            self.assertIn(he, walker.topology.hyperedges)
+
+    def test_strider_is_steppable(self):
+        walker = Walker.from_strider()
+        positions = list(walker.step(iterations=24, skip_unbuildable=True))
+        self.assertEqual(len(positions), 24)
+
+    def test_strider_feet_include_H_and_I(self):
+        walker = Walker.from_strider()
+        feet = walker.get_feet()
+        # The two true feet must be among the detected candidates.
+        self.assertIn("H", feet)
+        self.assertIn("I", feet)
+
+    def test_strider_param_overrides_propagate(self):
+        walker = Walker.from_strider(femur=3.0, tibia=4.0)
+        self.assertAlmostEqual(
+            walker.dimensions.edge_distances["B_p_D"], 3.0,
+        )
+        self.assertAlmostEqual(
+            walker.dimensions.edge_distances["B_E"], 3.0,
+        )
+        self.assertAlmostEqual(
+            walker.dimensions.edge_distances["D_H"], 4.0,
+        )
+        self.assertAlmostEqual(
+            walker.dimensions.edge_distances["E_I"], 4.0,
+        )
+
+    def test_trotbot_topology(self):
+        walker = Walker.from_trotbot()
+        self.assertEqual(walker.name, "trotbot")
+        # 2 ground + 1 driver + 7 driven = 10 nodes, 15 edges, 3 rigid ternaries.
+        self.assertEqual(len(walker.topology.nodes), 10)
+        self.assertEqual(len(walker.topology.edges), 15)
+        self.assertEqual(len(walker.topology.hyperedges), 3)
+
+    def test_trotbot_is_steppable(self):
+        walker = Walker.from_trotbot()
+        positions = list(walker.step(iterations=24, skip_unbuildable=True))
+        self.assertEqual(len(positions), 24)
+
+    def test_trotbot_foot_detected(self):
+        walker = Walker.from_trotbot()
+        # j7 is the true foot (circle intersection of j8 and j6).
+        self.assertIn("j7", walker.get_feet())
+
+    def test_trotbot_scale_multiplies_lengths(self):
+        w1 = Walker.from_trotbot(scale=1.0)
+        w2 = Walker.from_trotbot(scale=2.0)
+        for eid, d1 in w1.dimensions.edge_distances.items():
+            self.assertAlmostEqual(w2.dimensions.edge_distances[eid], 2.0 * d1)
+
+    def test_ghassaei_is_stub(self):
+        # Ghassaei's topology has not yet been reconstructed from the
+        # thesis figures; the factory exists as a stub.
+        with self.assertRaises(NotImplementedError):
+            Walker.from_ghassaei()
+
+    def test_ghassaei_dimensions_available(self):
+        from leggedsnake._classical import GHASSAEI_DIMENSIONS
+        self.assertEqual(GHASSAEI_DIMENSIONS["crank"], 26.0)
+        self.assertEqual(GHASSAEI_DIMENSIONS["ground"], 53.0)
+        self.assertEqual(GHASSAEI_DIMENSIONS["near_bar"], 56.0)
+        self.assertEqual(GHASSAEI_DIMENSIONS["far_bar"], 77.0)
+
+    def test_trotbot_collinear_ternaries_sum_correctly(self):
+        walker = Walker.from_trotbot()
+        d = walker.dimensions.edge_distances
+        # j3-j2-j4 collinear: d(j3,j4) == d(j3,j2) + d(j2,j4).
+        self.assertAlmostEqual(d["j3_j4"], d["j2_j3"] + d["j2_j4"])
+        # j5-j4-j6 collinear: d(j5,j6) == d(j4,j5) + d(j4,j6).
+        self.assertAlmostEqual(d["j5_j6"], d["j4_j5"] + d["j4_j6"])
+        # j1-j2-j9 collinear: d(j1,j9) == d(j1,j2) + d(j2,j9).
+        self.assertAlmostEqual(d["j1_j9"], d["j1_j2"] + d["j2_j9"])
+
 
 class TestWalkerFromSimLinkage(unittest.TestCase):
     """Test the temporary SimLinkage → Walker shim."""

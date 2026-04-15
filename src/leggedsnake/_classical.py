@@ -3,12 +3,12 @@
 """Canonical geometries for classical walking linkages.
 
 Internal module: shared geometry solvers and topology/dimension builders
-for Theo Jansen, Klann, and Chebyshev Lambda mechanisms. Exposed as
-class methods on :class:`leggedsnake.walker.Walker`.
+for Theo Jansen, Klann, Chebyshev Lambda, Strider, and TrotBot
+mechanisms. Exposed as class methods on :class:`leggedsnake.walker.Walker`.
 """
 from __future__ import annotations
 
-from math import cos, sin, sqrt
+from math import atan2, cos, sin, sqrt
 
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole
@@ -340,10 +340,329 @@ def build_chebyshev(
     return hg, dims
 
 
+# Ghassaei linkage dimensions from Figure 5.4.4 of Amanda Ghassaei's 2011
+# thesis "The Design and Optimization of a Crank-Based Leg Mechanism"
+# (Pomona College). Units are Mathematica-units (25 units = 1 foot).
+# NOTE: The precise joint-edge topology has not yet been reconstructed
+# from the thesis figures. ``build_ghassaei`` is a stub — see the note
+# on :meth:`leggedsnake.walker.Walker.from_ghassaei`.
+GHASSAEI_DIMENSIONS: dict[str, float] = {
+    "crank": 26.0,          # axle → crank endpoint
+    "ground": 53.0,         # axle → fixed hinge (x-offset)
+    "near_bar": 56.0,       # "56" links in Figure 5.4.4
+    "far_bar": 77.0,        # "77" links in Figure 5.4.4
+}
+
+
+def build_ghassaei(
+    scale: float,
+    initial_crank_angle: float,
+    angular_velocity: float,
+    name: str,
+) -> tuple[HypergraphLinkage, Dimensions]:
+    """Stub: the Ghassaei topology is not yet implemented.
+
+    Reference dimensions are available in :data:`GHASSAEI_DIMENSIONS`
+    (crank=26, ground=53, near_bar=56, far_bar=77). The target walking
+    foot locus is published at
+    https://en.wikibooks.org/wiki/Comparison_of_crank_based_leg_mechanism/locus/Ghassaei
+    (x range ~1.0, y range ~0.24 after normalisation).
+
+    Raises
+    ------
+    NotImplementedError
+        Always. To be replaced with the authoritative topology.
+    """
+    del scale, initial_crank_angle, angular_velocity, name
+    raise NotImplementedError(
+        "The Ghassaei linkage topology has not yet been reconstructed "
+        "from Ghassaei's 2011 thesis. See GHASSAEI_DIMENSIONS for the "
+        "published link lengths and the Wikibooks locus page for the "
+        "target foot path."
+    )
+
+
+# TrotBot bar lengths from DIY Walkers' combined Python simulator
+# (https://www.diywalkers.com/python-linkage-simulator.html, 2024 release).
+# Indices match the bar[0..17] naming in the upstream simulator so that
+# cross-referencing against the source code stays obvious.
+TROTBOT_BARS: dict[int, float] = {
+    0: 4.0,     # crank
+    1: 6.0,
+    2: 8.0,
+    3: 2.0,    # 3→2 extension
+    4: 6.0,
+    5: 2.0,    # 5→4 extension
+    6: 11.0,
+    7: 3.0,
+    8: 9.0,
+    9: 8.0,
+    10: 1.0,   # 1→2 extension
+    17: 7.55,
+}
+
+# TrotBot frame offset (crank-center at origin; fixed frame pivot at (-7, 6)).
+TROTBOT_FRAME_OFFSET: Point = (-7.0, 6.0)
+
+
+def build_strider(
+    crank: float,
+    triangle: float,
+    femur: float,
+    rocker_l: float,
+    rocker_s: float,
+    tibia: float,
+    foot: float,
+    angular_velocity: float,
+    name: str,
+) -> tuple[HypergraphLinkage, Dimensions]:
+    """Build the (topology, dimensions) of one pair of Strider legs.
+
+    The Strider is a symmetric 11-node walker with four rigid triangles:
+    two attach the frame points ``B`` and ``B_p`` to the ground pair
+    (``A``, ``Y``); two attach the ankles ``F`` and ``G`` rigidly to the
+    ``C-E`` and ``C-D`` rocker links. Feet ``H`` and ``I`` hang off the
+    knee-ankle pairs. Symmetry halves the parameter count: only 6
+    lengths (plus the crank) describe both legs.
+
+    Parameters
+    ----------
+    crank : float
+        ``A-C`` length (crank arm).
+    triangle : float
+        Distance from ground pair to frame points (``A-B`` = ``Y-B``
+        and mirror).
+    femur : float
+        ``B_p-D`` / ``B-E`` length.
+    rocker_l : float
+        ``C-D`` / ``C-E`` length.
+    rocker_s : float
+        Rocker-to-ankle length (``C-F``, ``E-F``, ``C-G``, ``D-G``).
+    tibia : float
+        ``D-H`` / ``E-I`` length.
+    foot : float
+        ``F-H`` / ``G-I`` length.
+    angular_velocity, name
+        Standard factory kwargs.
+    """
+    # Canonical initial positions from examples/strider.py INIT_COORD.
+    # These coordinates match the default (triangle=2, femur=1.8, ...)
+    # and let the mechanism solve at t=0.
+    positions: dict[str, Point] = {
+        "A": (0.0, 0.0),
+        "Y": (0.0, 1.0),
+        "B": (1.41, 1.41),
+        "B_p": (-1.41, 1.41),
+        "C": (0.0, -1.0),
+        "D": (-2.25, 0.0),
+        "E": (2.25, 0.0),
+        "F": (-1.4, -1.2),
+        "G": (1.4, -1.2),
+        "H": (-2.7, -2.7),
+        "I": (2.7, -2.7),
+    }
+
+    hg = HypergraphLinkage(name=name)
+    hg.add_node(Node("A", role=NodeRole.GROUND, name="A"))
+    hg.add_node(Node("Y", role=NodeRole.GROUND, name="Y"))
+    hg.add_node(Node("B", role=NodeRole.DRIVEN, name="frame right"))
+    hg.add_node(Node("B_p", role=NodeRole.DRIVEN, name="frame left"))
+    hg.add_node(Node("C", role=NodeRole.DRIVER, name="crank"))
+    hg.add_node(Node("D", role=NodeRole.DRIVEN, name="left knee"))
+    hg.add_node(Node("E", role=NodeRole.DRIVEN, name="right knee"))
+    hg.add_node(Node("F", role=NodeRole.DRIVEN, name="left ankle"))
+    hg.add_node(Node("G", role=NodeRole.DRIVEN, name="right ankle"))
+    hg.add_node(Node("H", role=NodeRole.DRIVEN, name="left foot"))
+    hg.add_node(Node("I", role=NodeRole.DRIVEN, name="right foot"))
+
+    edges: list[tuple[str, str, str, float]] = [
+        ("A_B", "A", "B", triangle),
+        ("Y_B", "Y", "B", triangle),
+        ("A_B_p", "A", "B_p", triangle),
+        ("Y_B_p", "Y", "B_p", triangle),
+        ("A_C", "A", "C", crank),
+        ("B_p_D", "B_p", "D", femur),
+        ("C_D", "C", "D", rocker_l),
+        ("B_E", "B", "E", femur),
+        ("C_E", "C", "E", rocker_l),
+        ("C_F", "C", "F", rocker_s),
+        ("E_F", "E", "F", rocker_s),
+        ("C_G", "C", "G", rocker_s),
+        ("D_G", "D", "G", rocker_s),
+        ("D_H", "D", "H", tibia),
+        ("F_H", "F", "H", foot),
+        ("E_I", "E", "I", tibia),
+        ("G_I", "G", "I", foot),
+    ]
+    edge_distances: dict[str, float] = {}
+    for eid, src, tgt, length in edges:
+        hg.add_edge(Edge(eid, src, tgt))
+        edge_distances[eid] = length
+
+    hg.add_hyperedge(Hyperedge("triangle_B", nodes=("A", "Y", "B")))
+    hg.add_hyperedge(Hyperedge("triangle_B_p", nodes=("A", "Y", "B_p")))
+    hg.add_hyperedge(Hyperedge("triangle_F", nodes=("C", "E", "F")))
+    hg.add_hyperedge(Hyperedge("triangle_G", nodes=("C", "D", "G")))
+
+    dims = Dimensions(
+        node_positions=positions,
+        driver_angles={"C": DriverAngle(angular_velocity=angular_velocity)},
+        edge_distances=edge_distances,
+    )
+    return hg, dims
+
+
+def _line_extend(p1: Point, p2: Point, length: float) -> Point:
+    """Point on the line through p1 and p2, extended by ``length`` past p1.
+
+    Matches DIY Walkers' ``lineextend(X1,Y1,X2,Y2,Length)``: returns the
+    point at distance ``length`` from ``p1`` along the direction opposite
+    to ``p2`` (i.e. past ``p1`` away from ``p2``).
+    """
+    slope = atan2(p2[1] - p1[1], p2[0] - p1[0])
+    return (
+        p1[0] - length * cos(slope),
+        p1[1] - length * sin(slope),
+    )
+
+
+def _pick_intersection(
+    sols: tuple[Point, Point] | tuple[None, None], branch: str,
+) -> Point:
+    """Pick one of the two circle intersections by DIY Walkers' branch rule."""
+    sol1, sol2 = sols
+    if sol1 is None or sol2 is None:
+        raise ValueError(f"TrotBot joint unsolvable (branch={branch!r})")
+    if branch == "high":
+        return sol1 if sol1[1] > sol2[1] else sol2
+    if branch == "low":
+        return sol1 if sol1[1] < sol2[1] else sol2
+    if branch == "left":
+        return sol1 if sol1[0] < sol2[0] else sol2
+    if branch == "right":
+        return sol1 if sol1[0] > sol2[0] else sol2
+    raise ValueError(f"Unknown branch {branch!r}")
+
+
+def _trotbot_positions(
+    bars: dict[int, float], angle: float, frame_offset: Point,
+) -> dict[str, Point]:
+    """Compute initial TrotBot joint positions for a given crank angle.
+
+    Replicates the joint-assembly order used in DIY Walkers' combined
+    Python simulator (``trotbot_strider_strandbeest_and_klann_ver_3.py``).
+    """
+    # Ground and driver.
+    j0: Point = (0.0, 0.0)
+    j3: Point = frame_offset
+    j1: Point = (bars[0] * cos(angle), bars[0] * sin(angle))
+    # j2: circle-circle of (j1, bar1) and (j3, bar2), high branch.
+    j2 = _pick_intersection(
+        _solve_intersection(j1, bars[1], j3, bars[2]), "high",
+    )
+    # j4: collinear extension of 3 → 2, past 2 by bar3.
+    j4 = _line_extend(j2, j3, bars[3])
+    # j5: circle-circle of (j4, bar4) and (j1, bar6), low branch.
+    j5 = _pick_intersection(
+        _solve_intersection(j4, bars[4], j1, bars[6]), "low",
+    )
+    # j6: collinear extension of 5 → 4, past 4 by bar5.
+    j6 = _line_extend(j4, j5, bars[5])
+    # j9: collinear extension of 1 → 2, past 2 by bar10.
+    j9 = _line_extend(j2, j1, bars[10])
+    # j8: circle-circle of (j1, bar7) and (j2, bar17), left branch.
+    j8 = _pick_intersection(
+        _solve_intersection(j1, bars[7], j2, bars[17]), "left",
+    )
+    # j7 (foot): circle-circle of (j8, bar8) and (j6, bar9), low branch.
+    j7 = _pick_intersection(
+        _solve_intersection(j8, bars[8], j6, bars[9]), "low",
+    )
+    return {
+        "j0": j0, "j1": j1, "j2": j2, "j3": j3, "j4": j4,
+        "j5": j5, "j6": j6, "j7": j7, "j8": j8, "j9": j9,
+    }
+
+
+def build_trotbot(
+    scale: float,
+    initial_crank_angle: float,
+    angular_velocity: float,
+    name: str,
+) -> tuple[HypergraphLinkage, Dimensions]:
+    """Build the (topology, dimensions) of one TrotBot leg.
+
+    Uses the bar lengths from Wade & Ben Vagle's combined Python
+    simulator at https://www.diywalkers.com (TrotBot ver 3, 2024). The
+    mechanism has two ground nodes (``j0`` crank-axle, ``j3`` frame),
+    one driver (``j1``), and seven driven joints; ``j7`` is the foot.
+
+    Three collinear rigid ternaries encode the "line-extension" joints
+    (``j4`` past ``j2``, ``j6`` past ``j4``, ``j9`` past ``j2``), each
+    modelled as a :class:`Hyperedge` with two binary edges.
+    """
+    bars = {i: v * scale for i, v in TROTBOT_BARS.items()}
+    frame = (TROTBOT_FRAME_OFFSET[0] * scale, TROTBOT_FRAME_OFFSET[1] * scale)
+    coords = _trotbot_positions(bars, initial_crank_angle, frame)
+
+    hg = HypergraphLinkage(name=name)
+    hg.add_node(Node("j0", role=NodeRole.GROUND, name="crank axle"))
+    hg.add_node(Node("j3", role=NodeRole.GROUND, name="frame"))
+    hg.add_node(Node("j1", role=NodeRole.DRIVER, name="crank end"))
+    for nid in ("j2", "j4", "j5", "j6", "j8", "j9"):
+        hg.add_node(Node(nid, role=NodeRole.DRIVEN, name=nid))
+    hg.add_node(Node("j7", role=NodeRole.DRIVEN, name="foot"))
+
+    # Distances between the collinear ternaries' outer endpoints.
+    d_3_4 = bars[2] + bars[3]   # 3-2-4 collinear
+    d_5_6 = bars[4] + bars[5]   # 5-4-6 collinear
+    d_1_9 = bars[1] + bars[10]  # 1-2-9 collinear
+
+    edges: list[tuple[str, str, str, float]] = [
+        ("j0_j1", "j0", "j1", bars[0]),
+        ("j1_j2", "j1", "j2", bars[1]),
+        ("j2_j3", "j2", "j3", bars[2]),
+        ("j2_j4", "j2", "j4", bars[3]),
+        ("j3_j4", "j3", "j4", d_3_4),
+        ("j1_j5", "j1", "j5", bars[6]),
+        ("j4_j5", "j4", "j5", bars[4]),
+        ("j4_j6", "j4", "j6", bars[5]),
+        ("j5_j6", "j5", "j6", d_5_6),
+        ("j2_j9", "j2", "j9", bars[10]),
+        ("j1_j9", "j1", "j9", d_1_9),
+        ("j1_j8", "j1", "j8", bars[7]),
+        ("j2_j8", "j2", "j8", bars[17]),
+        ("j6_j7", "j6", "j7", bars[9]),
+        ("j8_j7", "j8", "j7", bars[8]),
+    ]
+    edge_distances: dict[str, float] = {}
+    for eid, src, tgt, length in edges:
+        hg.add_edge(Edge(eid, src, tgt))
+        edge_distances[eid] = length
+
+    # Collinear triples expressed as rigid hyperedges.
+    hg.add_hyperedge(Hyperedge("ternary_3_2_4", nodes=("j3", "j2", "j4")))
+    hg.add_hyperedge(Hyperedge("ternary_5_4_6", nodes=("j5", "j4", "j6")))
+    hg.add_hyperedge(Hyperedge("ternary_1_2_9", nodes=("j1", "j2", "j9")))
+
+    dims = Dimensions(
+        node_positions=coords,
+        driver_angles={"j1": DriverAngle(angular_velocity=angular_velocity)},
+        edge_distances=edge_distances,
+    )
+    return hg, dims
+
+
 __all__ = [
+    "GHASSAEI_DIMENSIONS",
     "JANSEN_HOLY_NUMBERS",
     "KLANN_PATENT_DIMENSIONS",
+    "TROTBOT_BARS",
+    "TROTBOT_FRAME_OFFSET",
     "build_chebyshev",
+    "build_ghassaei",
     "build_jansen",
     "build_klann",
+    "build_strider",
+    "build_trotbot",
 ]
