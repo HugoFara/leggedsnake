@@ -568,6 +568,113 @@ class TestWalkerSixBarFactories(unittest.TestCase):
         self.assertEqual(len(positions), 8)
 
 
+class TestWalkerClassicalFactories(unittest.TestCase):
+    """Test Walker.from_jansen / from_klann / from_chebyshev factories."""
+
+    def test_jansen_topology(self):
+        walker = Walker.from_jansen(scale=0.04)
+        self.assertEqual(walker.name, "jansen")
+        # 2 ground + 1 driver + 5 driven = 8 nodes, 11 edges, no hyperedges.
+        self.assertEqual(len(walker.topology.nodes), 8)
+        self.assertEqual(len(walker.topology.edges), 11)
+        self.assertEqual(len(walker.topology.hyperedges), 0)
+        roles = {nid: n.role for nid, n in walker.topology.nodes.items()}
+        self.assertEqual(roles["O"], NodeRole.GROUND)
+        self.assertEqual(roles["B"], NodeRole.GROUND)
+        self.assertEqual(roles["A"], NodeRole.DRIVER)
+        self.assertEqual(roles["G"], NodeRole.DRIVEN)
+
+    def test_jansen_matches_holy_numbers(self):
+        from leggedsnake._classical import JANSEN_HOLY_NUMBERS
+        walker = Walker.from_jansen(scale=1.0)
+        # Crank radius = m, unscaled.
+        self.assertAlmostEqual(
+            walker.dimensions.edge_distances["O_A"],
+            JANSEN_HOLY_NUMBERS["m"],
+        )
+        self.assertAlmostEqual(
+            walker.dimensions.edge_distances["F_G"],
+            JANSEN_HOLY_NUMBERS["h"],
+        )
+
+    def test_jansen_is_steppable(self):
+        walker = Walker.from_jansen(scale=0.04)
+        positions = list(walker.step(iterations=24, skip_unbuildable=True))
+        self.assertEqual(len(positions), 24)
+
+    def test_jansen_scale_multiplies_lengths(self):
+        w1 = Walker.from_jansen(scale=1.0)
+        w2 = Walker.from_jansen(scale=2.0)
+        for eid, d1 in w1.dimensions.edge_distances.items():
+            self.assertAlmostEqual(w2.dimensions.edge_distances[eid], 2.0 * d1)
+
+    def test_klann_topology(self):
+        walker = Walker.from_klann()
+        self.assertEqual(walker.name, "klann")
+        # 3 ground + 1 driver + 4 driven = 8 nodes, 7 edges, 2 rigid triangles.
+        self.assertEqual(len(walker.topology.nodes), 8)
+        self.assertEqual(len(walker.topology.edges), 7)
+        self.assertEqual(len(walker.topology.hyperedges), 2)
+        self.assertIn("ternary_coupler", walker.topology.hyperedges)
+        self.assertIn("ternary_leg", walker.topology.hyperedges)
+
+    def test_klann_foot_detected(self):
+        walker = Walker.from_klann()
+        self.assertIn("foot", walker.get_feet())
+
+    def test_klann_is_steppable(self):
+        walker = Walker.from_klann()
+        positions = list(walker.step(iterations=24, skip_unbuildable=True))
+        self.assertEqual(len(positions), 24)
+
+    def test_chebyshev_topology(self):
+        walker = Walker.from_chebyshev()
+        self.assertEqual(walker.name, "chebyshev")
+        # 2 ground + 1 driver + 2 driven = 5 nodes, 4 edges, 1 triangle.
+        self.assertEqual(len(walker.topology.nodes), 5)
+        self.assertEqual(len(walker.topology.edges), 4)
+        self.assertEqual(len(walker.topology.hyperedges), 1)
+
+    def test_chebyshev_is_steppable(self):
+        walker = Walker.from_chebyshev()
+        positions = list(walker.step(iterations=24, skip_unbuildable=True))
+        self.assertEqual(len(positions), 24)
+
+    def test_chebyshev_foot_ratio_affects_p(self):
+        w_mid = Walker.from_chebyshev(foot_ratio=0.5)
+        w_end = Walker.from_chebyshev(foot_ratio=1.0)
+        self.assertAlmostEqual(
+            w_mid.dimensions.edge_distances["A_P"],
+            0.5 * w_mid.dimensions.edge_distances["A_B"],
+        )
+        self.assertAlmostEqual(
+            w_end.dimensions.edge_distances["A_P"],
+            w_end.dimensions.edge_distances["A_B"],
+        )
+
+    def test_chebyshev_raises_on_unreachable_geometry(self):
+        # Coupler + rocker smaller than the ground/crank separation → no solution.
+        with self.assertRaises(ValueError):
+            Walker.from_chebyshev(
+                crank=0.1, coupler=0.1, rocker=0.1, ground_length=10.0,
+            )
+
+    def test_factories_accept_custom_motor_rates(self):
+        w = Walker.from_jansen(motor_rates=-2.0)
+        self.assertEqual(w.motor_rates, -2.0)
+        w = Walker.from_klann(motor_rates=3.0)
+        self.assertEqual(w.motor_rates, 3.0)
+        w = Walker.from_chebyshev(motor_rates={"A": -1.5})
+        self.assertEqual(w.motor_rates, {"A": -1.5})
+
+    def test_factories_pair_with_add_legs(self):
+        walker = Walker.from_jansen(scale=0.04)
+        walker.add_opposite_leg()
+        walker.add_legs(2)
+        # Driver count should be 2 (original + opposite) * 3 phase copies = 6.
+        self.assertEqual(len(walker.topology.driver_nodes()), 6)
+
+
 class TestWalkerFromSimLinkage(unittest.TestCase):
     """Test the temporary SimLinkage → Walker shim."""
 

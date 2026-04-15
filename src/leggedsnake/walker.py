@@ -234,6 +234,149 @@ class Walker:
         )
         return _walker_from_sim_linkage(sim, motor_rates=motor_rates)
 
+    @classmethod
+    def from_jansen(
+        cls,
+        scale: float = 1.0,
+        initial_crank_angle: float = 0.0,
+        angular_velocity: float = -tau / 48,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "jansen",
+    ) -> Walker:
+        """Build a Walker for Theo Jansen's 8-bar "Strandbeest" leg.
+
+        Uses Jansen's canonical "Holy Numbers" (link lengths he discovered
+        through decades of optimization), scaled by ``scale``. The single
+        foot ``G`` traces a stable walking locus for a full crank rotation.
+
+        Parameters
+        ----------
+        scale : float
+            Multiplier applied to every link length. Default 1.0 yields
+            the raw Holy Numbers (~65 length units at widest); drop to
+            ~0.04 for physics-friendly metric dimensions.
+        initial_crank_angle : float
+            Starting crank angle (radians).
+        angular_velocity : float
+            Kinematic crank step (rad per ``step()`` iteration). Default
+            traces 48 samples per revolution.
+        motor_rates : float | dict[str, float]
+            Motor angular velocity (rad/s) for physics simulation.
+        name : str
+            Name for the linkage.
+        """
+        from ._classical import build_jansen
+
+        hg, dims = build_jansen(
+            scale=scale,
+            initial_crank_angle=initial_crank_angle,
+            angular_velocity=angular_velocity,
+            name=name,
+        )
+        return cls(hg, dims, name=name, motor_rates=motor_rates)
+
+    @classmethod
+    def from_klann(
+        cls,
+        scale: float = 3.0,
+        initial_crank_angle: float = 0.0,
+        angular_velocity: float = tau / 48,
+        motor_rates: float | dict[str, float] = 4.0,
+        name: str = "klann",
+    ) -> Walker:
+        """Build a Walker for Joe Klann's 6-bar walking linkage.
+
+        Uses the dimensions of US Patent 6,260,862, scaled by ``scale``.
+        The mechanism is a Stephenson-III topology with two rigid
+        triangles: the ternary coupler (A-elbow-knee) rotates with the
+        crank, while the ternary leg (hip-knee-foot) carries the foot.
+
+        Parameters
+        ----------
+        scale : float
+            Multiplier applied to every length and offset. Default 3.0
+            matches the canonical example visualization; patent values
+            themselves are dimensionless ratios around 1.0.
+        initial_crank_angle : float
+            Starting crank angle (radians).
+        angular_velocity : float
+            Kinematic crank step (rad per ``step()`` iteration). Positive
+            by default since the Klann mechanism walks forward under
+            counter-clockwise rotation.
+        motor_rates : float | dict[str, float]
+            Motor angular velocity (rad/s) for physics simulation.
+        name : str
+            Name for the linkage.
+        """
+        from ._classical import build_klann
+
+        hg, dims = build_klann(
+            scale=scale,
+            initial_crank_angle=initial_crank_angle,
+            angular_velocity=angular_velocity,
+            name=name,
+        )
+        return cls(hg, dims, name=name, motor_rates=motor_rates)
+
+    @classmethod
+    def from_chebyshev(
+        cls,
+        crank: float = 0.75,
+        coupler: float = 3.75,
+        rocker: float = 3.75,
+        ground_length: float = 3.0,
+        foot_ratio: float = 1.0,
+        initial_crank_angle: float = 0.0,
+        angular_velocity: float = -tau / 48,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "chebyshev",
+    ) -> Walker:
+        """Build a Walker for Chebyshev's Lambda linkage (1878).
+
+        A 4-bar crank-rocker whose coupler point traces an approximate
+        straight line — the basis of Chebyshev's "plantigrade machine".
+        The foot ``P`` rides rigidly on the coupler at distance
+        ``foot_ratio * coupler`` from A (``foot_ratio=1.0`` puts P at B).
+
+        Parameters
+        ----------
+        crank, coupler, rocker : float
+            Link lengths. Defaults reproduce the working ratio used in
+            the Chebyshev example.
+        ground_length : float
+            Distance between ground pivots O1 and O2 (both on y=0).
+        foot_ratio : float
+            Position of the foot along the A→B coupler, as a fraction
+            of ``coupler`` (0.5 is the midpoint straight-line tracing
+            point, 1.0 extends it to B).
+        initial_crank_angle : float
+            Starting crank angle (radians).
+        angular_velocity : float
+            Kinematic crank step (rad per ``step()`` iteration).
+        motor_rates : float | dict[str, float]
+            Motor angular velocity (rad/s) for physics simulation.
+        name : str
+            Name for the linkage.
+
+        Raises
+        ------
+        ValueError
+            If the coupler and rocker cannot meet at the chosen angle.
+        """
+        from ._classical import build_chebyshev
+
+        hg, dims = build_chebyshev(
+            crank=crank,
+            coupler=coupler,
+            rocker=rocker,
+            ground_length=ground_length,
+            foot_ratio=foot_ratio,
+            initial_crank_angle=initial_crank_angle,
+            angular_velocity=angular_velocity,
+            name=name,
+        )
+        return cls(hg, dims, name=name, motor_rates=motor_rates)
+
     def _invalidate_cache(self) -> None:
         """Invalidate cached Mechanism after topology/dimension changes."""
         self._mechanism = None
