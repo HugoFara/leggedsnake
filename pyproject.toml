@@ -74,8 +74,8 @@ python_files = ["test_*.py"]
 [tool.uv.sources]
 pylinkage = { path = "../pylinkage", editable = true }
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "sphinx>=6.2.1",
     "sphinx-rtd-theme>=1.2.0",
     "m2r2>=0.3.0",
