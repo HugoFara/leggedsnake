@@ -115,7 +115,6 @@ class TestNodeProxy(unittest.TestCase):
         dl = DynamicLinkage(topology=hg, dimensions=dims, space=space)
 
         crank_proxy = next(j for j in dl.joints if j.name == "crank")
-        old_x, old_y = crank_proxy.x, crank_proxy.y
 
         # Step the physics forward to cause movement
         for _ in range(50):

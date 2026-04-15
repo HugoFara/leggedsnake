@@ -14,7 +14,6 @@ from pylinkage.hypergraph import (
     HypergraphLinkage,
     Node,
     Edge,
-    Hyperedge,
     NodeRole,
     HierarchicalLinkage,
     ComponentInstance,
@@ -24,19 +23,14 @@ from pylinkage.topology import load_catalog
 
 import leggedsnake as ls
 from leggedsnake.fitness import (
-    DynamicFitness,
     DistanceFitness,
-    EfficiencyFitness,
     FitnessResult,
-    StrideFitness,
     co_optimize_objective,
 )
 from leggedsnake.co_design import (
     WalkingDesignSpec,
-    WalkingDesignResult,
     optimize_walking_mechanism,
 )
-from leggedsnake.physicsengine import WorldConfig
 from leggedsnake.walker import Walker
 
 

@@ -3,7 +3,7 @@
 """Tests for the hypergraph_physics module."""
 
 import unittest
-from math import pi, tau
+from math import tau
 
 import pymunk as pm
 from pylinkage.dimensions import Dimensions, DriverAngle

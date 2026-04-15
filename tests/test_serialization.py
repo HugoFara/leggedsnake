@@ -25,7 +25,6 @@ from leggedsnake.serialization import (
     walker_to_dict,
 )
 from leggedsnake.topology_optimization import (
-    TopologyCoOptConfig,
     TopologySolutionInfo,
     TopologyWalkingResult,
 )

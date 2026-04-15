@@ -3,7 +3,6 @@
 
 import unittest
 
-import numpy as np
 
 from leggedsnake.physicsengine import (
     SLOPE_PROFILES,

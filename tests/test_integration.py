@@ -10,7 +10,7 @@ import unittest
 from math import tau, pi
 
 from pylinkage.dimensions import Dimensions, DriverAngle
-from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, Hyperedge, NodeRole
+from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
 import leggedsnake as ls
 from leggedsnake.walker import Walker

@@ -8,14 +8,12 @@ import unittest
 from math import tau
 from unittest.mock import MagicMock
 
-import pymunk as pm
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
 from leggedsnake.worldvisualizer import (
     smooth_transition, VisualWorld, CAMERA
 )
-from leggedsnake.dynamiclinkage import DynamicLinkage
 from leggedsnake.walker import Walker
 
 
