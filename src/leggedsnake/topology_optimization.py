@@ -72,12 +72,18 @@ class TopologySolutionInfo:
         Index in the catalog used during optimization.
     num_links : int
         Number of links in the topology.
+    n_legs : int
+        Number of legs in the evaluated walker. Equal to
+        ``config.n_legs`` when the leg-count range is fixed, or the
+        value chosen by the evolutionary search when
+        ``n_legs_min != n_legs_max``.
     """
 
     topology_name: str
     topology_id: str
     topology_idx: int
     num_links: int
+    n_legs: int = 1
 
 
 @dataclass
@@ -149,7 +155,12 @@ class TopologyCoOptConfig:
     verbose : bool
         Print progress.
     n_legs : int
-        Number of legs per walker candidate.
+        Fixed number of legs per walker candidate. Applied when
+        ``n_legs_min`` and ``n_legs_max`` are both unset (the default).
+    n_legs_min, n_legs_max : int | None
+        If both are set and differ, leg count joins the chromosome as
+        an integer gene sampled from ``[n_legs_min, n_legs_max]``.
+        When equal (or either is None), the fixed ``n_legs`` is used.
     motor_rates : float | dict[str, float]
         Motor angular velocities.
     dimension_lower : float
@@ -167,12 +178,31 @@ class TopologyCoOptConfig:
     seed: int | None = None
     verbose: bool = True
     n_legs: int = 2
+    n_legs_min: int | None = None
+    n_legs_max: int | None = None
     motor_rates: float | dict[str, float] = -4.0
     dimension_lower: float = 0.3
     dimension_upper: float = 5.0
     topology_mutation_rate: float = 0.1
     n_workers: int = 1
     """Number of parallel workers. 1 = sequential. >1 uses process pool."""
+
+    @property
+    def leg_gene_active(self) -> bool:
+        """True when leg count joins the chromosome as a variable gene."""
+        return (
+            self.n_legs_min is not None
+            and self.n_legs_max is not None
+            and self.n_legs_min < self.n_legs_max
+        )
+
+    @property
+    def leg_bounds(self) -> tuple[int, int]:
+        """Effective (low, high) leg-count bounds. Inclusive."""
+        if self.n_legs_min is not None and self.n_legs_max is not None:
+            return int(self.n_legs_min), int(self.n_legs_max)
+        fixed = int(self.n_legs)
+        return fixed, fixed
 
 
 # ---------------------------------------------------------------------------
@@ -360,9 +390,16 @@ class _TopologyContext:
 class _TopologyWalkingProblem:
     """Pymoo Problem for topology co-optimization.
 
-    Chromosome: ``[topology_index, dim_1, ..., dim_max_edges]``
-    where ``topology_index`` is rounded to the nearest integer.
-    Unused dimension genes (for simpler topologies) are ignored.
+    Chromosome layout:
+      * ``[topology_idx, dim_1, ..., dim_max]`` (default — length
+        ``1 + max_edges``)
+      * ``[topology_idx, n_legs, dim_1, ..., dim_max]`` when
+        :attr:`TopologyCoOptConfig.leg_gene_active` (length
+        ``2 + max_edges``)
+
+    Integer genes (topology index and, when present, leg count) are
+    rounded and clamped; dimension genes for topologies with fewer
+    than ``max_edges`` links are ignored.
     """
 
     def __init__(
@@ -381,13 +418,19 @@ class _TopologyWalkingProblem:
         self._config = config
         self._n_obj = len(objectives)
 
-        n_var = 1 + ctx.max_edges  # topology_idx + dimensions
+        leg_active = config.leg_gene_active
+        n_leg_genes = 1 if leg_active else 0
+        n_var = 1 + n_leg_genes + ctx.max_edges
         xl = np.zeros(n_var, dtype=float)
         xu = np.ones(n_var, dtype=float)
         xl[0] = 0.0
         xu[0] = float(ctx.n_topologies - 1)
-        xl[1:] = config.dimension_lower
-        xu[1:] = config.dimension_upper
+        if leg_active:
+            lo, hi = config.leg_bounds
+            xl[1] = float(lo)
+            xu[1] = float(hi)
+        xl[1 + n_leg_genes:] = config.dimension_lower
+        xu[1 + n_leg_genes:] = config.dimension_upper
 
         outer = self
 
@@ -453,8 +496,7 @@ class _TopologyWalkingProblem:
 
     def _evaluate_candidate(self, x: np.ndarray) -> list[float]:
         """Evaluate a single mixed chromosome."""
-        topo_idx = int(round(x[0]))
-        dims = x[1:].tolist()
+        topo_idx, n_legs, dims = _decode_chromosome(x, self._config)
 
         walker = self.ctx.build_walker(
             topo_idx, dims, self._config.motor_rates,
@@ -462,10 +504,9 @@ class _TopologyWalkingProblem:
         if walker is None:
             return [0.0] * self._n_obj
 
-        # Add legs
-        if self._config.n_legs > 1:
+        if n_legs > 1:
             try:
-                walker.add_legs(self._config.n_legs - 1)
+                walker.add_legs(n_legs - 1)
             except Exception:
                 return [0.0] * self._n_obj
 
@@ -489,6 +530,29 @@ class _TopologyWalkingProblem:
 # ---------------------------------------------------------------------------
 
 
+def _decode_chromosome(
+    x: np.ndarray, config: TopologyCoOptConfig,
+) -> tuple[int, int, list[float]]:
+    """Extract ``(topo_idx, n_legs, dimensions)`` from a chromosome.
+
+    Mirrors the bounds and layout set up in
+    :class:`_TopologyWalkingProblem`. Works for both the fixed-leg
+    default layout and the leg-gene layout.
+    """
+    topo_idx = int(round(float(x[0])))
+    if config.leg_gene_active:
+        lo, hi = config.leg_bounds
+        n_legs = max(lo, min(hi, int(round(float(x[1])))))
+        dims = x[2:].tolist()
+    else:
+        # Fixed leg count — prefer the collapsed range bounds when the
+        # user set them explicitly (handles n_legs_min==n_legs_max), else
+        # fall back to the scalar ``n_legs`` field.
+        n_legs = config.leg_bounds[0]
+        dims = x[1:].tolist()
+    return topo_idx, n_legs, dims
+
+
 def _topology_evaluate_worker(
     ctx: _TopologyContext,
     objectives: list[DynamicFitness],
@@ -497,16 +561,15 @@ def _topology_evaluate_worker(
     x: np.ndarray,
 ) -> list[float]:
     """Evaluate a single topology chromosome in a worker process."""
-    topo_idx = int(round(x[0]))
-    dims = x[1:].tolist()
+    topo_idx, n_legs, dims = _decode_chromosome(x, config)
 
     walker = ctx.build_walker(topo_idx, dims, config.motor_rates)
     if walker is None:
         return [0.0] * len(objectives)
 
-    if config.n_legs > 1:
+    if n_legs > 1:
         try:
-            walker.add_legs(config.n_legs - 1)
+            walker.add_legs(n_legs - 1)
         except Exception:
             return [0.0] * len(objectives)
 
@@ -657,7 +720,7 @@ def topology_walking_optimization(
     X = np.asarray(res.X).reshape(F.shape[0], -1)
     for i in range(F.shape[0]):
         scores = tuple(-float(v) for v in F[i])
-        topo_idx = int(round(X[i][0]))
+        topo_idx, n_legs, _ = _decode_chromosome(X[i], cfg)
         topo_idx = max(0, min(topo_idx, ctx.n_topologies - 1))
         entry = ctx.entries[topo_idx]
 
@@ -671,6 +734,7 @@ def topology_walking_optimization(
             topology_id=entry.id,
             topology_idx=topo_idx,
             num_links=entry.num_links,
+            n_legs=n_legs,
         )
 
     pareto = ParetoFront(solutions, tuple(objective_names))
@@ -684,15 +748,14 @@ def topology_walking_optimization(
         stability_map = {} if include_stability else None
 
         for idx, sol in enumerate(solutions):
-            topo_idx = int(round(sol.dimensions[0]))
-            dims = sol.dimensions[1:].tolist()
+            topo_idx, n_legs, dims = _decode_chromosome(sol.dimensions, cfg)
             walker = ctx.build_walker(topo_idx, dims, cfg.motor_rates)
             if walker is None:
                 continue
 
-            if cfg.n_legs > 1:
+            if n_legs > 1:
                 try:
-                    walker.add_legs(cfg.n_legs - 1)
+                    walker.add_legs(n_legs - 1)
                 except Exception:
                     continue
 

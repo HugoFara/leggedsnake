@@ -85,6 +85,7 @@ from .geneticoptimizer import (
     agents_to_ensemble,
     genetic_algorithm_optimization,
 )
+from .leg_count import sweep_leg_counts
 from .physicsengine import (
     DEFAULT_CONFIG,
     SLOPE_PROFILES,
@@ -227,6 +228,8 @@ __all__ = [
     "GeneticOptimization",
     "agents_to_ensemble",
     "genetic_algorithm_optimization",
+    # leg-count sweep
+    "sweep_leg_counts",
     # physicsengine
     "DEFAULT_CONFIG",
     "SLOPE_PROFILES",

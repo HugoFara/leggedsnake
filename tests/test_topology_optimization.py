@@ -4,7 +4,6 @@
 import unittest
 
 from pylinkage.optimization.collections import ParetoFront
-from pylinkage.topology.catalog import TopologyCatalog
 
 from leggedsnake.fitness import DistanceFitness
 from leggedsnake.topology_optimization import (
@@ -190,6 +189,79 @@ class TestTopologyCoOptConfig(unittest.TestCase):
         self.assertEqual(cfg.max_links, 6)
         self.assertEqual(cfg.n_legs, 4)
         self.assertEqual(cfg.seed, 123)
+
+    def test_leg_gene_inactive_by_default(self):
+        cfg = TopologyCoOptConfig()
+        self.assertFalse(cfg.leg_gene_active)
+        self.assertEqual(cfg.leg_bounds, (2, 2))
+
+    def test_leg_gene_active_when_range_differs(self):
+        cfg = TopologyCoOptConfig(n_legs_min=2, n_legs_max=6)
+        self.assertTrue(cfg.leg_gene_active)
+        self.assertEqual(cfg.leg_bounds, (2, 6))
+
+    def test_leg_gene_inactive_when_range_collapses(self):
+        # Equal bounds → fixed leg count, no gene.
+        cfg = TopologyCoOptConfig(n_legs_min=3, n_legs_max=3)
+        self.assertFalse(cfg.leg_gene_active)
+        self.assertEqual(cfg.leg_bounds, (3, 3))
+
+
+class TestLegGeneChromosome(unittest.TestCase):
+
+    def test_problem_has_no_leg_gene_by_default(self):
+        ctx = _TopologyContext(max_links=4)
+        cfg = TopologyCoOptConfig(n_legs=1)
+        problem = _TopologyWalkingProblem(
+            ctx=ctx,
+            objectives=[DistanceFitness(duration=1, n_legs=1)],
+            config=cfg,
+        )
+        self.assertEqual(problem.problem.n_var, 1 + ctx.max_edges)
+
+    def test_problem_adds_leg_gene_when_range_differs(self):
+        ctx = _TopologyContext(max_links=4)
+        cfg = TopologyCoOptConfig(n_legs_min=2, n_legs_max=6)
+        problem = _TopologyWalkingProblem(
+            ctx=ctx,
+            objectives=[DistanceFitness(duration=1, n_legs=1)],
+            config=cfg,
+        )
+        self.assertEqual(problem.problem.n_var, 2 + ctx.max_edges)
+        # Leg-gene bounds at index 1.
+        self.assertEqual(problem.problem.xl[1], 2.0)
+        self.assertEqual(problem.problem.xu[1], 6.0)
+
+    def test_decode_chromosome_fixed_legs(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        cfg = TopologyCoOptConfig(n_legs=4)
+        import numpy as np
+        x = np.array([2.0, 1.0, 2.0, 3.0])
+        topo, n_legs, dims = _decode_chromosome(x, cfg)
+        self.assertEqual(topo, 2)
+        self.assertEqual(n_legs, 4)
+        self.assertEqual(dims, [1.0, 2.0, 3.0])
+
+    def test_decode_chromosome_with_leg_gene(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        cfg = TopologyCoOptConfig(n_legs_min=2, n_legs_max=6)
+        import numpy as np
+        x = np.array([1.0, 4.7, 1.0, 2.0, 3.0])
+        topo, n_legs, dims = _decode_chromosome(x, cfg)
+        self.assertEqual(topo, 1)
+        self.assertEqual(n_legs, 5)  # rounded
+        self.assertEqual(dims, [1.0, 2.0, 3.0])
+
+    def test_decode_chromosome_clamps_leg_gene(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        cfg = TopologyCoOptConfig(n_legs_min=3, n_legs_max=5)
+        import numpy as np
+        x_high = np.array([0.0, 10.0, 1.0])
+        x_low = np.array([0.0, -5.0, 1.0])
+        _, high, _ = _decode_chromosome(x_high, cfg)
+        _, low, _ = _decode_chromosome(x_low, cfg)
+        self.assertEqual(high, 5)
+        self.assertEqual(low, 3)
 
 
 if __name__ == "__main__":
