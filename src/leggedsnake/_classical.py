@@ -340,18 +340,47 @@ def build_chebyshev(
     return hg, dims
 
 
-# Ghassaei linkage dimensions from Figure 5.4.4 of Amanda Ghassaei's 2011
-# thesis "The Design and Optimization of a Crank-Based Leg Mechanism"
-# (Pomona College). Units are Mathematica-units (25 units = 1 foot).
-# NOTE: The precise joint-edge topology has not yet been reconstructed
-# from the thesis figures. ``build_ghassaei`` is a stub — see the note
-# on :meth:`leggedsnake.walker.Walker.from_ghassaei`.
+# Reference dimensions from Figure 5.4.4 of Amanda Ghassaei's 2011 thesis
+# "The Design and Optimization of a Crank-Based Leg Mechanism" (Pomona
+# College). Units are Mathematica-units (25 units = 1 foot). Kept for
+# documentation — the builder below uses the sketched-by-hand layout
+# in :data:`GHASSAEI_POSITIONS`, which is a wider "1 crank + 5 RRR dyads"
+# variant, not the thesis's canonical 4-dyad design.
 GHASSAEI_DIMENSIONS: dict[str, float] = {
-    "crank": 26.0,          # axle → crank endpoint
-    "ground": 53.0,         # axle → fixed hinge (x-offset)
-    "near_bar": 56.0,       # "56" links in Figure 5.4.4
-    "far_bar": 77.0,        # "77" links in Figure 5.4.4
+    "crank": 26.0,
+    "ground": 53.0,
+    "near_bar": 56.0,
+    "far_bar": 77.0,
 }
+
+# Sketched Ghassaei topology (scaled to the thesis's 26-unit crank).
+# Grounds: T2 (crank axle) and T1 (frame hinge, at the same height as T2).
+# Crank: T2→T3. RRR dyads build the chain: J5 off (T3, T1), J4 off (T1, T3),
+# J6 off (T1, J4), J7 off (T1, J6), and the foot J8 off (J7, J5).
+GHASSAEI_POSITIONS: dict[str, Point] = {
+    "T2": (15.140, 9.973),     # ground (crank axle)
+    "T3": (41.140, 9.973),     # crank tip (driver)
+    "T1": (-3.670, 66.626),    # ground (frame hinge, above T2)
+    "J5": (-28.035, 1.307),
+    "J4": (68.997, 46.718),
+    "J6": (24.901, 140.519),
+    "J7": (-53.347, 114.477),
+    "J8": (-55.345, -63.221),  # foot
+}
+
+_GHASSAEI_EDGES: tuple[tuple[str, str, str], ...] = (
+    ("L2", "T2", "T3"),     # driver crank (26 units)
+    ("L3a", "T3", "J5"),    # J5 RRR dyad: anchors T3, T1
+    ("L3b", "T1", "J5"),
+    ("L5a", "T1", "J4"),    # J4 RRR dyad: anchors T1, T3
+    ("L5b", "T3", "J4"),
+    ("L6a", "T1", "J6"),    # J6 RRR dyad: anchors T1, J4
+    ("L6b", "J4", "J6"),
+    ("L7a", "T1", "J7"),    # J7 RRR dyad: anchors T1, J6
+    ("L7b", "J6", "J7"),
+    ("L8a", "J7", "J8"),    # J8 RRR dyad (foot): anchors J7, J5
+    ("L8b", "J5", "J8"),
+)
 
 
 def build_ghassaei(
@@ -360,26 +389,37 @@ def build_ghassaei(
     angular_velocity: float,
     name: str,
 ) -> tuple[HypergraphLinkage, Dimensions]:
-    """Stub: the Ghassaei topology is not yet implemented.
+    """Build the sketched Ghassaei-style leg (1 crank + 5 RRR dyads).
 
-    Reference dimensions are available in :data:`GHASSAEI_DIMENSIONS`
-    (crank=26, ground=53, near_bar=56, far_bar=77). The target walking
-    foot locus is published at
-    https://en.wikibooks.org/wiki/Comparison_of_crank_based_leg_mechanism/locus/Ghassaei
-    (x range ~1.0, y range ~0.24 after normalisation).
-
-    Raises
-    ------
-    NotImplementedError
-        Always. To be replaced with the authoritative topology.
+    Foot node is ``J8``. ``initial_crank_angle`` is unused: positions come
+    from the hand-sketched layout and the solver picks the crank angle at
+    simulation time.
     """
-    del scale, initial_crank_angle, angular_velocity, name
-    raise NotImplementedError(
-        "The Ghassaei linkage topology has not yet been reconstructed "
-        "from Ghassaei's 2011 thesis. See GHASSAEI_DIMENSIONS for the "
-        "published link lengths and the Wikibooks locus page for the "
-        "target foot path."
+    del initial_crank_angle
+    positions = {
+        nid: (x * scale, y * scale) for nid, (x, y) in GHASSAEI_POSITIONS.items()
+    }
+
+    hg = HypergraphLinkage(name=name)
+    hg.add_node(Node("T2", role=NodeRole.GROUND))
+    hg.add_node(Node("T1", role=NodeRole.GROUND))
+    hg.add_node(Node("T3", role=NodeRole.DRIVER))
+    for nid in ("J5", "J4", "J6", "J7", "J8"):
+        hg.add_node(Node(nid, role=NodeRole.DRIVEN))
+
+    edge_distances: dict[str, float] = {}
+    for eid, src, tgt in _GHASSAEI_EDGES:
+        hg.add_edge(Edge(eid, src, tgt))
+        px, py = positions[src]
+        qx, qy = positions[tgt]
+        edge_distances[eid] = sqrt((px - qx) ** 2 + (py - qy) ** 2)
+
+    dims = Dimensions(
+        node_positions=positions,
+        driver_angles={"T3": DriverAngle(angular_velocity=angular_velocity)},
+        edge_distances=edge_distances,
     )
+    return hg, dims
 
 
 # TrotBot bar lengths from DIY Walkers' combined Python simulator
@@ -655,6 +695,7 @@ def build_trotbot(
 
 __all__ = [
     "GHASSAEI_DIMENSIONS",
+    "GHASSAEI_POSITIONS",
     "JANSEN_HOLY_NUMBERS",
     "KLANN_PATENT_DIMENSIONS",
     "TROTBOT_BARS",

@@ -377,27 +377,18 @@ class Walker:
         motor_rates: float | dict[str, float] = -4.0,
         name: str = "ghassaei",
     ) -> Walker:
-        """Build a Walker for Amanda Ghassaei's 2011 leg mechanism.
+        """Build a sketched Ghassaei-style leg (1 crank + 5 RRR dyads).
 
-        *Stub — not yet implemented.* Reference data is available:
+        The topology comes from a hand-sketch in pylinkage-editor, not
+        from Ghassaei's 2011 thesis figure directly: T1 is ground, T2
+        the crank tip, T4/T5 first-layer RRR dyads on the crank, J6/J7
+        chained off T4 and T1, and J8 is the foot (chained off J7/T5).
 
-        - Canonical link lengths (Mathematica units, 25 units = 1 foot)
-          are exposed as :data:`leggedsnake._classical.GHASSAEI_DIMENSIONS`
-          (crank = 26, ground offset = 53, near-bar = 56, far-bar = 77,
-          per Figure 5.4.4 of Ghassaei's Pomona thesis).
-        - The published foot-locus is tabulated at
-          https://en.wikibooks.org/wiki/Comparison_of_crank_based_leg_mechanism/locus/Ghassaei
-          (normalised to stride = 1.0, step-height ~0.24).
-
-        The joint-edge topology has not yet been reconstructed; a simple
-        "1 crank + 3 RRR dyads" interpretation of the figure produced a
-        valid mechanism whose foot traces a ~round path rather than the
-        published flat walking locus.
-
-        Raises
-        ------
-        NotImplementedError
-            Until the authoritative topology is supplied.
+        Canonical thesis dimensions (crank = 26, ground = 53,
+        near-bar = 56, far-bar = 77) are exposed as
+        :data:`leggedsnake._classical.GHASSAEI_DIMENSIONS` for reference;
+        the sketched initial positions live in
+        :data:`leggedsnake._classical.GHASSAEI_POSITIONS`.
         """
         from ._classical import build_ghassaei
 
