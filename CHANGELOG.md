@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Leg count as a first-class design variable**:
+  - ``sweep_leg_counts(walker, objective, n_legs_range, ...)``: evaluate
+    a finished walker design across a range of leg counts and return an
+    ordered mapping of :class:`FitnessResult` per count, for post-hoc
+    "how many legs?" analysis.
+  - ``TopologyCoOptConfig.n_legs_min`` / ``n_legs_max``: when set and
+    different, leg count joins the NSGA chromosome as an integer gene
+    so it co-evolves with topology and dimensions. Chromosome grows
+    from ``[topology, dims…]`` to ``[topology, n_legs, dims…]``.
+  - ``TopologySolutionInfo.n_legs`` records the chosen leg count on
+    every Pareto solution for post-optimisation analysis.
 - **Selective foot–ground collision**: only edges touching foot nodes
   collide with the ground surface, preventing non-foot linkage parts
   (frame, crank, coupler) from scraping the road and distorting the gait.
