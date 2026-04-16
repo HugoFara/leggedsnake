@@ -120,12 +120,16 @@ class NsgaWalkingResult:
     def best_for_objective(self, objective_index: int) -> ParetoSolution:
         """Return the Pareto solution that is best for a single objective.
 
+        Walking fitnesses maximize (distance, efficiency, stability all
+        larger-is-better), and scores are stored un-negated after
+        ``_ensemble_to_pareto_front``, so ``max`` is correct here.
+
         Parameters
         ----------
         objective_index : int
             Index into the scores tuple (0-based).
         """
-        return min(
+        return max(
             self.pareto_front.solutions,
             key=lambda s: s.scores[objective_index],
         )

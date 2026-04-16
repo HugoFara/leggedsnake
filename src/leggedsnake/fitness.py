@@ -34,7 +34,7 @@ from typing import Any, Callable, Protocol, runtime_checkable
 from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph import HypergraphLinkage
 
-from .physicsengine import World, WorldConfig
+from .physicsengine import World, WorldConfig, linkage_bb
 from .stability import StabilityTimeSeries, compute_stability_snapshot
 from .utility import step as step_check, stride, Point
 
@@ -95,7 +95,14 @@ class DistanceFitness:
     duration : float
         Simulation duration in seconds.
     n_legs : int
-        Number of leg pairs (``add_legs(n_legs - 1)`` is called).
+        Total number of legs when ``mirror=False`` (one-sided stack).
+        Legs per side when ``mirror=True`` — total is ``2 * n_legs``.
+    mirror : bool
+        If True, call ``add_opposite_leg()`` before phase-offset copies,
+        producing a left/right-symmetric walker. The canonical Jansen
+        Strandbeest is ``n_legs=4, mirror=True`` (4 per side = 8 total).
+        Default False preserves the one-sided behavior that predates
+        this flag.
     motor_rates : float | dict[str, float]
         Motor angular velocity passed to Walker.
     record_loci : bool
@@ -108,11 +115,13 @@ class DistanceFitness:
         n_legs: int = 4,
         motor_rates: float | dict[str, float] = -4.0,
         record_loci: bool = False,
+        mirror: bool = False,
     ) -> None:
         self.duration = duration
         self.n_legs = n_legs
         self.motor_rates = motor_rates
         self.record_loci = record_loci
+        self.mirror = mirror
 
     def __call__(
         self,
@@ -126,6 +135,7 @@ class DistanceFitness:
             n_legs=self.n_legs,
             motor_rates=self.motor_rates,
             record_loci=self.record_loci,
+            mirror=self.mirror,
         )
         return FitnessResult(
             score=result.distance,
@@ -150,7 +160,10 @@ class EfficiencyFitness:
     duration : float
         Simulation duration in seconds.
     n_legs : int
-        Number of leg pairs.
+        Total legs (``mirror=False``) or legs per side (``mirror=True``).
+    mirror : bool
+        If True, build a symmetric walker via ``add_opposite_leg()``
+        before phase-offset copies. See :class:`DistanceFitness`.
     motor_rates : float | dict[str, float]
         Motor angular velocity passed to Walker.
     min_distance : float
@@ -166,12 +179,14 @@ class EfficiencyFitness:
         motor_rates: float | dict[str, float] = -4.0,
         min_distance: float = 5.0,
         record_loci: bool = False,
+        mirror: bool = False,
     ) -> None:
         self.duration = duration
         self.n_legs = n_legs
         self.motor_rates = motor_rates
         self.min_distance = min_distance
         self.record_loci = record_loci
+        self.mirror = mirror
 
     def __call__(
         self,
@@ -185,6 +200,7 @@ class EfficiencyFitness:
             n_legs=self.n_legs,
             motor_rates=self.motor_rates,
             record_loci=self.record_loci,
+            mirror=self.mirror,
         )
         if result.distance < self.min_distance or result.total_energy == 0:
             score = 0.0
@@ -315,12 +331,14 @@ class StabilityFitness:
         motor_rates: float | dict[str, float] = -4.0,
         min_distance: float = 2.0,
         record_loci: bool = False,
+        mirror: bool = False,
     ) -> None:
         self.duration = duration
         self.n_legs = n_legs
         self.motor_rates = motor_rates
         self.min_distance = min_distance
         self.record_loci = record_loci
+        self.mirror = mirror
 
     def __call__(
         self,
@@ -335,6 +353,7 @@ class StabilityFitness:
             motor_rates=self.motor_rates,
             record_loci=self.record_loci,
             record_stability=True,
+            mirror=self.mirror,
         )
         if not result.valid or result.distance < self.min_distance:
             return FitnessResult(score=0.0, valid=result.valid, loci=result.loci)
@@ -382,11 +401,13 @@ class CompositeFitness:
         n_legs: int = 4,
         motor_rates: float | dict[str, float] = -4.0,
         objectives: Sequence[str] = ("distance", "efficiency", "stability"),
+        mirror: bool = False,
     ) -> None:
         self.duration = duration
         self.n_legs = n_legs
         self.motor_rates = motor_rates
         self.objectives = tuple(objectives)
+        self.mirror = mirror
 
     def __call__(
         self,
@@ -402,6 +423,7 @@ class CompositeFitness:
             motor_rates=self.motor_rates,
             record_loci=True,
             record_stability=needs_stability,
+            mirror=self.mirror,
         )
         if not result.valid:
             return FitnessResult(score=0.0, valid=False, loci=result.loci)
@@ -718,6 +740,7 @@ def _run_simulation(
     motor_rates: float | dict[str, float],
     record_loci: bool,
     record_stability: bool = False,
+    mirror: bool = False,
 ) -> _SimulationResult:
     """Build a Walker, run physics, and collect results.
 
@@ -725,6 +748,9 @@ def _run_simulation(
     ----------
     record_stability : bool
         If True, collect ``StabilitySnapshot`` at each physics step.
+    mirror : bool
+        If True, mirror the leg across the chassis via
+        ``add_opposite_leg()`` before phase-offset copies.
     """
     from .walker import Walker
 
@@ -742,12 +768,21 @@ def _run_simulation(
 
     foot_ids = walker.get_feet()
 
-    # Add legs
+    # Add legs. With mirror=True, ``n_legs`` counts legs per side; the
+    # ``add_opposite_leg()`` call doubles the total. Without mirroring,
+    # ``n_legs`` is the total leg count (all on one side of the chassis).
+    if mirror:
+        walker.add_opposite_leg()
     if n_legs > 1:
         walker.add_legs(n_legs - 1)
+    if mirror or n_legs > 1:
         foot_ids = walker.get_feet()
 
-    world = World(config=config)
+    # Place the road just beneath the walker's feet so it starts resting on
+    # the ground instead of intersecting or free-falling onto it — matches
+    # worldvisualizer and the nb02 ``simulate`` helper.
+    road_y = linkage_bb(walker)[0] - 1
+    world = World(config=config, road_y=road_y)
     world.add_linkage(walker)
 
     dt = world.config.physics_period
