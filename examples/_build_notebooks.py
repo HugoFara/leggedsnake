@@ -222,91 +222,66 @@ show_walker(ghassaei, "Ghassaei (thesis / Boim Walkin8r) — 5-dyad",
 """
 
 NB01_WATT_MD = """
-## 7. Watt I — a six-bar walker from the literature
+## 7. Watt I — six-bar walker (full rotation, flat stance)
 
-The two six-bar families (Watt and Stephenson) open richer foot-path
-geometries than a pure four-bar: classical synthesis uses them for
-coupler-curve targets a 4-bar cannot reach.
+Watt and Stephenson six-bars (the only two 1-DOF six-link topologies,
+per Grübler) open richer foot-path geometries than a pure four-bar:
+classical synthesis uses them for coupler-curve targets a 4-bar
+cannot reach.
 
-The dimensions below come from Mehdigholi's Watt-6-bar walking
-mechanism (also featured in
-[kenaycock/Six-Bar-Walking-Mechanism](https://github.com/kenaycock/Six-Bar-Walking-Mechanism)).
-They produce a non-Grashof four-bar A-B-C-D (the crank cannot rotate
-full 360°), so we pass ``skip_unbuildable=True`` and visualize only
-the buildable stroke — in a real walker two cranks would drive the
-mechanism through the dead zone.
+For a practical walker we want two things from the foot trajectory:
+1. **Full crank rotation** — the driving four-bar A-B-C-D must be
+   Grashof crank-rocker, i.e., crank is the shortest link and
+   `crank + ground ≤ coupler1 + rocker1`.
+2. **A near-horizontal stretch of F's locus** — the *stance* phase
+   where the foot glides along the ground.
+
+The dimensions below satisfy both (found by sampling the parameter
+space and scoring candidates on horizontal span over low y-variance
+windows). The flat top of F's curve is the stance stroke.
 """
 
 NB01_WATT = """
-from math import pi
-
 watt = ls.Walker.from_watt(
-    crank=1.0,
-    coupler1=4.6875,   # R3
-    rocker1=2.3125,    # R4
-    link4=4.6875,      # R6 (parallel leg link)
-    link5=3.8125,      # R5 (top connector)
-    rocker2=2.3125,    # R3'
-    ground_length=1.875,  # R1
-    initial_crank_angle=pi,
+    crank=0.86,
+    coupler1=2.48,
+    rocker1=4.24,
+    link4=1.58,
+    link5=2.42,
+    rocker2=4.59,
+    ground_length=3.58,
 )
-show_walker(watt, "Watt I — Mehdigholi walking dimensions",
-            figsize=(8, 7), skip_unbuildable=True, foot_labels={'F'})
+show_walker(watt, "Watt I — full rotation, flat stance stroke",
+            figsize=(9, 7), foot_labels={'F'})
 """
 
 NB01_STEPHENSON_MD = """
-## 8. Stephenson I — synthesized from rigid-body poses
+## 8. Stephenson I — full rotation, separated ternary links
 
 Where Watt's two rigid triangles are adjacent (joined at B), a
 Stephenson has them **separated** — the second loop branches from
-coupler joint C rather than crank-tip B.
+coupler joint C and ground D rather than from crank-tip B. Same
+number of links, different graph, different coupler-curve family.
 
-Rather than handing it fixed dimensions, we run
-`pylinkage.synthesis.motion_generation` with three target **poses**
-(position + orientation) along a horizontal stroke, and Burmester
-theory returns link lengths that thread those poses. The three poses
-specify a body moving horizontally while rotating slightly — the
-approximation of a walker's body during stance.
-
-Pure collinear, same-orientation poses are singular under Burmester
-synthesis (infinitely many solutions); the orientation sweep below
-breaks that symmetry.
+Same recipe as the Watt: we keep the driving four-bar A-B-C-D
+Grashof crank-rocker and pick the second-loop lengths so F's locus
+has a flat upper portion. `Walker.from_stephenson` routes to
+pylinkage's `stephenson_from_lengths` under the hood and through the
+SimLinkage → Walker shim.
 """
 
 NB01_STEPHENSON = """
-import math
-from pylinkage.synthesis import motion_generation, Pose, solution_to_linkage
-
-# Three poses: horizontal motion with gentle orientation sweep
-poses = [
-    Pose(0.0, 0.0, 0.0),
-    Pose(1.0, 0.5, math.pi / 10),
-    Pose(2.0, 0.0, math.pi / 5),
-]
-syn = motion_generation(poses=poses, max_solutions=5, require_grashof=False)
-print(f"motion_generation → {len(syn.solutions)} four-bar solution(s)")
-
-# motion_generation returns four-bar solutions. To illustrate the
-# Stephenson six-bar (and its separated ternary links), we use
-# pylinkage's reference dimensions from its own notebook 14.
-from pylinkage.synthesis import stephenson_from_lengths
-
-stephenson = stephenson_from_lengths(
-    crank=0.8, coupler=3.5, rocker=3.0,
-    link4=2.0, link5=2.5, link6=3.0,
-    ground_length=4.0, initial_crank_angle=math.pi / 4,
+stephenson = ls.Walker.from_stephenson(
+    crank=1.05,
+    coupler=2.61,
+    rocker=2.89,
+    link4=3.60,
+    link5=3.81,
+    link6=3.95,
+    ground_length=3.80,
 )
-loci = list(stephenson.step(iterations=200))
-fig, ax = plt.subplots(figsize=(9, 6))
-plot_static_linkage(stephenson, ax, loci, show_loci=True, show_labels=True,
-                    show_legend=False, n_ghosts=3,
-                    title="Stephenson I — pylinkage reference dimensions")
-ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
-plt.show()
-
-# Show what motion_generation placed the coupler through
-for i, p in enumerate(poses):
-    print(f"  pose {i}: ({p.x:.1f}, {p.y:.1f}, {math.degrees(p.angle):.0f}°)")
+show_walker(stephenson, "Stephenson I — full rotation, flat stance stroke",
+            figsize=(9, 7), foot_labels={'F'})
 """
 
 NB01_SUMMARY = """
