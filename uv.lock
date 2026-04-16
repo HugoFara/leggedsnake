@@ -1539,6 +1539,12 @@ dev = [
     { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "sphinx-rtd-theme" },
 ]
+docs = [
+    { name = "m2r2" },
+    { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "sphinx-rtd-theme" },
+]
 test = [
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -1566,6 +1572,7 @@ dev = [
 requires-dist = [
     { name = "bump2version", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "m2r2", marker = "extra == 'dev'", specifier = ">=0.3.0" },
+    { name = "m2r2", marker = "extra == 'docs'", specifier = ">=0.3.0" },
     { name = "numpy", specifier = ">=1.20.2" },
     { name = "pyglet", specifier = ">=2.0.0" },
     { name = "pylinkage", editable = "../pylinkage" },
@@ -1575,10 +1582,12 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4.0.0" },
     { name = "scipy", specifier = ">=1.15.3" },
     { name = "sphinx", marker = "extra == 'dev'", specifier = ">=6.2.1" },
+    { name = "sphinx", marker = "extra == 'docs'", specifier = ">=6.2.1" },
     { name = "sphinx-rtd-theme", marker = "extra == 'dev'", specifier = ">=1.2.0" },
+    { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = ">=1.2.0" },
     { name = "tqdm", specifier = ">=4.40.0" },
 ]
-provides-extras = ["dev", "test"]
+provides-extras = ["dev", "docs", "test"]
 
 [package.metadata.requires-dev]
 dev = [
