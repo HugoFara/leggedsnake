@@ -419,10 +419,14 @@ def build_ghassaei(
         if pair is None:
             raise ValueError("Ghassaei canonical: RRR dyad circles do not intersect")
         p, q = pair
-        if pick == "upper":  return p if p[1] > q[1] else q
-        if pick == "lower":  return p if p[1] < q[1] else q
-        if pick == "left":   return p if p[0] < q[0] else q
-        if pick == "right":  return p if p[0] > q[0] else q
+        if pick == "upper":
+            return p if p[1] > q[1] else q
+        if pick == "lower":
+            return p if p[1] < q[1] else q
+        if pick == "left":
+            return p if p[0] < q[0] else q
+        if pick == "right":
+            return p if p[0] > q[0] else q
         raise ValueError(f"unknown branch {pick!r}")
 
     df_pair = _circle_intersect(C, 56.0 * s, B, 77.0 * s)
