@@ -579,6 +579,17 @@ class Walker:
         """
         return list(self.to_mechanism().joints)
 
+    @property
+    def _solve_order(self) -> list[Any]:
+        """Expose the underlying mechanism's solve order.
+
+        pylinkage 0.9's ``linkage_to_solver_data`` (invoked from ``Ensemble``
+        and every optimizer that wraps it) reads ``linkage._solve_order``.
+        Delegating to the cached ``Mechanism`` keeps joint identities in sync
+        with ``self.joints`` so ``id(joint)`` lookups resolve correctly.
+        """
+        return list(self.to_mechanism()._solve_order)
+
     # --- SimLinkage bridge (temporary compat shim) ---
     #
     # Until pylinkage 1.0 ships a stable SimLinkage → HypergraphLinkage path,
