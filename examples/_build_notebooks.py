@@ -342,8 +342,12 @@ NB02_IMPORTS = """
 import warnings
 
 import matplotlib.pyplot as plt
+from matplotlib import animation
+from IPython.display import HTML
 
 import leggedsnake as ls
+from pylinkage import extract_trajectory
+from pylinkage.visualizer import plot_static_linkage
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 """
@@ -366,34 +370,171 @@ print(f"torque = {cfg.torque} N·m, load = {cfg.load_mass} kg")
 print(f"terrain: slope={cfg.terrain.slope:.3f} rad, noise={cfg.terrain.noise}")
 """
 
+NB02_KINVIZ_MD = """
+## 2. An eight-legged Jansen — kinematic preview
+
+Before dropping anything on a road, let's see what we're about to
+simulate. The canonical Strandbeest has **four legs per side**
+mirrored across the chassis — we reproduce that arrangement with
+`add_opposite_leg()` (left/right mirror) followed by `add_legs(3)`
+(three phase-offset copies per side), matching the pattern in
+`examples/theo_jansen.py`. Eight legs means at least two feet in
+stance at any crank angle, which is what keeps the body level during
+physics simulation.
+"""
+
+NB02_KINVIZ = """
+jansen = ls.Walker.from_jansen(scale=0.1)
+jansen.add_opposite_leg()  # mirrored copy of the leg on the opposite side
+jansen.add_legs(3)         # 3 phase-offset copies per side → 8 legs total
+
+# Jansen's foot is node 'G'. Cloned legs inherit the base name plus a
+# suffix like '(opposite)' or '(2)', so 'G' + whitespace is the reliable
+# filter. (walker.get_feet() also returns secondary degree-1 joints in
+# hypergraph form; we want only the true feet.)
+def is_foot(name):
+    return name == 'G' or name.startswith('G ')
+
+feet_count = sum(1 for nid in jansen.topology.nodes if is_foot(nid))
+print(f"legs: {feet_count}, DOF: {jansen.dof}")
+
+mech = jansen.to_mechanism()
+loci = list(jansen.step(iterations=180))
+
+fig, ax = plt.subplots(figsize=(9, 4.8))
+plot_static_linkage(
+    mech, ax, loci,
+    show_loci=True, show_labels=False, show_legend=False,
+    title="Jansen — 8 legs (4 per side, phase-offset), kinematic preview",
+)
+for i, joint in enumerate(mech.joints):
+    if is_foot(getattr(joint, 'name', '') or ''):
+        xs, ys = extract_trajectory(loci, i)
+        if xs.size:
+            ax.plot(xs, ys, color='crimson', lw=1.8, alpha=0.9, zorder=10)
+ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
+plt.show()
+"""
+
 NB02_SIM_MD = """
-## 2. Simulate a Jansen walker for a few seconds
+## 3. Simulate the same walker in physics
 
 `World(config=...).add_linkage(walker)` converts the kinematic Walker
 to its pymunk-backed twin, drops it on the road, and stands ready to
-step. We bump the Jansen walker to four legs so it has enough ground
-contact for a stable gait.
+step. Two gotchas worth addressing up front:
+
+1. `World` defaults to `road_y=-5`. That's fine for small walkers but
+   mis-matched for Jansen's large Holy-Number geometry. `linkage_bb(walker)`
+   gives us the pre-physics bounding box and we slot the road just
+   beneath `min_y` — exactly what `ls.video()` does.
+2. The default `TerrainConfig` has a 10° slope, heavy noise, and an
+   unseeded RNG, so every run is a different hilly uphill. For a
+   reproducible demo we want flat ground — `TerrainPreset.FLAT` with a
+   fixed `seed`.
 """
 
 NB02_SIM = """
+FLAT = ls.TerrainConfig.from_preset(ls.TerrainPreset.FLAT)
+FLAT.seed = 0  # any int works; fixes road-building RNG
+
 def simulate(walker, duration_s=3.0, config=None):
     # Step the walker in a fresh World and return the final body x.
-    cfg = config or ls.WorldConfig()
-    world = ls.World(config=cfg)
+    cfg = config or ls.WorldConfig(terrain=FLAT)
+    min_y = ls.linkage_bb(walker)[0]
+    world = ls.World(config=cfg, road_y=min_y - 1)
     world.add_linkage(walker)
     n_steps = int(duration_s / cfg.physics_period)
     for _ in range(n_steps):
         world.update()
     return world.linkages[0].body.position.x
 
-jansen = ls.Walker.from_jansen(scale=0.5)
-jansen.add_legs(3)  # four legs total
-x = simulate(jansen, duration_s=3.0)
-print(f"Jansen travelled {x:.2f} m in 3 simulated seconds")
+x = simulate(jansen, duration_s=5.0)
+print(f"Jansen travelled {x:.2f} units in 5 simulated seconds")
+"""
+
+NB02_ANIM_MD = """
+## 4. Animate the dynamic walker
+
+The distance number is terse — let's watch the walker move. We re-run
+the simulation, sample world positions every few physics ticks, and
+render an inline HTML animation. Each bar is drawn between the two
+world-space node positions on its rigid body; the polyline along the
+bottom is the procedurally built road.
+
+The animation uses the full **8-leg** Strandbeest from §2 (four legs
+per side at 0 / 90° / 180° / 270° phase offsets). Dense stance coverage
+keeps the chassis level — in our tests the 8-leg walker stays within a
+few degrees of horizontal over 5 s, while a 4-leg version pitches by
+10° – 20°. That's the 2D analogue of why real Strandbeests have many
+legs: the more legs overlapping in stance, the less the body reacts to
+any single crank's swing.
+"""
+
+NB02_ANIM = """
+anim_walker = ls.Walker.from_jansen(scale=0.1)
+anim_walker.add_opposite_leg()
+anim_walker.add_legs(3)  # 4 legs per side → canonical Strandbeest
+
+bb_min_y, bb_max_x, bb_max_y, bb_min_x = ls.linkage_bb(anim_walker)
+road_y = bb_min_y - 1
+walker_h = bb_max_y - bb_min_y
+walker_w = bb_max_x - bb_min_x
+
+cfg = ls.WorldConfig(terrain=FLAT)
+world = ls.World(config=cfg, road_y=road_y)
+world.add_linkage(anim_walker)
+dl = world.linkages[0]
+
+edges = list(anim_walker.topology.edges.items())
+
+duration_s = 10.0
+stride = 10  # record every 10th physics tick (~200 ms per frame, 50 frames)
+n_steps = int(duration_s / cfg.physics_period)
+
+frames = []
+for i in range(n_steps):
+    world.update()
+    if i % stride:
+        continue
+    pos = dl.get_all_positions()
+    segs = [
+        (pos[e.source], pos[e.target])
+        for _, e in edges
+        if e.source in pos and e.target in pos
+    ]
+    frames.append({
+        'segments': segs,
+        'road': list(world.road),
+        'cx': dl.body.position.x,
+    })
+
+# Camera window sized to fit a full walker + a margin, centred on chassis x.
+half_w = walker_w * 0.75
+y_lo = road_y - 2
+y_hi = road_y + walker_h + 8
+
+fig, ax = plt.subplots(figsize=(7, 7 * (y_hi - y_lo) / (2 * half_w)))
+plt.close(fig)  # suppress the static snapshot; we want the animation only
+
+def draw(frame):
+    ax.clear()
+    for a, b in frame['segments']:
+        ax.plot([a[0], b[0]], [a[1], b[1]], '-', color='#222', lw=1.0, alpha=0.75)
+    xs, ys = zip(*frame['road'])
+    ax.plot(xs, ys, color='#555', lw=1.2)
+    ax.set_xlim(frame['cx'] - half_w, frame['cx'] + half_w)
+    ax.set_ylim(y_lo, y_hi)
+    ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
+    ax.set_title(f"Jansen — physics (x={frame['cx']:.2f})")
+
+ani = animation.FuncAnimation(
+    fig, draw, frames=frames, interval=200, blit=False,
+)
+HTML(ani.to_jshtml())
 """
 
 NB02_FITNESS_MD = """
-## 3. The `DynamicFitness` protocol
+## 5. The `DynamicFitness` protocol
 
 Optimizers need a *single number*. `DynamicFitness` is a Protocol:
 any callable with signature `(topology, dimensions, config) → FitnessResult`
@@ -415,14 +556,14 @@ fit_distance = ls.DistanceFitness(duration=3.0, n_legs=4)
 fit_efficiency = ls.EfficiencyFitness(duration=3.0, n_legs=4, min_distance=0.5)
 fit_stride = ls.StrideFitness()
 
-walker = ls.Walker.from_jansen(scale=0.5)
+walker = ls.Walker.from_jansen(scale=0.1)
 for fit in (fit_distance, fit_efficiency, fit_stride):
     r = fit(walker.topology, walker.dimensions, ls.WorldConfig())
     print(f"{type(fit).__name__:20s} score={r.score:8.3f}  valid={r.valid}  metrics={dict(r.metrics)}")
 """
 
 NB02_TERRAIN_MD = """
-## 4. Terrain presets
+## 6. Terrain presets
 
 `TerrainConfig` exposes a library of rough-ground generators. The
 `TerrainPreset` enum gives five ready-made configurations:
@@ -437,7 +578,7 @@ for preset in ls.TerrainPreset:
 """
 
 NB02_ROUGH_MD = """
-## 5. Walk on rough vs flat ground
+## 7. Walk on rough vs flat ground
 
 Ground roughness costs distance. We simulate the same Jansen walker
 on three presets and compare.
@@ -447,16 +588,93 @@ NB02_ROUGH = """
 results = {}
 for preset in (ls.TerrainPreset.FLAT, ls.TerrainPreset.HILLY, ls.TerrainPreset.ROUGH):
     cfg = ls.WorldConfig(terrain=ls.TerrainConfig.from_preset(preset))
-    walker = ls.Walker.from_jansen(scale=0.5)
+    walker = ls.Walker.from_jansen(scale=0.1)
+    walker.add_opposite_leg()
     walker.add_legs(3)
     results[preset.name] = simulate(walker, duration_s=3.0, config=cfg)
 
 fig, ax = plt.subplots(figsize=(6, 3.5))
 ax.bar(results.keys(), results.values(), color=['#4c72b0', '#dd8452', '#c44e52'])
-ax.set_ylabel("Distance walked (m, 3 s)")
+ax.set_ylabel("Distance walked (units, 3 s)")
 ax.set_title("Terrain preset vs walking distance — Jansen, fixed dimensions")
 ax.grid(True, axis='y')
 plt.show()
+"""
+
+NB02_ROUGH_ANIM_MD = """
+## 8. Animate the walker on rough terrain
+
+Numbers in a bar chart hide the drama. Let's watch the same 8-leg
+Jansen take on the ROUGH preset — randomized segment friction,
+scattered obstacles, 5° slope — and see which legs carry it, where
+it stumbles, and where the gait recovers. Rough ground tests not
+just raw speed but the *robustness margin* of a design; a walker
+that sails over flat ground can still stall in the first obstacle.
+"""
+
+NB02_ROUGH_ANIM = """
+rough_walker = ls.Walker.from_jansen(scale=0.1)
+rough_walker.add_opposite_leg()
+rough_walker.add_legs(3)
+
+rough_terrain = ls.TerrainConfig.from_preset(ls.TerrainPreset.ROUGH)
+rough_terrain.seed = 1
+rough_cfg = ls.WorldConfig(terrain=rough_terrain)
+
+bb_min_y, bb_max_x, bb_max_y, bb_min_x = ls.linkage_bb(rough_walker)
+r_road_y = bb_min_y - 1
+r_walker_h = bb_max_y - bb_min_y
+r_walker_w = bb_max_x - bb_min_x
+
+r_world = ls.World(config=rough_cfg, road_y=r_road_y)
+r_world.add_linkage(rough_walker)
+r_dl = r_world.linkages[0]
+
+r_edges = list(rough_walker.topology.edges.items())
+
+r_duration = 10.0
+r_stride = 10
+r_n_steps = int(r_duration / rough_cfg.physics_period)
+
+r_frames = []
+for i in range(r_n_steps):
+    r_world.update()
+    if i % r_stride:
+        continue
+    pos = r_dl.get_all_positions()
+    r_frames.append({
+        'segments': [
+            (pos[e.source], pos[e.target])
+            for _, e in r_edges
+            if e.source in pos and e.target in pos
+        ],
+        'road': list(r_world.road),
+        'cx': r_dl.body.position.x,
+    })
+
+r_half_w = r_walker_w * 0.75
+r_y_lo = r_road_y - 3
+r_y_hi = r_road_y + r_walker_h + 8
+
+r_fig, r_ax = plt.subplots(figsize=(7, 7 * (r_y_hi - r_y_lo) / (2 * r_half_w)))
+plt.close(r_fig)
+
+def draw_rough(frame):
+    r_ax.clear()
+    for a, b in frame['segments']:
+        r_ax.plot([a[0], b[0]], [a[1], b[1]], '-', color='#222', lw=1.0, alpha=0.75)
+    xs, ys = zip(*frame['road'])
+    r_ax.plot(xs, ys, color='#8b5a2b', lw=1.4)
+    r_ax.fill_between(xs, ys, r_y_lo, color='#d9c7a5', alpha=0.5)
+    r_ax.set_xlim(frame['cx'] - r_half_w, frame['cx'] + r_half_w)
+    r_ax.set_ylim(r_y_lo, r_y_hi)
+    r_ax.set_aspect('equal'); r_ax.grid(True, alpha=0.3)
+    r_ax.set_title(f"Jansen on ROUGH terrain (x={frame['cx']:.2f})")
+
+r_ani = animation.FuncAnimation(
+    r_fig, draw_rough, frames=r_frames, interval=100, blit=False,
+)
+HTML(r_ani.to_jshtml())
 """
 
 NB02_SUMMARY = """
@@ -481,10 +699,13 @@ NB02 = [
     _md(NB02_INTRO),
     _code(NB02_IMPORTS),
     _md(NB02_CONFIG_MD), _code(NB02_CONFIG),
+    _md(NB02_KINVIZ_MD), _code(NB02_KINVIZ),
     _md(NB02_SIM_MD), _code(NB02_SIM),
+    _md(NB02_ANIM_MD), _code(NB02_ANIM),
     _md(NB02_FITNESS_MD), _code(NB02_FITNESS),
     _md(NB02_TERRAIN_MD), _code(NB02_TERRAIN),
     _md(NB02_ROUGH_MD), _code(NB02_ROUGH),
+    _md(NB02_ROUGH_ANIM_MD), _code(NB02_ROUGH_ANIM),
     _md(NB02_SUMMARY),
 ]
 
@@ -698,7 +919,7 @@ serious run.
 
 NB04_NSGA = """
 def walker_factory():
-    return ls.Walker.from_jansen(scale=0.5)
+    return ls.Walker.from_jansen(scale=0.1)
 
 prototype = walker_factory()
 edge_names = list(prototype.dimensions.edge_distances.keys())
