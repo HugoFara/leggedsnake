@@ -4,272 +4,158 @@
 [![Downloads](https://static.pepy.tech/personalized-badge/leggedsnake?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)](https://pepy.tech/project/leggedsnake)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg )](https://raw.githubusercontent.com/HugoFara/leggedsnake/main/LICENSE.rst)
 
-LeggedSnake makes the simulation of walking linkages fast and easy.
-We believe that building walking linkages is fun and could be useful.
-Our philosophy is to provide a quick way of building, optimizing and
-testing walking linkages.
-
-## Overview
-
-First, you will define a linkage to be optimized.
-Here we use the [strider linkage](https://www.diywalkers.com/strider-linkage-plans.html)
-by [Wade Wagle and Team Trotbot](https://www.diywalkers.com/).
-
-![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20unoptimized%20strider.gif)
-
-*Dimensions are intentionally wrong, so that the robots fails to walk
-properly.*
-
-Let's take several identical linkages, and make them reproduce and evolve
-through many generations.
-Here is how it looks:
+LeggedSnake is a Python toolkit for designing, simulating, and optimizing
+planar walking linkages. It layers a pymunk physics engine and multi-objective
+optimizers on top of [pylinkage](https://github.com/HugoFara/pylinkage)'s
+kinematic model, so you can go from a mechanism sketch to an evolved walker
+in a few lines of code.
 
 ![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Striders%20run.gif)
 
-Finally, we will extract the best linkage, and here is our optimized model
-that does not fall.
-
-![Dynamic optimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20optimized%20strider.gif)
-
 ## Installation
 
-The package is hosted on PyPi as
-[leggedsnake](https://pypi.org/project/leggedsnake/), use:
+From PyPI:
 
 ```bash
 pip install leggedsnake
 ```
 
-## Build from source
+From source with [uv](https://docs.astral.sh/uv/):
 
-Download this repository and install with [uv](https://docs.astral.sh/uv/).
-
-```shell
+```bash
 git clone https://github.com/hugofara/leggedsnake
 cd leggedsnake
 uv sync
 ```
 
-This will create a virtual environment and install all dependencies.
+## Quick start
 
-## Usage
+A walker in five lines — the canonical Theo Jansen "Strandbeest" leg, built
+from the Holy Numbers and rendered in a live pyglet window:
 
-First, you define the linkage you want to use.
-The demo script is
-[strider.py](https://github.com/HugoFara/leggedsnake/blob/main/examples/strider.py),
-which demonstrates all the techniques about the
-[Strider linkage](https://www.diywalkers.com/strider-linkage-plans.html).
-
-In a nutshell, the two main parts are:
-
-1. Define a Linkage.
-2. Run the optimization.
-
-### Defining a ``Walker``
-
-You define a mechanism using pylinkage's hypergraph API:
-nodes (joints), edges (links), and dimensions (positions + distances).
-
-```python3
+```python
 import leggedsnake as ls
-from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
-from pylinkage.dimensions import Dimensions, DriverAngle
+
+walker = ls.Walker.from_jansen(scale=1/25)
+walker.add_legs(2)                   # two extra phase-offset legs
+ls.video(walker, duration=10)        # live simulation
+```
+
+Other classical mechanisms ship as one-line factories too:
+`Walker.from_klann`, `Walker.from_chebyshev`, `Walker.from_watt`, and
+`Walker.from_catalog` (pylinkage's topology catalog).
+
+To build a custom mechanism, declare its topology (nodes + edges) and
+dimensions separately:
+
+```python
 from math import tau
+import leggedsnake as ls
+from leggedsnake import (
+    HypergraphLinkage, Node, Edge, NodeRole,
+    Dimensions, DriverAngle, Walker,
+)
 
-# 1. Define the topology (what connects to what)
 hg = HypergraphLinkage(name="MyWalker")
-hg.add_node(Node("frame", role=NodeRole.GROUND))
-hg.add_node(Node("frame2", role=NodeRole.GROUND))
-hg.add_node(Node("crank", role=NodeRole.DRIVER))
-hg.add_node(Node("upper", role=NodeRole.DRIVEN))
-hg.add_node(Node("foot", role=NodeRole.DRIVEN))
-hg.add_edge(Edge("frame_crank", "frame", "crank"))
-hg.add_edge(Edge("frame2_upper", "frame2", "upper"))
-hg.add_edge(Edge("crank_upper", "crank", "upper"))
-hg.add_edge(Edge("crank_foot", "crank", "foot"))
-hg.add_edge(Edge("upper_foot", "upper", "foot"))
+for node_id, role in [
+    ("frame", NodeRole.GROUND), ("frame2", NodeRole.GROUND),
+    ("crank", NodeRole.DRIVER),
+    ("upper", NodeRole.DRIVEN), ("foot", NodeRole.DRIVEN),
+]:
+    hg.add_node(Node(node_id, role=role))
+for edge in [
+    ("frame_crank", "frame", "crank"), ("frame2_upper", "frame2", "upper"),
+    ("crank_upper", "crank", "upper"),
+    ("crank_foot", "crank", "foot"), ("upper_foot", "upper", "foot"),
+]:
+    hg.add_edge(Edge(*edge))
 
-# 2. Define the geometry (positions, link lengths, driver speed)
 dims = Dimensions(
     node_positions={
         "frame": (0, 0), "frame2": (2, 0),
         "crank": (1, 0), "upper": (1, 2), "foot": (1, 3),
     },
-    driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
     edge_distances={
         "frame_crank": 1.0, "frame2_upper": 2.24,
         "crank_upper": 2.0, "crank_foot": 3.16, "upper_foot": 1.0,
     },
+    driver_angles={"crank": DriverAngle(angular_velocity=-tau / 12)},
 )
 
-# 3. Create the Walker and add legs
-my_walker = ls.Walker(hg, dims, name="My Walker")
-my_walker.add_opposite_leg(axis_x=1.0)  # mirror for left/right pair
-my_walker.add_legs(1)  # add a second pair with phase offset
-
-# 4. Launch a GUI simulation
-ls.video(my_walker)
+walker = Walker(hg, dims, name="My Walker")
+walker.add_opposite_leg(axis_x=1.0)  # mirror for left/right pair
+walker.add_legs(1)                   # add a phase-offset copy
+ls.video(walker)
 ```
 
-It should display something like the following.
+## What you can do with it
 
-![Dynamic four-leg-pair unoptimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20unoptimized%20strider.gif)
+| Capability | Entry points |
+| --- | --- |
+| Build mechanisms | `Walker`, `HypergraphLinkage`, `Walker.from_jansen/klann/chebyshev/watt/catalog` |
+| Kinematic fitness | `leggedsnake.utility.stride`, `leggedsnake.utility.step` |
+| Physics simulation | `World`, `video`, `all_linkages_video`, `video_debug` |
+| Dynamic fitness | `DistanceFitness`, `EfficiencyFitness`, `StrideFitness`, `StabilityFitness`, `CompositeFitness` |
+| Single-objective GA | `GeneticOptimization`, `genetic_algorithm_optimization` |
+| Multi-objective (NSGA) | `nsga_walking_optimization`, `NsgaWalkingConfig` |
+| Topology co-design | `topology_walking_optimization`, `optimize_walking_mechanism` |
+| Gait & stability | `analyze_gait`, `StabilityTimeSeries`, `compute_tip_over_margin` |
+| Export | `to_urdf` (ROS), `save_walker` (JSON), `save_walker_svg` |
+| Plotting | `plot_pareto_front`, `plot_gait_diagram`, `plot_foot_trajectories`, `plot_optimization_dashboard` |
 
-### Optimization using Genetic Algorithm (GA)
+## Tutorials and deeper examples
 
-The next step is to optimize your linkage. We use a genetic algorithm here.
+Start with the numbered notebooks — they walk through the full pipeline end
+to end:
 
-```python
-# Definition of an individual as (fitness, dimensions, initial coordinates)
-dna = [0, list(my_walker.get_num_constraints()), list(my_walker.get_coords())]
-population = 10
+1. [`examples/01_walkers_gallery.ipynb`](examples/01_walkers_gallery.ipynb)
+   — build and inspect the classical linkages.
+2. [`examples/02_physics_and_fitness.ipynb`](examples/02_physics_and_fitness.ipynb)
+   — physics simulation and fitness evaluation.
+3. [`examples/03_genetic_optimization.ipynb`](examples/03_genetic_optimization.ipynb)
+   — evolve a walker with the genetic algorithm.
+4. [`examples/04_multi_objective_and_gait.ipynb`](examples/04_multi_objective_and_gait.ipynb)
+   — NSGA Pareto fronts plus gait / stability analysis.
 
-def total_distance(dna):
-    """
-    Evaluates the final horizontal position of the input linkage.
+The scripted examples cover specific mechanisms and full pipelines:
+[`strider.py`](examples/strider.py) (PSO + GA on the Strider),
+[`theo_jansen.py`](examples/theo_jansen.py),
+[`klann_linkage.py`](examples/klann_linkage.py),
+[`chebyshev_linkage.py`](examples/chebyshev_linkage.py),
+[`simple_fourbar.py`](examples/simple_fourbar.py),
+[`simple_walker.py`](examples/simple_walker.py),
+[`optimization_pipeline.py`](examples/optimization_pipeline.py),
+[`compare_linkages.py`](examples/compare_linkages.py).
 
-    Return final distance and initial position of joints.
-    """
-    # Rebuild walker from DNA
-    walker = ls.Walker(hg, dims, name="candidate")
-    walker.set_num_constraints(dna[1])
-    walker.set_coords(dna[2])
-    walker.add_legs(1)
+## Tips for faster experiments
 
-    pos = tuple(walker.step())[-1]
-    world = ls.World()
-    # We handle all the conversions
-    world.add_linkage(walker)
-    # Simulation duration (in seconds)
-    duration = 40
-    steps = int(duration / ls.params["simul"]["physics_period"])
-    for _ in range(steps):
-        world.update()
-    return world.linkages[0].body.position.x, pos
+- **Visualize early and often.** Every optimizer will hand you a linkage with
+  a better score; only the animation tells you whether it walks the way you
+  wanted.
+- **Don't start from a hand-tuned optimum.** A random starting population is
+  more robust against collapsing into a nearby suboptimum.
+- **Exploit symmetry.** A Strider half-leg has the same kinematic stride as
+  the full mechanism and evaluates an order of magnitude faster. Use
+  kinematic PSO on the reduced problem, then hand off the winner to a
+  dynamic GA on the full mechanism.
+  ![Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Kinematic%20half-Strider.gif)
+- **Checkpoint long runs.** `GeneticOptimization(..., startnstop="run.json")`
+  resumes automatically on the next launch.
+- **Wrap optimization scripts in `if __name__ == "__main__":`** — the GA and
+  NSGA optimizers spawn worker processes.
 
+## Contributing
 
-# Prepare the optimization, with any fitness_function(dna) -> score
-optimizer = ls.GeneticOptimization(
-        dna=dna,
-        fitness=total_distance,
-        max_pop=population,
-)
-# Run for 100 iterations, on 4 processes
-optimized_walkers = optimizer.run(iters=100, processes=4)
-
-# The following line will display the results
-ls.all_linkages_video(optimized_walkers)
-```
-
-For 100 iterations, 10 linkages will be simulated and evaluated by fitness_function.
-The fittest individuals are kept and will propagate their genes (with mutations).
-
-Now you should see something like the following.
-
-![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Striders%20run.gif)
-
-This is a simulation from the last generation of 10 linkages.
-Most of them cover a larger distance (this is the target of our ``fitness_function``).
-
-### Results
-
-Finally, only the best linkage at index 0 may be kept.
-
-```python
-# Results are sorted by best fitness first, 
-# so we use the walker with the best score
-best_dna = optimized_walkers[0]
-
-# Change the dimensions
-my_walker.set_num_constraints(best_dna[1])
-my_walker.set_coords(best_dna[2])
-
-# Once again launch the video
-ls.video(my_walker)
-```
-
-![Dynamic optimized Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Dynamic%20optimized%20strider.gif)
-
-So now it has a small ski pole, does not fall and goes much farther away!
-
-### Kinematic optimization using Particle Swarm Optimization (PSO)
-
-You may need a kinematic optimization, depending solely on pylinkage.
-You should use the ``step`` and ``stride`` method from the
-[utility module][utility-module] as fitness functions.
-
-This set of rules should work well for a stride **maximisation** problem:
-
-[utility-module]: https://github.com/HugoFara/leggedsnake/blob/main/src/leggedsnake/utility.py
-
-1. Rebuild the Walker with the provided set of dimensions, and do a
-   complete turn.
-2. If the Walker raises an UnbuildableError, its score is 0
-   (or ``-float('inf')`` if you use other evaluation functions).
-3. Verify if it can pass a certain obstacle using ``step`` function.
-   If not, its score is 0.
-4. Eventually measure the length of its stride with the ``stride`` function.
-   Return this length as its score.
-
-## Main features
-
-We handle planar [leg mechanisms](https://en.wikipedia.org/wiki/Leg_mechanism)
-in three main parts:
-
-* Mechanism definition via pylinkage's hypergraph API
-  (``HypergraphLinkage`` + ``Dimensions``), wrapped in the ``Walker`` class.
-* *Optional* kinematic optimization with ``Walker.step()`` and pylinkage
-  optimizers (PSO, differential evolution, multi-objective).
-* Dynamic simulation with pymunk physics and genetic algorithm optimization.
-
-## Advice
-
-Use the visualisation tools provided! The optimization tools should always
-give you a score with a better fitness, but it might not be what you
-expected. Tailor your optimization and *then* go for a long run will make
-you save a lot of time.
-
-**Do not** use optimized linkages from the start! The risk is to fall too
-quickly into a suboptimal solution. There are several mechanisms to prevent
-that (starting from random position), but it can always have an impact on
-the rest of the optimization.
-
-Try to minimize the number of elements in the optimizations! You can often
-use some linkage properties to reduce the number of simulation parameters.
-For instance, the Strider linkage has axial symmetry. While it is irrelevant
-to use this property in dynamic simulation, you can use "half" your Strider
-in a kinematic optimization, which is much faster.
-
-![A Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Kinematic%20half-Strider.gif)
-
-## Contribute
-
-This project is open to contribution and actively looking for contributors.
-You can help making it better!
-
-### For everyone
-
-You can [drop a star](https://github.com/HugoFara/leggedsnake/stargazers),
-[fork this project](https://github.com/HugoFara/leggedsnake/forks) or simply
-share the link to your best media.
-
-The more people get engaged into this project, the better it will develop!
-
-### For developers
-
-You can follow the guide at [CONTRIBUTING.md](CONTRIBUTING.md).
-Feel free to make any pull request.
+Contributions, feature requests, and "look at this weird walker" submissions
+are all welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the developer
+workflow, or drop by the
+[GitHub discussions](https://github.com/HugoFara/leggedsnake/discussions).
+A [star](https://github.com/HugoFara/leggedsnake/stargazers) or a link to
+your favourite walker also helps.
 
 ## Quick links
 
-* For the documentation, check the docs at
-  [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)!
-* Source code is hosted on GitHub as
-  [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake)
-* We also provide a Python package on PyPi, test
-  [leggedsnake](https://pypi.org/project/leggedsnake/).
-* If you just want to chill out looking at walking linkages striving to
-  survive, join the
-  [discussions](https://github.com/HugoFara/leggedsnake/discussions).
-
-Contributors are welcome!
+- Documentation: [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)
+- Source: [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake)
+- PyPI: [leggedsnake](https://pypi.org/project/leggedsnake/)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)

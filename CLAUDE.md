@@ -4,95 +4,98 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LeggedSnake is a Python library for simulating and optimizing planar walking linkages (leg mechanisms). It combines kinematic analysis from pylinkage with dynamic simulation using pymunk physics engine, plus genetic algorithm optimization.
+LeggedSnake simulates and optimizes planar walking linkages. It layers a pymunk physics engine and multi-objective optimization on top of [pylinkage](../pylinkage/)'s kinematic/hypergraph model. The canonical mechanism is the Strider; classical Jansen/Klann/Chebyshev builders are also first-class.
+
+This package depends on pylinkage as an editable path dep (`[tool.uv.sources]` in `pyproject.toml`) — changes to pylinkage are picked up without reinstalling.
 
 ## Commands
 
 ```bash
-# Install dependencies
-uv sync
-
-# Run tests
-uv run pytest
-
-# Run a single test
-uv run pytest tests/test_utility.py::TestStride::test_minimal_stride
-
-# Run tests with coverage
-uv run pytest --cov=leggedsnake
-
-# Lint with ruff
-uv run ruff check src/
-
-# Type check with mypy (strict mode)
-uv run mypy
-
-# Run examples (must use __main__ guard due to multiprocessing)
-uv run python examples/strider.py
+uv sync                                       # install deps (pulls editable pylinkage)
+uv run pytest                                 # all tests
+uv run pytest tests/test_utility.py::TestStride::test_minimal_stride   # single test
+uv run pytest -k "strider"                    # tests matching pattern
+uv run pytest --cov=leggedsnake               # coverage
+uv run ruff check src/                        # lint
+uv run mypy                                   # type-check (strict)
+uv run python examples/strider.py             # run an example (must use __main__ guard — multiprocessing)
+uv run jupyter lab examples/                  # numbered tutorial notebooks 01–04
 ```
+
+Examples that spawn worker processes (GA, NSGA) MUST be run under `if __name__ == "__main__":` or they will fork-bomb on import.
 
 ## Architecture
 
-The library has three main layers:
+The library composes into four layers. The public API is re-exported from `leggedsnake/__init__.py` — check there before chasing symbols into submodules.
 
-### 1. Kinematic Layer (pylinkage integration)
+### 1. Mechanism model — `walker.py`
 
-- `Walker` (in `walker.py`): Extends pylinkage's `Linkage` class with leg-specific methods
-  - `add_legs(n)`: Adds phase-offset copies of the leg along the same axis
-  - `add_opposite_leg()`: Creates antisymmetric (mirrored) leg across vertical axis
-  - `get_foots()`: Returns terminal joints (feet) - joints without children
-  - `motor_rate`: Motor angular velocity in rad/s (default -4.0, clockwise)
-- Joint types from pylinkage: `Static`, `Crank`, `Fixed`, `Pivot` (deprecated), `Revolute`
+`Walker` wraps a `HypergraphLinkage` (topology: nodes + edges + `NodeRole`) and a `Dimensions` (geometry: node positions, edge distances, `DriverAngle` per driver node). It is **hypergraph-native** — the older joint-first API (`Static`/`Crank`/`Fixed`/`Pivot`) is no longer the primary path.
 
-### 2. Dynamic Layer (pymunk integration)
+Key surface:
+- `Walker(topology, dimensions, name=..., motor_rates=...)` — `motor_rates` is `float` (all drivers) or `dict[str, float]` (per-driver, enables multi-DOF).
+- `Walker.from_catalog`, `from_hierarchy`, `from_watt`, `from_jansen`, etc. — factory builders for classical mechanisms.
+- `add_legs(n)` phase-offsets copies along the axis; `add_opposite_leg(axis_x)` mirrors across the frame.
+- `to_mechanism()` hands off to pylinkage's `Mechanism` for kinematic stepping.
+- `get_num_constraints()` / `set_num_constraints()` and `get_coords()` / `set_coords()` are the (de)serialization hooks used by optimizers.
+- `get_foots()` returns terminal joints (feet).
 
-- `dynamiclinkage.py`: Converts kinematic joints to physics-enabled equivalents
-  - `DynamicJoint` (ABC) -> `Nail`, `PinUp`, `DynamicPivot`, `Motor`
-  - `DynamicLinkage`: A `Linkage` with pymunk bodies and constraints
-  - `convert_to_dynamic_linkage()`: Helper to convert kinematic linkage
-- `hypergraph_physics.py`: Graph-based physics body generation
-  - Converts pylinkage's hypergraph representation to pymunk bodies
-  - Handles rigid triangles (Fixed joints) by merging edges into single bodies
-  - `PhysicsMapping`: Dataclass tracking edge→body and node→bodies mappings
-- `physicsengine.py`: `World` class manages simulation space, road generation, and physics stepping
-  - Global `params` dict controls simulation parameters (gravity, torque, ground properties)
-  - `set_space_constraints()`: Auto-tunes solver iterations based on constraint count
+### 2. Physics — `physicsengine.py`, `dynamiclinkage.py`, `hypergraph_physics.py`
 
-### 3. Optimization Layer
+- `World` owns a pymunk space, road generation, and stepping. `World.add_linkage(walker)` auto-converts kinematic → dynamic.
+- `WorldConfig` / `TerrainConfig` / `SlopeProfile` / `TerrainPreset` are the structured config types; `SLOPE_PROFILES` and `DEFAULT_CONFIG` are prebuilt presets.
+- Legacy global `params` dict still works for quick tuning (`params["simul"]["physics_period"]`, `params["linkage"]["torque"]`, `params["linkage"]["load"]`, `params["ground"]["friction"|"slope"|"noise"]`). New code should prefer the dataclass configs.
+- `dynamiclinkage.py`: `DynamicJoint` ABC → `Nail`, `PinUp`, `DynamicPivot`, `Motor`; `DynamicLinkage` + `convert_to_dynamic_linkage()`.
+- `hypergraph_physics.py`: builds pymunk bodies directly from the hypergraph, merging Fixed-triangle edges into rigid bodies. `PhysicsMapping` tracks edge→body and node→bodies.
 
-- `geneticoptimizer.py`: `GeneticOptimization` class implements GA with multiprocessing
-  - DNA format: `[fitness_score, dimensions_list, coordinates_list]`
-  - Supports checkpoint/resume via `startnstop` parameter (save to JSON)
-  - `run(iters, processes)`: Main optimization loop with parallel evaluation
-- pylinkage also provides `particle_swarm_optimization` and `trials_and_errors_optimization`
+### 3. Evaluation — `fitness.py`, `stability.py`, `gait_analysis.py`
 
-### Visualization
+`fitness.py` defines the `DynamicFitness` protocol and `FitnessResult` dataclass. Built-ins: `DistanceFitness`, `EfficiencyFitness`, `StrideFitness`, `StabilityFitness`, `CompositeFitness`. Adapters `as_eval_func()` / `as_ga_fitness()` bridge to pylinkage's optimizer contracts and the GA's `(score, initial_positions)` tuple.
 
-- `worldvisualizer.py`: `VisualWorld` extends `World` with matplotlib/pyglet animation
-  - `video(linkage, duration, save)`: Single linkage simulation
-  - `all_linkages_video(linkages)`: Multiple linkages racing
-  - `video_debug()`: Frame-by-frame with force visualization
+`stability.py` computes CoM, ZMP, support polygon, tip-over margin — collected as `StabilityTimeSeries` from pymunk data.
 
-### Utility Functions
+`gait_analysis.py` extracts foot-contact events and gait cycles (`GaitCycle`, `FootEvent`, `analyze_gait`).
 
-- `utility.py`: Fitness function helpers for kinematic optimization
-  - `stride(locus, height)`: Returns the "step" portion of a foot locus (horizontal travel at low height)
-  - `step(locus, height, width)`: Tests if locus can clear an obstacle of given dimensions
+### 4. Optimization
 
-## Key Patterns
+Three layers, listed from general → walking-specific:
 
-- Linkages are defined as collections of joints with parent-child relationships
-- Kinematic linkages (pylinkage) are automatically converted to dynamic (pymunk) when added to a `World`
-- Fitness functions receive DNA and return `(score, initial_positions)` tuples
-- The `params` dict in `physicsengine.py` is the central configuration point:
-  - `params["simul"]["physics_period"]`: Time step (default 0.02s)
-  - `params["linkage"]["torque"]`: Motor max force (default 1000 N·m)
-  - `params["linkage"]["load"]`: Frame mass (default 10 kg)
-  - `params["ground"]["friction"]`, `slope`, `noise`: Terrain parameters
+| Module | Entry point | Purpose |
+|---|---|---|
+| `geneticoptimizer.py` | `GeneticOptimization(dna, fitness, max_pop).run(iters, processes)` or `genetic_algorithm_optimization()` | Built-in GA with multiprocessing + JSON checkpoint/resume (`startnstop=`). DNA = `[score, dimensions, coords]`. |
+| `walking_objectives.py` | `stride_length_objective`, `energy_efficiency_objective`, `total_distance_objective`, `multi_objective_walking_optimization` | Walking-specific objective functions reusing pylinkage's optimizer infrastructure. |
+| `nsga_optimizer.py` | `nsga_walking_optimization(walker_factory, config: NsgaWalkingConfig)` | Multi-objective NSGA-II/III via pymoo. Returns `ParetoFront`. |
+| `topology_optimization.py` | `topology_walking_optimization(config: TopologyCoOptConfig)` | Joint topology + dimensions co-optimization over pylinkage's topology catalog (mixed chromosome `[topology_index, dim...]`). |
+| `co_design.py` | `optimize_walking_mechanism(spec: WalkingDesignSpec)` | End-to-end pipeline: topology discovery + kinematic prefilter + dynamic fitness. |
+| `leg_count.py` | `sweep_leg_counts()` | Parameter sweep over number of legs. |
+
+`agents_to_ensemble()` wraps optimization outputs into pylinkage's `Ensemble` for ranking/filtering.
+
+### 5. I/O and visualization
+
+- `serialization.py`: `save_walker`/`load_walker`, `save_result`/`load_result`, plus dict converters.
+- `urdf_export.py`: `to_urdf`, `to_urdf_file`, `URDFConfig` — export to ROS URDF.
+- `plotting.py`: matplotlib/plotly figures — `plot_pareto_front`, `plot_gait_diagram`, `plot_stability_timeseries`, `plot_com_trajectory`, `plot_foot_trajectories`, `plot_optimization_dashboard`, `plot_walker_plotly`, `save_walker_svg`.
+- `show_evolution.py`: `show_genetic_optimization` replays a saved GA checkpoint.
+- `worldvisualizer.py`: `VisualWorld` + `video(walker, duration, save=...)`, `all_linkages_video(walkers)`, `video_debug()` (frame-stepping with force vectors). **These symbols are lazy-imported** in `__init__.py` via `__getattr__` because they pull in pyglet and need a display — referencing them on a headless box triggers the import only at access time.
+- `utility.py`: `stride(locus, height)` and `step(locus, height, width)` — kinematic fitness helpers used by PSO-style optimizers.
+
+## Key patterns and gotchas
+
+- **Fitness function contract**: GA/DNA path expects `fitness(dna) -> (score, initial_positions)`. The physics-aware protocol (`DynamicFitness`) takes `(topology, dimensions) -> FitnessResult`. Convert between them with `as_ga_fitness()` / `as_eval_func()`.
+- **Multi-DOF mechanisms** are expressed by supplying multiple DRIVER-role nodes in the topology and per-driver rates in `Dimensions.driver_angles` / `Walker.motor_rates`. No separate API.
+- **Kinematic vs dynamic optimization**: prefer kinematic (`stride`/`step` + PSO) for fast inner loops and fall back to dynamic GA/NSGA only for the final selection. The README advises exploiting mechanism symmetry (e.g. optimize a half-Strider kinematically).
+- **Checkpointing**: `GeneticOptimization(..., startnstop="path.json")` auto-resumes. Long runs should always use this.
+- **pymunk solver tuning**: `set_space_constraints()` in `physicsengine.py` auto-scales solver iterations to constraint count — don't hardcode iterations for large mechanisms.
+
+## Tests
+
+`tests/` mirrors `src/leggedsnake/` — `test_<module>.py` per module plus `test_integration.py` and `test_parallel_evaluation.py`. The integration test exercises the full optimize→simulate→visualize pipeline and is the best smoke test after architectural changes.
 
 ## Examples
 
-The `examples/` directory contains complete working examples:
-- `strider.py`: Full workflow demonstrating Strider linkage with PSO and GA optimization
-- `theo_jansen.py`, `klann_linkage.py`, `chebyshev_linkage.py`: Classic mechanisms
-- `simple_fourbar.py`, `simple_walker.py`: Minimal examples for getting started
+- `examples/strider.py` — canonical end-to-end (Walker build → PSO kinematic → GA dynamic → visualize).
+- `examples/01_walkers_gallery.ipynb`…`04_multi_objective_and_gait.ipynb` — numbered tutorial notebooks covering walker construction, physics+fitness, GA, and NSGA/gait analysis.
+- `examples/theo_jansen.py`, `klann_linkage.py`, `chebyshev_linkage.py` — classical mechanisms via `from_*` factories.
+- `examples/simple_fourbar.py`, `simple_walker.py` — minimal starting points.
+- `examples/compare_linkages.py`, `optimization_pipeline.py`, `verify_mechanisms.py`, `quick_demo.py` — scripted workflows.
