@@ -233,26 +233,27 @@ For a practical walker we want two things from the foot trajectory:
 1. **Full crank rotation** — the driving four-bar A-B-C-D must be
    Grashof crank-rocker, i.e., crank is the shortest link and
    `crank + ground ≤ coupler1 + rocker1`.
-2. **A near-horizontal stretch of F's locus** — the *stance* phase
-   where the foot glides along the ground.
+2. **A near-horizontal stretch of the foot locus** — the *stance*
+   phase where the foot glides along the ground.
 
-The dimensions below satisfy both (found by sampling the parameter
-space and scoring candidates on horizontal span over low y-variance
-windows). The flat top of F's curve is the stance stroke.
+For Watt I the foot rides on the **ternary triangle B-C-E** — E is a
+natural coupler-curve tracing point, rigidly attached to the
+floating link BC. Sampling the parameter space for a Grashof crank-
+rocker that also puts a near-flat segment in E's locus gives:
 """
 
 NB01_WATT = """
 watt = ls.Walker.from_watt(
-    crank=0.86,
-    coupler1=2.48,
-    rocker1=4.24,
-    link4=1.58,
-    link5=2.42,
-    rocker2=4.59,
-    ground_length=3.58,
+    crank=1.49,
+    coupler1=3.12,
+    rocker1=4.33,
+    link4=2.02,
+    link5=3.79,
+    rocker2=5.43,
+    ground_length=4.24,
 )
-show_walker(watt, "Watt I — full rotation, flat stance stroke",
-            figsize=(9, 7), foot_labels={'F'})
+show_walker(watt, "Watt I — full rotation, flat stance on E",
+            figsize=(9, 7), foot_labels={'E'})
 """
 
 NB01_STEPHENSON_MD = """
@@ -272,15 +273,15 @@ SimLinkage → Walker shim.
 
 NB01_STEPHENSON = """
 stephenson = ls.Walker.from_stephenson(
-    crank=1.05,
-    coupler=2.61,
-    rocker=2.89,
-    link4=3.60,
-    link5=3.81,
-    link6=3.95,
-    ground_length=3.80,
+    crank=1.03,
+    coupler=4.46,
+    rocker=2.38,
+    link4=3.01,
+    link5=2.54,
+    link6=3.67,
+    ground_length=4.3,
 )
-show_walker(stephenson, "Stephenson I — full rotation, flat stance stroke",
+show_walker(stephenson, "Stephenson I — full rotation, flat stance on F",
             figsize=(9, 7), foot_labels={'F'})
 """
 
