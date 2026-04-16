@@ -401,6 +401,35 @@ class Walker:
         return cls(hg, dims, name=name, motor_rates=motor_rates)
 
     @classmethod
+    def from_ghassaei_canonical(
+        cls,
+        scale: float = 1.0,
+        initial_crank_angle: float = 0.0,
+        angular_velocity: float = -tau / 48,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "ghassaei_canonical",
+    ) -> Walker:
+        """Build the canonical 5-dyad Ghassaei leg (Boim/Walkin8r figure).
+
+        8 nodes (A, B, C, D, F, H, E, G), 11 bars, 5 RRR dyads. Grounds A
+        (crank axle) and B (frame hinge, 53 units away); crank C = A + 26
+        starting 0.085 rad off vertical. D, F are the two branches of
+        RRR(C, B) at (56, 77); H = RRR(D, B) at (75, 77) is the figure's
+        unnamed intermediate; E = RRR(H, B) at (75, 77); foot G = RRR(E, F)
+        at (75, 75). The H-to-E distance is not given on the figure and
+        defaults to 75.
+        """
+        from ._classical import build_ghassaei_canonical
+
+        hg, dims = build_ghassaei_canonical(
+            scale=scale,
+            initial_crank_angle=initial_crank_angle,
+            angular_velocity=angular_velocity,
+            name=name,
+        )
+        return cls(hg, dims, name=name, motor_rates=motor_rates)
+
+    @classmethod
     def from_trotbot(
         cls,
         scale: float = 1.0,

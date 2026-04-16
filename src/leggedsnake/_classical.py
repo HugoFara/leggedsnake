@@ -425,6 +425,124 @@ def build_ghassaei(
     return hg, dims
 
 
+# --- Canonical 5-dyad Ghassaei (boim.com/Walkin8r reference figure) -------
+# A = crank axle ground, B = frame hinge ground, C = crank tip driver.
+# The crank starts nearly vertical (0.085 rad off +y from A). Five RRR
+# dyads: D = RRR(C, B), F = RRR(C, B) (other branch), H = RRR(D, B)
+# (the "unnamed" intermediate joint), E = RRR(H, B) (real labelled E),
+# G = RRR(E, F) (the foot). ``H_to_E`` is unspecified on the Boim figure
+# and is assumed 75 (matching the other outer bars).
+GHASSAEI_CANONICAL_DIMENSIONS: dict[str, float] = {
+    "crank": 26.0,           # A-C
+    "ground": 53.0,          # A-B
+    "C_to_outer": 56.0,      # C-D, C-F
+    "B_to_outer": 77.0,      # B-D, B-F, B-H, B-E
+    "D_to_H": 75.0,          # intermediate dyad arm
+    "H_to_E": 130.0,         # not on figure; fit against Wikibooks locus
+    "outer_to_foot": 75.0,   # E-G, F-G
+}
+
+_GHASSAEI_CANONICAL_EDGES: tuple[tuple[str, str, str, float], ...] = (
+    ("AC", "A", "C", 26.0),
+    ("CD", "C", "D", 56.0),
+    ("BD", "B", "D", 77.0),
+    ("CF", "C", "F", 56.0),
+    ("BF", "B", "F", 77.0),
+    ("DH", "D", "H", 75.0),
+    ("BH", "B", "H", 77.0),
+    ("HE", "H", "E", 130.0),
+    ("BE", "B", "E", 77.0),
+    ("EG", "E", "G", 75.0),
+    ("FG", "F", "G", 75.0),
+)
+
+
+def _circle_intersect(
+    p1: Point, r1: float, p2: Point, r2: float,
+) -> tuple[Point, Point] | None:
+    """Return the two intersection points of two circles (or ``None``)."""
+    dx, dy = p2[0] - p1[0], p2[1] - p1[1]
+    d = sqrt(dx * dx + dy * dy)
+    if d < abs(r1 - r2) or d > r1 + r2:
+        return None
+    a = (r1 ** 2 - r2 ** 2 + d ** 2) / (2 * d)
+    h = sqrt(max(r1 ** 2 - a ** 2, 0.0))
+    mx = p1[0] + a * dx / d
+    my = p1[1] + a * dy / d
+    return (
+        (mx + h * dy / d, my - h * dx / d),
+        (mx - h * dy / d, my + h * dx / d),
+    )
+
+
+def build_ghassaei_canonical(
+    scale: float,
+    initial_crank_angle: float,
+    angular_velocity: float,
+    name: str,
+) -> tuple[HypergraphLinkage, Dimensions]:
+    """Build the canonical 5-dyad Ghassaei leg (Boim/Walkin8r layout).
+
+    Nodes: A, B grounds; C crank tip; D, F outer dyads off (C, B);
+    H intermediate (unnamed on the figure) off (D, B); E real joint off
+    (H, B); G foot off (E, F). Classical Ghassaei dimensions are applied
+    exactly (crank=26, ground=53, 56/77 inner+outer, 75 closing bars).
+    Initial crank angle is 0.085 rad off vertical.
+    """
+    s = scale
+    A: Point = (0.0, 0.0)
+    B: Point = (-53.0 * s, 0.0)
+    # Crank starts 0.085 rad CCW from vertical (+y) above A.
+    phi = initial_crank_angle + 0.085
+    C: Point = (-26.0 * s * sin(phi), 26.0 * s * cos(phi))
+
+    def _pick(
+        pair: tuple[Point, Point] | None, pick: str,
+    ) -> Point:
+        if pair is None:
+            raise ValueError("Ghassaei canonical: RRR dyad circles do not intersect")
+        p, q = pair
+        if pick == "upper":  return p if p[1] > q[1] else q
+        if pick == "lower":  return p if p[1] < q[1] else q
+        if pick == "left":   return p if p[0] < q[0] else q
+        if pick == "right":  return p if p[0] > q[0] else q
+        raise ValueError(f"unknown branch {pick!r}")
+
+    df_pair = _circle_intersect(C, 56.0 * s, B, 77.0 * s)
+    D = _pick(df_pair, "upper")
+    F = _pick(df_pair, "lower")
+
+    # H is the "unnamed" intermediate joint, left of D. E is the real
+    # lower-left joint. The figure does not specify H-E, and a value of
+    # 130 reproduces the Wikibooks foot-locus aspect (~0.24).
+    H = _pick(_circle_intersect(D, 75.0 * s, B, 77.0 * s), "left")
+    E = _pick(_circle_intersect(H, 130.0 * s, B, 77.0 * s), "lower")
+    G = _pick(_circle_intersect(E, 75.0 * s, F, 75.0 * s), "lower")
+
+    positions: dict[str, Point] = {
+        "A": A, "B": B, "C": C, "D": D, "F": F, "H": H, "E": E, "G": G,
+    }
+
+    hg = HypergraphLinkage(name=name)
+    hg.add_node(Node("A", role=NodeRole.GROUND))
+    hg.add_node(Node("B", role=NodeRole.GROUND))
+    hg.add_node(Node("C", role=NodeRole.DRIVER))
+    for nid in ("D", "F", "H", "E", "G"):
+        hg.add_node(Node(nid, role=NodeRole.DRIVEN))
+
+    edge_distances: dict[str, float] = {}
+    for eid, src, tgt, length in _GHASSAEI_CANONICAL_EDGES:
+        hg.add_edge(Edge(eid, src, tgt))
+        edge_distances[eid] = length * s
+
+    dims = Dimensions(
+        node_positions=positions,
+        driver_angles={"C": DriverAngle(angular_velocity=angular_velocity)},
+        edge_distances=edge_distances,
+    )
+    return hg, dims
+
+
 # TrotBot bar lengths from DIY Walkers' combined Python simulator
 # (https://www.diywalkers.com/python-linkage-simulator.html, 2024 release).
 # Indices match the bar[0..17] naming in the upstream simulator so that

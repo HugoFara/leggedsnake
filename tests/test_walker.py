@@ -735,11 +735,20 @@ class TestWalkerClassicalFactories(unittest.TestCase):
         for eid, d1 in w1.dimensions.edge_distances.items():
             self.assertAlmostEqual(w2.dimensions.edge_distances[eid], 2.0 * d1)
 
-    def test_ghassaei_is_stub(self):
-        # Ghassaei's topology has not yet been reconstructed from the
-        # thesis figures; the factory exists as a stub.
-        with self.assertRaises(NotImplementedError):
-            Walker.from_ghassaei()
+    def test_ghassaei_builds(self):
+        # 5-dyad sketched Ghassaei: foot J8 walks a teardrop locus.
+        walker = Walker.from_ghassaei()
+        self.assertIn("J8", walker.topology.nodes)
+        self.assertEqual(len(walker.topology.edges), 11)
+
+    def test_ghassaei_canonical_builds(self):
+        # 5-dyad Boim/Walkin8r layout: classical dimensions applied exactly.
+        walker = Walker.from_ghassaei_canonical()
+        self.assertIn("G", walker.topology.nodes)
+        self.assertIn("H", walker.topology.nodes)  # unnamed intermediate
+        self.assertEqual(len(walker.topology.edges), 11)
+        self.assertAlmostEqual(walker.dimensions.edge_distances["AC"], 26.0)
+        self.assertAlmostEqual(walker.dimensions.edge_distances["CD"], 56.0)
 
     def test_ghassaei_dimensions_available(self):
         from leggedsnake._classical import GHASSAEI_DIMENSIONS
