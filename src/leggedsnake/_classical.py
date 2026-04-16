@@ -391,6 +391,26 @@ def _circle_intersect(
     )
 
 
+def _pick_branch(
+    pair: tuple[Point, Point] | None,
+    pick: str,
+    what: str = "RRR dyad",
+) -> Point:
+    """Pick one branch of a circle-circle intersection by side."""
+    if pair is None:
+        raise ValueError(f"{what}: circles do not intersect")
+    p, q = pair
+    if pick == "upper":
+        return p if p[1] > q[1] else q
+    if pick == "lower":
+        return p if p[1] < q[1] else q
+    if pick == "left":
+        return p if p[0] < q[0] else q
+    if pick == "right":
+        return p if p[0] > q[0] else q
+    raise ValueError(f"unknown branch {pick!r}")
+
+
 def build_ghassaei(
     scale: float,
     initial_crank_angle: float,
@@ -413,32 +433,16 @@ def build_ghassaei(
     phi = initial_crank_angle + 0.085
     C: Point = (-26.0 * s * sin(phi), 26.0 * s * cos(phi))
 
-    def _pick(
-        pair: tuple[Point, Point] | None, pick: str,
-    ) -> Point:
-        if pair is None:
-            raise ValueError("Ghassaei canonical: RRR dyad circles do not intersect")
-        p, q = pair
-        if pick == "upper":
-            return p if p[1] > q[1] else q
-        if pick == "lower":
-            return p if p[1] < q[1] else q
-        if pick == "left":
-            return p if p[0] < q[0] else q
-        if pick == "right":
-            return p if p[0] > q[0] else q
-        raise ValueError(f"unknown branch {pick!r}")
-
     df_pair = _circle_intersect(C, 56.0 * s, B, 77.0 * s)
-    D = _pick(df_pair, "upper")
-    F = _pick(df_pair, "lower")
+    D = _pick_branch(df_pair, "upper", "Ghassaei D")
+    F = _pick_branch(df_pair, "lower", "Ghassaei F")
 
     # H is the "unnamed" intermediate joint, left of D. E is the real
     # lower-left joint. The figure does not specify H-E, and a value of
     # 130 reproduces the Wikibooks foot-locus aspect (~0.24).
-    H = _pick(_circle_intersect(D, 75.0 * s, B, 77.0 * s), "left")
-    E = _pick(_circle_intersect(H, 130.0 * s, B, 77.0 * s), "lower")
-    G = _pick(_circle_intersect(E, 75.0 * s, F, 75.0 * s), "lower")
+    H = _pick_branch(_circle_intersect(D, 75.0 * s, B, 77.0 * s), "left", "Ghassaei H")
+    E = _pick_branch(_circle_intersect(H, 130.0 * s, B, 77.0 * s), "lower", "Ghassaei E")
+    G = _pick_branch(_circle_intersect(E, 75.0 * s, F, 75.0 * s), "lower", "Ghassaei G")
 
     positions: dict[str, Point] = {
         "A": A, "B": B, "C": C, "D": D, "F": F, "H": H, "E": E, "G": G,
@@ -527,21 +531,59 @@ def build_strider(
     angular_velocity, name
         Standard factory kwargs.
     """
-    # Canonical initial positions from examples/strider.py INIT_COORD.
-    # These coordinates match the default (triangle=2, femur=1.8, ...)
-    # and let the mechanism solve at t=0.
+    # Initial positions are *derived* from the 7 link lengths so the declared
+    # edge distances match the geometry exactly. Otherwise optimizers that
+    # mutate the dimensions get silently clamped to the hardcoded layout.
+    #
+    # Frame pair (A, Y) lies on the y-axis with |AY| = 1 (this is the
+    # chassis height, kept as an internal constant — not exposed as a
+    # param to preserve the 7-parameter signature). B and B_p form rigid
+    # isoceles triangles with AY: |AB| = |YB| = triangle, so B sits on the
+    # perpendicular bisector of AY at x = √(triangle² − 1/4). For the
+    # geometry to close, triangle must exceed 1/2.
+    if triangle <= 0.5:
+        raise ValueError(
+            f"triangle={triangle} ≤ 0.5: isoceles frame collapses onto A-Y"
+        )
+    A: Point = (0.0, 0.0)
+    Y: Point = (0.0, 1.0)
+    bx = sqrt(triangle * triangle - 0.25)
+    B: Point = (bx, 0.5)
+    B_p: Point = (-bx, 0.5)
+
+    # Crank starts pointing straight down (angle = 3π/2 from +x).
+    C: Point = (0.0, -crank)
+
+    # Knees via RRR dyad off the corresponding frame point and the crank.
+    D = _pick_branch(
+        _circle_intersect(B_p, femur, C, rocker_l), "lower", "Strider D (left knee)",
+    )
+    E = _pick_branch(
+        _circle_intersect(B, femur, C, rocker_l), "lower", "Strider E (right knee)",
+    )
+
+    # Ankles: F rigid on isoceles triangle C-D-F; G rigid on C-E-G.
+    # Requires 2·rocker_s ≥ rocker_l for the isoceles triangle to close.
+    F = _pick_branch(
+        _circle_intersect(C, rocker_s, D, rocker_s), "lower",
+        "Strider F (left ankle) — need 2·rocker_s ≥ rocker_l",
+    )
+    G = _pick_branch(
+        _circle_intersect(C, rocker_s, E, rocker_s), "lower",
+        "Strider G (right ankle) — need 2·rocker_s ≥ rocker_l",
+    )
+
+    # Feet via RRR dyad off the knee (tibia) and ankle (foot) of the same side.
+    H = _pick_branch(
+        _circle_intersect(D, tibia, F, foot), "lower", "Strider H (left foot)",
+    )
+    I = _pick_branch(
+        _circle_intersect(E, tibia, G, foot), "lower", "Strider I (right foot)",
+    )
+
     positions: dict[str, Point] = {
-        "A": (0.0, 0.0),
-        "Y": (0.0, 1.0),
-        "B": (1.41, 1.41),
-        "B_p": (-1.41, 1.41),
-        "C": (0.0, -1.0),
-        "D": (-2.25, 0.0),
-        "E": (2.25, 0.0),
-        "F": (-1.4, -1.2),
-        "G": (1.4, -1.2),
-        "H": (-2.7, -2.7),
-        "I": (2.7, -2.7),
+        "A": A, "Y": Y, "B": B, "B_p": B_p, "C": C,
+        "D": D, "E": E, "F": F, "G": G, "H": H, "I": I,
     }
 
     hg = HypergraphLinkage(name=name)
@@ -557,6 +599,10 @@ def build_strider(
     hg.add_node(Node("H", role=NodeRole.DRIVEN, name="left foot"))
     hg.add_node(Node("I", role=NodeRole.DRIVEN, name="right foot"))
 
+    # Uncrossed topology: left ankle F rigid on C-D (left knee side), right
+    # ankle G rigid on C-E (right knee side). The pre-refactor code had
+    # F/G attached to the *opposite*-side rocker, which was inconsistent
+    # with the INIT_COORD positions it shipped alongside.
     edges: list[tuple[str, str, str, float]] = [
         ("A_B", "A", "B", triangle),
         ("Y_B", "Y", "B", triangle),
@@ -568,9 +614,9 @@ def build_strider(
         ("B_E", "B", "E", femur),
         ("C_E", "C", "E", rocker_l),
         ("C_F", "C", "F", rocker_s),
-        ("E_F", "E", "F", rocker_s),
+        ("D_F", "D", "F", rocker_s),
         ("C_G", "C", "G", rocker_s),
-        ("D_G", "D", "G", rocker_s),
+        ("E_G", "E", "G", rocker_s),
         ("D_H", "D", "H", tibia),
         ("F_H", "F", "H", foot),
         ("E_I", "E", "I", tibia),
@@ -583,8 +629,8 @@ def build_strider(
 
     hg.add_hyperedge(Hyperedge("triangle_B", nodes=("A", "Y", "B")))
     hg.add_hyperedge(Hyperedge("triangle_B_p", nodes=("A", "Y", "B_p")))
-    hg.add_hyperedge(Hyperedge("triangle_F", nodes=("C", "E", "F")))
-    hg.add_hyperedge(Hyperedge("triangle_G", nodes=("C", "D", "G")))
+    hg.add_hyperedge(Hyperedge("triangle_F", nodes=("C", "D", "F")))
+    hg.add_hyperedge(Hyperedge("triangle_G", nodes=("C", "E", "G")))
 
     dims = Dimensions(
         node_positions=positions,

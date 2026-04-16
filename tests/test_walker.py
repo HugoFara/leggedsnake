@@ -697,18 +697,21 @@ class TestWalkerClassicalFactories(unittest.TestCase):
         self.assertIn("I", feet)
 
     def test_strider_param_overrides_propagate(self):
-        walker = Walker.from_strider(femur=3.0, tibia=4.0)
+        # Keep perturbations within the RRR buildability window; femur=3.0
+        # + tibia=4.0 push the foot dyad past its reach and raise at factory
+        # time. femur=2.0 + tibia=3.0 still close the mechanism.
+        walker = Walker.from_strider(femur=2.0, tibia=3.0)
         self.assertAlmostEqual(
-            walker.dimensions.edge_distances["B_p_D"], 3.0,
+            walker.dimensions.edge_distances["B_p_D"], 2.0,
         )
         self.assertAlmostEqual(
-            walker.dimensions.edge_distances["B_E"], 3.0,
+            walker.dimensions.edge_distances["B_E"], 2.0,
         )
         self.assertAlmostEqual(
-            walker.dimensions.edge_distances["D_H"], 4.0,
+            walker.dimensions.edge_distances["D_H"], 3.0,
         )
         self.assertAlmostEqual(
-            walker.dimensions.edge_distances["E_I"], 4.0,
+            walker.dimensions.edge_distances["E_I"], 3.0,
         )
 
     def test_trotbot_topology(self):
