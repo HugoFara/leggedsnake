@@ -736,26 +736,21 @@ class TestWalkerClassicalFactories(unittest.TestCase):
             self.assertAlmostEqual(w2.dimensions.edge_distances[eid], 2.0 * d1)
 
     def test_ghassaei_builds(self):
-        # 5-dyad sketched Ghassaei: foot J8 walks a teardrop locus.
+        # 5-dyad Boim/Walkin8r layout: classical Ghassaei dimensions.
         walker = Walker.from_ghassaei()
-        self.assertIn("J8", walker.topology.nodes)
-        self.assertEqual(len(walker.topology.edges), 11)
-
-    def test_ghassaei_canonical_builds(self):
-        # 5-dyad Boim/Walkin8r layout: classical dimensions applied exactly.
-        walker = Walker.from_ghassaei_canonical()
-        self.assertIn("G", walker.topology.nodes)
-        self.assertIn("H", walker.topology.nodes)  # unnamed intermediate
+        self.assertIn("G", walker.topology.nodes)   # foot
+        self.assertIn("H", walker.topology.nodes)   # unnamed intermediate
         self.assertEqual(len(walker.topology.edges), 11)
         self.assertAlmostEqual(walker.dimensions.edge_distances["AC"], 26.0)
         self.assertAlmostEqual(walker.dimensions.edge_distances["CD"], 56.0)
+        self.assertAlmostEqual(walker.dimensions.edge_distances["BD"], 77.0)
 
     def test_ghassaei_dimensions_available(self):
         from leggedsnake._classical import GHASSAEI_DIMENSIONS
         self.assertEqual(GHASSAEI_DIMENSIONS["crank"], 26.0)
         self.assertEqual(GHASSAEI_DIMENSIONS["ground"], 53.0)
-        self.assertEqual(GHASSAEI_DIMENSIONS["near_bar"], 56.0)
-        self.assertEqual(GHASSAEI_DIMENSIONS["far_bar"], 77.0)
+        self.assertEqual(GHASSAEI_DIMENSIONS["C_to_outer"], 56.0)
+        self.assertEqual(GHASSAEI_DIMENSIONS["B_to_outer"], 77.0)
 
     def test_trotbot_collinear_ternaries_sum_correctly(self):
         walker = Walker.from_trotbot()

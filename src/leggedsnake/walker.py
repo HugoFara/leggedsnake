@@ -377,51 +377,19 @@ class Walker:
         motor_rates: float | dict[str, float] = -4.0,
         name: str = "ghassaei",
     ) -> Walker:
-        """Build a sketched Ghassaei-style leg (1 crank + 5 RRR dyads).
+        """Build Amanda Ghassaei's 5-dyad leg (Boim/Walkin8r, thesis Fig. 5.4.4).
 
-        The topology comes from a hand-sketch in pylinkage-editor, not
-        from Ghassaei's 2011 thesis figure directly: T1 is ground, T2
-        the crank tip, T4/T5 first-layer RRR dyads on the crank, J6/J7
-        chained off T4 and T1, and J8 is the foot (chained off J7/T5).
-
-        Canonical thesis dimensions (crank = 26, ground = 53,
-        near-bar = 56, far-bar = 77) are exposed as
-        :data:`leggedsnake._classical.GHASSAEI_DIMENSIONS` for reference;
-        the sketched initial positions live in
-        :data:`leggedsnake._classical.GHASSAEI_POSITIONS`.
+        8 nodes (A, B grounds; C crank tip; D, F off (C, B); H unnamed
+        intermediate off (D, B); E real lower-left joint off (H, B); G foot
+        off (E, F)), 11 bars, 5 RRR dyads. Classical Ghassaei dimensions
+        are applied exactly: crank=26, ground=53, 56/77 inner/outer bars,
+        75 closing bars. H-E (not given on the figure) defaults to 130 to
+        reproduce the Wikibooks reference foot-locus aspect (~0.243).
+        Initial crank angle is 0.085 rad off vertical.
         """
         from ._classical import build_ghassaei
 
         hg, dims = build_ghassaei(
-            scale=scale,
-            initial_crank_angle=initial_crank_angle,
-            angular_velocity=angular_velocity,
-            name=name,
-        )
-        return cls(hg, dims, name=name, motor_rates=motor_rates)
-
-    @classmethod
-    def from_ghassaei_canonical(
-        cls,
-        scale: float = 1.0,
-        initial_crank_angle: float = 0.0,
-        angular_velocity: float = -tau / 48,
-        motor_rates: float | dict[str, float] = -4.0,
-        name: str = "ghassaei_canonical",
-    ) -> Walker:
-        """Build the canonical 5-dyad Ghassaei leg (Boim/Walkin8r figure).
-
-        8 nodes (A, B, C, D, F, H, E, G), 11 bars, 5 RRR dyads. Grounds A
-        (crank axle) and B (frame hinge, 53 units away); crank C = A + 26
-        starting 0.085 rad off vertical. D, F are the two branches of
-        RRR(C, B) at (56, 77); H = RRR(D, B) at (75, 77) is the figure's
-        unnamed intermediate; E = RRR(H, B) at (75, 77); foot G = RRR(E, F)
-        at (75, 75). The H-to-E distance is not given on the figure and
-        defaults to 75.
-        """
-        from ._classical import build_ghassaei_canonical
-
-        hg, dims = build_ghassaei_canonical(
             scale=scale,
             initial_crank_angle=initial_crank_angle,
             angular_velocity=angular_velocity,

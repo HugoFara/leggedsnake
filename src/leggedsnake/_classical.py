@@ -340,99 +340,15 @@ def build_chebyshev(
     return hg, dims
 
 
-# Reference dimensions from Figure 5.4.4 of Amanda Ghassaei's 2011 thesis
-# "The Design and Optimization of a Crank-Based Leg Mechanism" (Pomona
-# College). Units are Mathematica-units (25 units = 1 foot). Kept for
-# documentation — the builder below uses the sketched-by-hand layout
-# in :data:`GHASSAEI_POSITIONS`, which is a wider "1 crank + 5 RRR dyads"
-# variant, not the thesis's canonical 4-dyad design.
-GHASSAEI_DIMENSIONS: dict[str, float] = {
-    "crank": 26.0,
-    "ground": 53.0,
-    "near_bar": 56.0,
-    "far_bar": 77.0,
-}
-
-# Sketched Ghassaei topology (scaled to the thesis's 26-unit crank).
-# Grounds: T2 (crank axle) and T1 (frame hinge, at the same height as T2).
-# Crank: T2→T3. RRR dyads build the chain: J5 off (T3, T1), J4 off (T1, T3),
-# J6 off (T1, J4), J7 off (T1, J6), and the foot J8 off (J7, J5).
-GHASSAEI_POSITIONS: dict[str, Point] = {
-    # Frame: T1-T2 = 53 (classical ground offset), T2-T3 = 26 (classical crank).
-    "T1": (-3.670, 66.630),     # ground (left frame hinge)
-    "T2": (49.330, 66.630),     # ground (crank axle)
-    "T3": (75.330, 66.630),     # crank tip (driver)
-    # J5, J4 and J6, J7 positions tuned against the Wikibooks target locus
-    # (teardrop, x-span : y-span ≈ 1 : 0.24).
-    "J5": (53.051, -34.521),
-    "J4": (53.305, 111.392),
-    "J6": (-104.605, 166.340),
-    "J7": (-107.479, 32.206),
-    "J8": (-3.935, -54.357),    # foot
-}
-
-_GHASSAEI_EDGES: tuple[tuple[str, str, str], ...] = (
-    ("L2", "T2", "T3"),     # driver crank (26 units)
-    ("L3a", "T3", "J5"),    # J5 RRR dyad: anchors T3, T1
-    ("L3b", "T1", "J5"),
-    ("L5a", "T1", "J4"),    # J4 RRR dyad: anchors T1, T3
-    ("L5b", "T3", "J4"),
-    ("L6a", "T1", "J6"),    # J6 RRR dyad: anchors T1, J4
-    ("L6b", "J4", "J6"),
-    ("L7a", "T1", "J7"),    # J7 RRR dyad: anchors T1, J6
-    ("L7b", "J6", "J7"),
-    ("L8a", "J7", "J8"),    # J8 RRR dyad (foot): anchors J7, J5
-    ("L8b", "J5", "J8"),
-)
-
-
-def build_ghassaei(
-    scale: float,
-    initial_crank_angle: float,
-    angular_velocity: float,
-    name: str,
-) -> tuple[HypergraphLinkage, Dimensions]:
-    """Build the sketched Ghassaei-style leg (1 crank + 5 RRR dyads).
-
-    Foot node is ``J8``. ``initial_crank_angle`` is unused: positions come
-    from the hand-sketched layout and the solver picks the crank angle at
-    simulation time.
-    """
-    del initial_crank_angle
-    positions = {
-        nid: (x * scale, y * scale) for nid, (x, y) in GHASSAEI_POSITIONS.items()
-    }
-
-    hg = HypergraphLinkage(name=name)
-    hg.add_node(Node("T2", role=NodeRole.GROUND))
-    hg.add_node(Node("T1", role=NodeRole.GROUND))
-    hg.add_node(Node("T3", role=NodeRole.DRIVER))
-    for nid in ("J5", "J4", "J6", "J7", "J8"):
-        hg.add_node(Node(nid, role=NodeRole.DRIVEN))
-
-    edge_distances: dict[str, float] = {}
-    for eid, src, tgt in _GHASSAEI_EDGES:
-        hg.add_edge(Edge(eid, src, tgt))
-        px, py = positions[src]
-        qx, qy = positions[tgt]
-        edge_distances[eid] = sqrt((px - qx) ** 2 + (py - qy) ** 2)
-
-    dims = Dimensions(
-        node_positions=positions,
-        driver_angles={"T3": DriverAngle(angular_velocity=angular_velocity)},
-        edge_distances=edge_distances,
-    )
-    return hg, dims
-
-
-# --- Canonical 5-dyad Ghassaei (boim.com/Walkin8r reference figure) -------
+# --- Ghassaei (boim.com/Walkin8r reference figure, Figure 5.4.4 of her 2011
+# Pomona thesis) -----------------------------------------------------------
 # A = crank axle ground, B = frame hinge ground, C = crank tip driver.
 # The crank starts nearly vertical (0.085 rad off +y from A). Five RRR
 # dyads: D = RRR(C, B), F = RRR(C, B) (other branch), H = RRR(D, B)
 # (the "unnamed" intermediate joint), E = RRR(H, B) (real labelled E),
 # G = RRR(E, F) (the foot). ``H_to_E`` is unspecified on the Boim figure
 # and is assumed 75 (matching the other outer bars).
-GHASSAEI_CANONICAL_DIMENSIONS: dict[str, float] = {
+GHASSAEI_DIMENSIONS: dict[str, float] = {
     "crank": 26.0,           # A-C
     "ground": 53.0,          # A-B
     "C_to_outer": 56.0,      # C-D, C-F
@@ -442,7 +358,7 @@ GHASSAEI_CANONICAL_DIMENSIONS: dict[str, float] = {
     "outer_to_foot": 75.0,   # E-G, F-G
 }
 
-_GHASSAEI_CANONICAL_EDGES: tuple[tuple[str, str, str, float], ...] = (
+_GHASSAEI_EDGES: tuple[tuple[str, str, str, float], ...] = (
     ("AC", "A", "C", 26.0),
     ("CD", "C", "D", 56.0),
     ("BD", "B", "D", 77.0),
@@ -475,19 +391,20 @@ def _circle_intersect(
     )
 
 
-def build_ghassaei_canonical(
+def build_ghassaei(
     scale: float,
     initial_crank_angle: float,
     angular_velocity: float,
     name: str,
 ) -> tuple[HypergraphLinkage, Dimensions]:
-    """Build the canonical 5-dyad Ghassaei leg (Boim/Walkin8r layout).
+    """Build Amanda Ghassaei's 5-dyad leg (Boim/Walkin8r / thesis Fig. 5.4.4).
 
     Nodes: A, B grounds; C crank tip; D, F outer dyads off (C, B);
     H intermediate (unnamed on the figure) off (D, B); E real joint off
     (H, B); G foot off (E, F). Classical Ghassaei dimensions are applied
     exactly (crank=26, ground=53, 56/77 inner+outer, 75 closing bars).
-    Initial crank angle is 0.085 rad off vertical.
+    Initial crank angle is 0.085 rad off vertical. H-to-E is not on the
+    figure; 130 reproduces the Wikibooks reference foot-locus aspect.
     """
     s = scale
     A: Point = (0.0, 0.0)
@@ -531,7 +448,7 @@ def build_ghassaei_canonical(
         hg.add_node(Node(nid, role=NodeRole.DRIVEN))
 
     edge_distances: dict[str, float] = {}
-    for eid, src, tgt, length in _GHASSAEI_CANONICAL_EDGES:
+    for eid, src, tgt, length in _GHASSAEI_EDGES:
         hg.add_edge(Edge(eid, src, tgt))
         edge_distances[eid] = length * s
 
@@ -816,7 +733,6 @@ def build_trotbot(
 
 __all__ = [
     "GHASSAEI_DIMENSIONS",
-    "GHASSAEI_POSITIONS",
     "JANSEN_HOLY_NUMBERS",
     "KLANN_PATENT_DIMENSIONS",
     "TROTBOT_BARS",

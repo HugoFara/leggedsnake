@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Classical walking-linkage factories on ``Walker``**: one-call
+  constructors for six canonical mechanisms, each with unit-scaled
+  geometries and published bar lengths.
+  - ``Walker.from_jansen()`` — Theo Jansen's 8-bar, Holy-Number lengths.
+  - ``Walker.from_klann()`` — Klann's 6-bar (US Patent 6,260,862).
+  - ``Walker.from_chebyshev()`` — Chebyshev's 4-bar lambda.
+  - ``Walker.from_strider()`` — Farajallah's symmetric strider.
+  - ``Walker.from_trotbot()`` — Vagle's TrotBot (DIY Walkers, 2024).
+  - ``Walker.from_ghassaei()`` — Amanda Ghassaei's 5-dyad leg
+    (Figure 5.4.4 of her 2011 Pomona thesis / boim.com Walkin8r). Uses
+    the thesis's classical dimensions exactly (crank=26, ground=53,
+    56/77 inner/outer, 75 closing bars); the H-to-E arm is not given
+    on the figure and defaults to 130 to reproduce the published
+    foot-locus aspect (x:y ≈ 1:0.24) from the Wikibooks reference.
 - **Leg count as a first-class design variable**:
   - ``sweep_leg_counts(walker, objective, n_legs_range, ...)``: evaluate
     a finished walker design across a range of leg counts and return an
