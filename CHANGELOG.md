@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ``Walker.from_jansen()`` — Theo Jansen's 8-bar, Holy-Number lengths.
   - ``Walker.from_klann()`` — Klann's 6-bar (US Patent 6,260,862).
   - ``Walker.from_chebyshev()`` — Chebyshev's 4-bar lambda.
-  - ``Walker.from_strider()`` — Farajallah's symmetric strider.
+  - ``Walker.from_strider()`` — Vagle's symmetric Strider (DIY Walkers).
   - ``Walker.from_trotbot()`` — Vagle's TrotBot (DIY Walkers, 2024).
   - ``Walker.from_ghassaei()`` — Amanda Ghassaei's 5-dyad leg
     (Figure 5.4.4 of her 2011 Pomona thesis / boim.com Walkin8r). Uses

@@ -332,7 +332,7 @@ class Walker:
         motor_rates: float | dict[str, float] = -4.0,
         name: str = "strider",
     ) -> Walker:
-        """Build a Walker for the Strider mechanism (Farajallah, leggedsnake).
+        """Build a Walker for the Strider mechanism (Vagle, DIY Walkers).
 
         The Strider is a symmetric 11-node mechanism producing two feet
         per crank. Its kinematic chain: ground pair (``A``, ``Y``) →
@@ -343,8 +343,8 @@ class Walker:
         Parameters
         ----------
         crank, triangle, femur, rocker_l, rocker_s, tibia, foot : float
-            Link lengths. Defaults reproduce the canonical Strider used
-            throughout the ``leggedsnake`` optimisation examples.
+            Link lengths. Defaults reproduce the Strider example shipped
+            with ``leggedsnake`` (``examples/strider.py``).
         angular_velocity : float
             Kinematic crank step (rad per ``step()`` iteration). Default
             traces 10 samples per revolution (matches the example).
