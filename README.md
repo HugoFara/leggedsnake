@@ -10,7 +10,11 @@ optimizers on top of [pylinkage](https://github.com/HugoFara/pylinkage)'s
 kinematic model, so you can go from a mechanism sketch to an evolved walker
 in a few lines of code.
 
-![10 optimized striders](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Striders%20run.gif)
+![Strider optimized over 10 generations](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Striders%20run.gif)
+
+*One Strider mechanism optimized over 10 generations of a genetic
+algorithm, rendered walking on flat ground with 4 phase-offset legs
+(2 per side, mirrored).*
 
 ## Installation
 
@@ -30,20 +34,30 @@ uv sync
 
 ## Quick start
 
-A walker in five lines — the canonical Theo Jansen "Strandbeest" leg, built
-from the Holy Numbers and rendered in a live pyglet window:
+A walker in five lines — the canonical Theo Jansen "Strandbeest" built
+from the Holy Numbers, mirrored left/right and cloned into four
+phase-offset pairs for stance stability, rendered in a live pyglet
+window:
 
 ```python
 import leggedsnake as ls
 
-walker = ls.Walker.from_jansen(scale=1/25)
-walker.add_legs(2)                   # two extra phase-offset legs
+walker = ls.Walker.from_jansen(scale=0.1)
+walker.add_opposite_leg()            # mirror for left/right pair
+walker.add_legs(3)                   # 4 legs per side → 8-leg Strandbeest
 ls.video(walker, duration=10)        # live simulation
 ```
 
+![Theo Jansen Strandbeest walking](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Jansen%20quick%20start.gif)
+
+Fewer legs pitch 10–20° and can tip over; four legs per side keeps at
+least two feet in stance at every crank angle, which is why real
+Strandbeests have many legs.
+
 Other classical mechanisms ship as one-line factories too:
-`Walker.from_klann`, `Walker.from_chebyshev`, `Walker.from_watt`, and
-`Walker.from_catalog` (pylinkage's topology catalog).
+`Walker.from_strider`, `Walker.from_klann`, `Walker.from_chebyshev`,
+`Walker.from_watt`, and `Walker.from_catalog` (pylinkage's topology
+catalog).
 
 To build a custom mechanism, declare its topology (nodes + edges) and
 dimensions separately:
@@ -92,7 +106,7 @@ ls.video(walker)
 
 | Capability | Entry points |
 | --- | --- |
-| Build mechanisms | `Walker`, `HypergraphLinkage`, `Walker.from_jansen/klann/chebyshev/watt/catalog` |
+| Build mechanisms | `Walker`, `HypergraphLinkage`, `Walker.from_strider/jansen/klann/chebyshev/watt/catalog` |
 | Kinematic fitness | `leggedsnake.utility.stride`, `leggedsnake.utility.step` |
 | Physics simulation | `World`, `video`, `all_linkages_video`, `video_debug` |
 | Dynamic fitness | `DistanceFitness`, `EfficiencyFitness`, `StrideFitness`, `StabilityFitness`, `CompositeFitness` |
@@ -126,6 +140,10 @@ The scripted examples cover specific mechanisms and full pipelines:
 [`simple_walker.py`](examples/simple_walker.py),
 [`optimization_pipeline.py`](examples/optimization_pipeline.py),
 [`compare_linkages.py`](examples/compare_linkages.py).
+
+The two GIFs above are regenerated deterministically by
+[`examples/generate_readme_gifs.py`](examples/generate_readme_gifs.py)
+(matplotlib `PillowWriter`, headless).
 
 ## Tips for faster experiments
 
