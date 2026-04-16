@@ -948,52 +948,190 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import leggedsnake as ls
+from pylinkage import extract_trajectory
+from pylinkage.visualizer import plot_static_linkage
+from pylinkage.optimization import multi_objective_optimization
+from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 np.random.seed(42)
+
+# Reproducible flat ground — the default terrain has a 10° slope + heavy
+# noise + unseeded RNG, so repeated runs disagree.
+FLAT = ls.TerrainConfig.from_preset(ls.TerrainPreset.FLAT)
+FLAT.seed = 0
+WORLD_CFG = ls.WorldConfig(terrain=FLAT)
+"""
+
+NB04_PROTO_MD = """
+## 1. Starting walker — a de-tuned Jansen
+
+Jansen's canonical Holy Numbers are already the product of decades
+of hand-optimization; starting NSGA there and expecting it to
+improve in 240 evaluations is unrealistic. Instead we start from a
+**de-tuned** walker — the canonical lengths with four parameters
+perturbed by ±15 %. This gives NSGA real headroom to recover.
+
+The 11 optimizable length parameters (Jansen's naming convention —
+see `leggedsnake._classical.JANSEN_HOLY_NUMBERS`):
+
+| key | meaning                              |
+|-----|--------------------------------------|
+| m   | crank radius (O → A)                 |
+| j,k | crank-to-knee distances (A → C, D)   |
+| b,c,d | frame-to-knee distances (B → C, D, E) |
+| e   | diagonal C → E                       |
+| f,g | knee-to-ankle (E → F, D → F)         |
+| h,i | ankle-to-foot (F → G, D → G)         |
+
+Each fitness evaluator adds `add_opposite_leg()` plus three
+phase-offset copies internally (`n_legs=4, mirror=True`), so the
+*search candidate* stays 11-dimensional (one leg's length
+parameters) even though the *simulated walker* is the canonical
+8-leg Strandbeest (4 per side, mirrored). Below is the starting
+foot locus (one crank revolution, kinematic only — no physics yet).
+"""
+
+NB04_PROTO = """
+from leggedsnake._classical import JANSEN_HOLY_NUMBERS
+
+# The 11 length parameters that control a Jansen leg, in a fixed
+# order that the NSGA will search over.
+LENGTH_KEYS = ['m', 'j', 'b', 'k', 'c', 'd', 'e', 'g', 'f', 'i', 'h']
+CANONICAL = {k: JANSEN_HOLY_NUMBERS[k] for k in LENGTH_KEYS}
+
+# De-tune four parameters so the starting walker has visible room to
+# improve. These multipliers stay ±15 % so the de-tuned geometry is
+# still buildable.
+PERTURB = {'j': 1.15, 'k': 0.85, 'f': 1.15, 'i': 0.85}
+START = [CANONICAL[k] * PERTURB.get(k, 1.0) for k in LENGTH_KEYS]
+
+def walker_from_lengths(vec):
+    # Build a fresh Jansen Walker with the given 11-length vector.
+    # Using the factory's ``lengths=`` override sidesteps the hypergraph
+    # ``set_num_constraints`` limitation (which can only propagate
+    # mobile-dyad edges — the 9 rigid-triangle edges stay pinned).
+    return ls.Walker.from_jansen(
+        scale=0.1,
+        lengths=dict(zip(LENGTH_KEYS, vec)),
+    )
+
+prototype = walker_from_lengths(START)
+print(f"de-tuned start: DOF={prototype.dof}")
+print(f"perturbed params: {PERTURB}")
+
+mech = prototype.to_mechanism()
+loci = list(prototype.step(iterations=96))
+fig, ax = plt.subplots(figsize=(7, 4.2))
+plot_static_linkage(
+    mech, ax, loci,
+    show_loci=True, show_labels=False, show_legend=False,
+    title="De-tuned Jansen (scale=0.1) — kinematic preview",
+)
+for i, joint in enumerate(mech.joints):
+    if (getattr(joint, 'name', '') or '').startswith('G'):
+        xs, ys = extract_trajectory(loci, i)
+        if xs.size:
+            ax.plot(xs, ys, color='crimson', lw=2.0, alpha=0.9, zorder=10)
+ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
+plt.show()
 """
 
 NB04_NSGA_MD = """
-## 1. NSGA-II over distance and efficiency
+## 2. NSGA-II over distance and efficiency
 
 Both objectives are physics-based (`DistanceFitness`,
 `EfficiencyFitness`), so each candidate is a short pymunk rollout.
-We keep `duration=2s`, `population_size=6`, `generations=3` to bound
-the demo runtime — use order-of-magnitude larger settings for a
-serious run.
+We budget `pop=24 × generations=10 = 240` evaluations (×2 objectives
+≈ 480 rollouts at `duration=5.0 s`) — enough to populate the Pareto
+front without slowing the notebook. For a serious run push both
+counts up an order of magnitude and add `n_workers=4` to parallelize.
+
+Three things matter for this search to produce diverse, stable walkers:
+
+1. **Rebuild per candidate.** `Walker.set_num_constraints` on a
+   hypergraph walker can't propagate through rigid triangles, so
+   most edge-length changes get silently dropped. We bypass that
+   by building a fresh `Walker.from_jansen(scale=0.1, lengths=...)`
+   every evaluation — the factory rewires positions from scratch,
+   guaranteeing all 11 length parameters actually land.
+2. **`mirror=True`.** Without it, every candidate walks on all legs
+   stacked on one side of the chassis — unstable, high variance
+   (stdev ~4 m on distance, run-to-run). Mirroring halves the
+   variance to ~1 m and gives the NSGA a real signal to optimize.
+3. **Flat seeded terrain (`WORLD_CFG`).** The default terrain has
+   a 10° slope plus noise with an unseeded RNG; without overriding
+   that, every candidate walks on different hills.
+
+Bounds are ±20 % of the canonical values — tight enough that most
+samples are buildable, wide enough to move the gait.
 """
 
 NB04_NSGA = """
-def walker_factory():
-    return ls.Walker.from_jansen(scale=0.1)
+# Shared fitness evaluators — one simulation per objective per candidate.
+# ``mirror=True, n_legs=4`` = 4 legs per side, 8 total (canonical Strandbeest).
+fit_distance = ls.DistanceFitness(duration=5.0, n_legs=4, mirror=True)
+fit_efficiency = ls.EfficiencyFitness(
+    duration=5.0, n_legs=4, mirror=True, min_distance=1.0,
+)
 
-prototype = walker_factory()
-edge_names = list(prototype.dimensions.edge_distances.keys())
-dim_values = list(prototype.dimensions.edge_distances.values())
-lo = [0.7 * v for v in dim_values]
-hi = [1.3 * v for v in dim_values]
+def _score(fit, vec):
+    try:
+        w = walker_from_lengths(vec)
+        r = fit(w.topology, w.dimensions, WORLD_CFG)
+        return r.score if r.valid else 0.0
+    except Exception:
+        return 0.0  # unbuildable geometry
 
-cfg = ls.NsgaWalkingConfig(n_generations=3, pop_size=6, seed=42, verbose=False)
+# ``multi_objective_optimization`` minimizes — walking scores maximize,
+# so we negate here. The ``linkage``/``pos`` args are unused: we always
+# rebuild from the 11-length ``dims`` vector.
+def eval_distance(linkage, dims, pos):
+    return -_score(fit_distance, list(dims))
 
-result = ls.nsga_walking_optimization(
-    walker_factory=walker_factory,
-    objectives=[
-        ls.DistanceFitness(duration=2.0, n_legs=4),
-        ls.EfficiencyFitness(duration=2.0, n_legs=4, min_distance=0.1),
-    ],
+def eval_efficiency(linkage, dims, pos):
+    return -_score(fit_efficiency, list(dims))
+
+lo = [0.80 * v for v in START]
+hi = [1.20 * v for v in START]
+
+ensemble = multi_objective_optimization(
+    objectives=[eval_distance, eval_efficiency],
+    linkage=prototype,
     bounds=(lo, hi),
     objective_names=['distance', 'efficiency'],
-    nsga_config=cfg,
-    include_gait=False,
-    include_stability=False,
+    algorithm='nsga2',
+    n_generations=10, pop_size=24, seed=42, verbose=False,
 )
+
+# Bridge pylinkage's Ensemble → leggedsnake's NsgaWalkingResult so the
+# built-in plotting helpers still work. Scores are un-negated for display
+# (higher distance / efficiency = better).
+solutions = [
+    ParetoSolution(
+        scores=(-float(ensemble.scores['distance'][i]),
+                -float(ensemble.scores['efficiency'][i])),
+        dimensions=np.asarray(ensemble.dimensions[i], dtype=float),
+        initial_positions=(),
+    )
+    for i in range(ensemble.n_members)
+]
+pareto = ParetoFront(solutions, ('distance', 'efficiency'))
+result = ls.NsgaWalkingResult(
+    pareto_front=pareto,
+    config=ls.NsgaWalkingConfig(
+        n_generations=10, pop_size=24, seed=42, verbose=False,
+    ),
+)
+
 print(f"Pareto front: {len(result.pareto_front.solutions)} solutions")
-for i, sol in enumerate(result.pareto_front.solutions[:5]):
-    print(f"  sol {i}: scores={[round(float(s), 3) for s in sol.scores]}")
+for i, sol in enumerate(result.pareto_front.solutions):
+    print(f"  sol {i}: distance={sol.scores[0]:+.2f} m, "
+          f"efficiency={sol.scores[1]:+.3f}")
 """
 
 NB04_PLOT_MD = """
-## 2. Plot the Pareto front
+## 3. Plot the Pareto front
 
 `plot_pareto_front` is a thin matplotlib wrapper that highlights the
 "best compromise" (closest to the utopia corner in objective space).
@@ -1005,7 +1143,7 @@ plt.show()
 """
 
 NB04_BEST_MD = """
-## 3. Inspect the best-compromise solution
+## 4. Inspect the best-compromise solution
 
 `result.best_compromise` is the Pareto solution with smallest L2
 distance to the utopia corner in objective space.
@@ -1013,49 +1151,280 @@ distance to the utopia corner in objective space.
 
 NB04_BEST = """
 best = result.best_compromise()
-print(f"best compromise scores: {best.scores}")
-print(f"  dimensions: {dict(zip(edge_names, best.dimensions))}")
+print(f"best compromise: distance={best.scores[0]:+.2f} m, "
+      f"efficiency={best.scores[1]:+.3f}")
+print()
+print(f"{'param':>6}  {'canonical':>10}  {'start':>10}  {'optimized':>10}  {'Δ vs start':>11}")
+for key, start, opt in zip(LENGTH_KEYS, START, best.dimensions):
+    canonical = CANONICAL[key]
+    change = (float(opt) - start) / start * 100
+    print(f"  {key:>4}  {canonical:>10.2f}  {start:>10.2f}  "
+          f"{float(opt):>10.2f}  {change:>+10.1f}%")
 """
 
 NB04_GAIT_MD = """
-## 4. Gait analysis on the winner
+## 5. Gait analysis on a winning walker
 
-`analyze_gait` takes the per-foot trajectories and returns **duty
-factor** (fraction of the stride in stance), **stride period**, and
-inter-foot **phase offsets**. Re-evaluating the winner with
-`DistanceFitness(record_loci=True)` captures the trajectories we need.
+`analyze_gait` returns **duty factor** (fraction of stride in
+stance), **stride frequency**, and inter-foot **phase offsets**. A
+gait diagram only tells a useful story for a walker that *actually
+walks*, so we want the Pareto solution with the best distance
+score. `best_for_objective(0)` picks by search-time score — but
+pymunk's LCP solver is slightly non-deterministic, so that single
+rollout can be a lucky outlier. We instead re-evaluate every
+Pareto candidate with median-of-3 rollouts and pick the one with
+the highest robust distance.
+
+We re-simulate with `DistanceFitness(record_loci=True)` to record
+every joint, then filter to the foot nodes (names starting with
+``'G'``). The default `contact_threshold=0.1` assumes ground near
+``y=0``; our road sits at ``bb_min_y − 1 ≈ −10``, so we self-tune
+the threshold to each foot's observed y-range.
 """
 
 NB04_GAIT = """
-best_walker = walker_factory()
-best_walker.set_num_constraints(list(best.dimensions))
+import statistics as _stats
 
-fit_record = ls.DistanceFitness(duration=3.0, n_legs=4, record_loci=True)
-fr = fit_record(best_walker.topology, best_walker.dimensions, ls.WorldConfig())
-print(f"recorded distance={fr.score:.3f}, feet tracked={list(fr.loci.keys())}")
+# Re-score each Pareto candidate with median-of-3 and pick the most
+# robustly-fastest — avoids the single-rollout variance that can make
+# ``best_for_objective(0)`` pick an outlier.
+_dist_fit = ls.DistanceFitness(duration=5.0, n_legs=4, mirror=True)
+def _median_d(vec, n=3):
+    w = walker_from_lengths(vec)
+    return _stats.median(
+        _dist_fit(w.topology, w.dimensions, WORLD_CFG).score for _ in range(n)
+    )
+ranked = sorted(
+    result.pareto_front.solutions,
+    key=lambda s: _median_d(list(s.dimensions)),
+    reverse=True,
+)
+fastest = ranked[0]
+print(f"most robustly-fastest Pareto solution: "
+      f"distance={fastest.scores[0]:+.2f} m (search), "
+      f"efficiency={fastest.scores[1]:+.3f}")
 
-if fr.loci:
-    foot_ids = list(fr.loci.keys())
-    gait = ls.analyze_gait(fr.loci, foot_ids, dt=0.02)
-    print(f"mean duty factor : {gait.mean_duty_factor:.2f}")
-    print(f"mean stride freq : {gait.mean_stride_frequency:.2f} Hz")
-    print(f"mean stride len  : {gait.mean_stride_length:.3f} m")
+best_walker = walker_from_lengths(list(fastest.dimensions))
+
+fit_record = ls.DistanceFitness(
+    duration=5.0, n_legs=4, mirror=True, record_loci=True,
+)
+# A single rollout can be an LCP-solver outlier (walker tips over even
+# when the median behavior is fine). Retry up to 3× until we capture a
+# rollout that moved at least 1 m — that's the run we analyse gait on.
+for _ in range(3):
+    fr = fit_record(best_walker.topology, best_walker.dimensions, WORLD_CFG)
+    if fr.score >= 1.0:
+        break
+foot_ids = [k for k in fr.loci if k.startswith('G')]
+print(f"re-simulated distance = {fr.score:+.3f} m")
+print(f"feet tracked ({len(foot_ids)}): {foot_ids[:3]}...")
+
+# ``analyze_gait`` decides \"in stance\" via ``y <= contact_threshold``
+# and defaults to ``0.1`` — valid when the ground is near y=0. Here the
+# road sits at ``bb_min_y - 1 ≈ -10`` and individual walkers have
+# different swing amplitudes, so we pick each walker's own threshold at
+# the median of all foot-y samples — roughly 50% stance / 50% swing —
+# then verify the feet actually cross it.
+import numpy as np
+all_ys = np.array([y for f in foot_ids for _, y in fr.loci[f]])
+y_min, y_max = float(all_ys.min()), float(all_ys.max())
+contact_threshold = float(np.median(all_ys))
+
+gait = ls.analyze_gait(
+    {f: fr.loci[f] for f in foot_ids}, foot_ids,
+    dt=WORLD_CFG.physics_period,
+    contact_threshold=contact_threshold,
+)
+print(f"contact threshold  : {contact_threshold:.2f} (foot y in [{y_min:.1f}, {y_max:.1f}])")
+print(f"mean duty factor   : {gait.mean_duty_factor:.2f}")
+print(f"mean stride freq   : {gait.mean_stride_frequency:.3f} Hz")
+print(f"mean stride length : {gait.mean_stride_length:.3f} m")
 """
 
 NB04_DIAG_MD = """
-## 5. Gait diagram
+## 6. Gait diagram
 
 `plot_gait_diagram` shows each foot as a stance/swing bar across
-time. Symmetric gaits (trot, pace) produce simple alternating
-patterns; chaotic gaits fragment.
+time. An 8-leg Strandbeest run at the same crank rate produces
+evenly spaced stance bars — the canonical 4/4 Jansen gait, each
+foot in stance ~½ of the cycle, offset by ~¼ period from its
+neighbors.
 """
 
 NB04_DIAG = """
-if fr.loci:
-    fig = ls.plot_gait_diagram(gait, figsize=(8, 2.8))
-    plt.show()
+fig = ls.plot_gait_diagram(gait, figsize=(8, 3.0))
+plt.show()
+"""
+
+NB04_COMPARE_MD = """
+## 7. Initial vs optimized — side by side
+
+The Pareto front reports numbers; the side-by-side shows the
+geometry. Left: the starting Jansen (factory Holy Numbers).
+Right: the fastest Pareto survivor. The bars at ``t=0`` plus all
+joint loci plus the foot trajectory in red — same visualization as
+§1 — let you see *what the optimizer actually changed* and whether
+the foot locus gets bigger, flatter, or more symmetric along the way.
+
+We also re-score both walkers with the same `DistanceFitness` used
+in the search so the numbers on each title are directly comparable.
+"""
+
+NB04_COMPARE = """
+def preview(walker, ax, title):
+    mech = walker.to_mechanism()
+    loci = list(walker.step(iterations=96))
+    plot_static_linkage(
+        mech, ax, loci,
+        show_loci=True, show_labels=False, show_legend=False,
+        title=title,
+    )
+    for i, joint in enumerate(mech.joints):
+        if (getattr(joint, 'name', '') or '').startswith('G'):
+            xs, ys = extract_trajectory(loci, i)
+            if xs.size:
+                ax.plot(xs, ys, color='crimson', lw=2.0, alpha=0.9, zorder=10)
+    ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
+
+# Pymunk distance varies run-to-run (float-order in the LCP solver), so
+# we take the median of 3 rollouts per walker for a stable comparison.
+import statistics
+score_fit = ls.DistanceFitness(duration=5.0, n_legs=4, mirror=True)
+
+def median_distance(walker, n=3):
+    return statistics.median(
+        score_fit(walker.topology, walker.dimensions, WORLD_CFG).score
+        for _ in range(n)
+    )
+
+canonical_walker = walker_from_lengths([CANONICAL[k] for k in LENGTH_KEYS])
+
+start_distance = median_distance(prototype)
+opt_distance = median_distance(best_walker)
+canonical_distance = median_distance(canonical_walker)
+
+fig, axes = plt.subplots(1, 3, figsize=(16, 5), sharey=True)
+preview(prototype, axes[0],
+        f"De-tuned start (median distance={start_distance:+.2f} m)")
+preview(canonical_walker, axes[1],
+        f"Canonical Jansen (median distance={canonical_distance:+.2f} m)")
+preview(walker_from_lengths(list(fastest.dimensions)), axes[2],
+        f"NSGA fastest (median distance={opt_distance:+.2f} m)")
+plt.tight_layout()
+plt.show()
+delta = opt_distance - start_distance
+print(f"Δ vs de-tuned start: {delta:+.2f} m", end='')
+# Report % only when the baseline is not ~0 (otherwise the ratio blows up).
+if abs(start_distance) >= 1.0:
+    print(f"  ({delta / abs(start_distance) * 100:+.0f}%)")
 else:
-    print("No recorded loci — skipping gait diagram")
+    print("  (start barely moves — de-tuning broke its gait)")
+print(f"Δ vs canonical Jansen: {opt_distance - canonical_distance:+.2f} m "
+      f"(Jansen's hand-tuned numbers are hard to beat in 240 evals)")
+"""
+
+NB04_RACE_MD = """
+## 8. Watch them race
+
+Static pictures hide the dynamics — let's drop both walkers into
+pymunk worlds on the **same plot** and let them race for 10 s.
+The de-tuned starting walker (gray) and the NSGA optimized walker
+(blue) run on identical flat terrain with identical motor rates;
+the only difference is the 11 length parameters. Whoever's chassis
+is further right at the end wins.
+"""
+
+NB04_RACE = """
+from matplotlib import animation
+from IPython.display import HTML
+
+def prepare_race(walker):
+    # same 4-per-side mirrored Strandbeest the search used
+    walker.add_opposite_leg()
+    walker.add_legs(3)
+    bb_min_y = ls.linkage_bb(walker)[0]
+    w = ls.World(config=ls.WorldConfig(terrain=FLAT), road_y=bb_min_y - 1)
+    w.add_linkage(walker)
+    return w, list(walker.topology.edges.items())
+
+start_race = walker_from_lengths(START)
+opt_race = walker_from_lengths(list(fastest.dimensions))
+world_s, edges_s = prepare_race(start_race)
+world_o, edges_o = prepare_race(opt_race)
+
+race_duration = 10.0
+race_stride = 10  # record every 10th physics tick → 50 frames at 200 ms
+n_race_steps = int(race_duration / world_s.config.physics_period)
+
+race_frames = []
+for i in range(n_race_steps):
+    world_s.update()
+    world_o.update()
+    if i % race_stride:
+        continue
+    ps = world_s.linkages[0].get_all_positions()
+    po = world_o.linkages[0].get_all_positions()
+    race_frames.append({
+        's_segs': [(ps[e.source], ps[e.target]) for _, e in edges_s
+                    if e.source in ps and e.target in ps],
+        'o_segs': [(po[e.source], po[e.target]) for _, e in edges_o
+                    if e.source in po and e.target in po],
+        # Each World only extends its road as *its* walker advances, so we
+        # store both — the blue walker overruns the gray walker's road,
+        # and vice-versa, whenever their x-positions diverge.
+        's_road': list(world_s.road),
+        'o_road': list(world_o.road),
+        's_cx': world_s.linkages[0].body.position.x,
+        'o_cx': world_o.linkages[0].body.position.x,
+        't': i * world_s.config.physics_period,
+    })
+
+bb_s = ls.linkage_bb(start_race)  # (min_y, max_x, max_y, min_x)
+bb_o = ls.linkage_bb(opt_race)
+walker_half_w = max(bb_s[1] - bb_s[3], bb_o[1] - bb_o[3]) * 0.6
+y_lo = min(bb_s[0], bb_o[0]) - 2
+y_hi = max(bb_s[2], bb_o[2]) + 2
+
+fig_r, ax_r = plt.subplots(figsize=(12, 5))
+plt.close(fig_r)  # suppress static snapshot; animation follows
+
+def draw_race(frame):
+    ax_r.clear()
+    # Union the two roads — each World extends only as its walker moves,
+    # so the blue-winning side needs the blue road and the gray-winning
+    # side needs the gray road. They're at the same road_y, so an
+    # x-sorted merge gives a single continuous ground line.
+    combined = sorted(
+        {(round(x, 3), round(y, 3)) for x, y in frame['s_road']}
+        | {(round(x, 3), round(y, 3)) for x, y in frame['o_road']}
+    )
+    xs, ys = zip(*combined)
+    ax_r.plot(xs, ys, color='#555', lw=1.2)
+    for (a, b) in frame['s_segs']:
+        ax_r.plot([a[0], b[0]], [a[1], b[1]], '-',
+                  color='#999', lw=1.2, alpha=0.8)
+    for (a, b) in frame['o_segs']:
+        ax_r.plot([a[0], b[0]], [a[1], b[1]], '-',
+                  color='#1f77b4', lw=1.4, alpha=0.9)
+    ax_r.plot([frame['s_cx']], [0], 'o', color='#666',
+              ms=6, label=f"start x={frame['s_cx']:+.2f} m")
+    ax_r.plot([frame['o_cx']], [0], 'o', color='#1f77b4',
+              ms=6, label=f"optimized x={frame['o_cx']:+.2f} m")
+    # Camera: center on midpoint, wide enough to contain both walkers
+    mid = 0.5 * (frame['s_cx'] + frame['o_cx'])
+    half_w = max(abs(frame['o_cx'] - frame['s_cx']) * 0.6 + walker_half_w,
+                 walker_half_w * 2)
+    ax_r.set_xlim(mid - half_w, mid + half_w)
+    ax_r.set_ylim(y_lo, y_hi)
+    ax_r.set_aspect('equal'); ax_r.grid(True, alpha=0.3)
+    ax_r.set_title(f"Start (gray) vs NSGA optimized (blue) — t={frame['t']:.1f}s")
+    ax_r.legend(loc='upper right', fontsize=9)
+
+ani = animation.FuncAnimation(
+    fig_r, draw_race, frames=race_frames, interval=200, blit=False,
+)
+HTML(ani.to_jshtml())
 """
 
 NB04_SUMMARY = """
@@ -1079,11 +1448,14 @@ eight-bar, determined by fitness rather than assumed).
 NB04 = [
     _md(NB04_INTRO),
     _code(NB04_IMPORTS),
+    _md(NB04_PROTO_MD), _code(NB04_PROTO),
     _md(NB04_NSGA_MD), _code(NB04_NSGA),
     _md(NB04_PLOT_MD), _code(NB04_PLOT),
     _md(NB04_BEST_MD), _code(NB04_BEST),
     _md(NB04_GAIT_MD), _code(NB04_GAIT),
     _md(NB04_DIAG_MD), _code(NB04_DIAG),
+    _md(NB04_COMPARE_MD), _code(NB04_COMPARE),
+    _md(NB04_RACE_MD), _code(NB04_RACE),
     _md(NB04_SUMMARY),
 ]
 
