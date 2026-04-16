@@ -76,34 +76,52 @@ import numpy as np
 
 import leggedsnake as ls
 from pylinkage import extract_trajectory
+from pylinkage.visualizer import plot_static_linkage
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 """
 
 NB01_HELPER_MD = """
-## 1. A helper: foot locus of any Walker
+## 1. A helper: draw a Walker with its foot locus
 
-Every `Walker` has a cached `Mechanism`. Its joints are in solve order;
-`walker.get_feet()` returns the node IDs that the kinematic solver
-detected as feet (terminal or outermost driven nodes). We look those
-IDs up in `mechanism.joints` to pull the right trajectory.
+Every `Walker` wraps a cached `Mechanism`. pylinkage's
+`plot_static_linkage(mechanism, ax, loci, ...)` renders the bars at
+`t=0` and overlays each joint's locus over one full cycle. We then
+bold-stroke the feet identified by `walker.get_feet()` so the stance
+trajectory stands out against the auxiliary joint paths.
 """
 
 NB01_HELPER = """
-def foot_loci(walker, iterations=None):
-    # Return list of (foot_name, xs, ys) for one full crank revolution.
+def show_walker(walker, title, iterations=None, figsize=(8, 5)):
+    # Draw a Walker's bars at t=0 plus every joint locus; highlight the feet.
     mech = walker.to_mechanism()
     loci = list(walker.step(iterations=iterations))
+
+    fig, ax = plt.subplots(figsize=figsize)
+    plot_static_linkage(
+        mech, ax, loci,
+        show_loci=True, show_labels=True, show_legend=False,
+        title=title,
+    )
+
+    # Overlay the feet trajectories in bold. Some factories assign
+    # cosmetic joint names ("left foot") that don't match the node IDs
+    # returned by get_feet(); fall back to a substring match on "foot".
     feet_ids = set(walker.get_feet())
-    out = []
     for i, joint in enumerate(mech.joints):
         name = getattr(joint, 'name', '') or ''
-        # Factories name feet like "G (foot)" — match by prefix.
-        if name in feet_ids or any(name.startswith(fid + ' ') for fid in feet_ids):
+        is_foot = (
+            name in feet_ids
+            or any(name.startswith(fid + ' ') for fid in feet_ids)
+            or 'foot' in name.lower()
+        )
+        if is_foot:
             xs, ys = extract_trajectory(loci, i)
             if xs.size:
-                out.append((name, xs, ys))
-    return out
+                ax.plot(xs, ys, color='crimson', lw=2.2, alpha=0.9, zorder=10)
+
+    ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
+    plt.show()
 """
 
 NB01_JANSEN_MD = """
@@ -119,12 +137,7 @@ NB01_JANSEN = """
 jansen = ls.Walker.from_jansen()
 print(f'DOF: {jansen.dof}, feet: {jansen.get_feet()}')
 
-fig, ax = plt.subplots(figsize=(7, 4))
-for name, xs, ys in foot_loci(jansen):
-    ax.plot(xs, ys, label=name)
-ax.set_aspect('equal'); ax.grid(True); ax.legend(fontsize=8)
-ax.set_title("Theo Jansen — flat-bottom locus (holy number lengths)")
-plt.show()
+show_walker(jansen, "Theo Jansen — flat-bottom locus (holy number lengths)")
 """
 
 NB01_KLANN_MD = """
@@ -137,13 +150,7 @@ for stepping over obstacles but worse for body stability.
 
 NB01_KLANN = """
 klann = ls.Walker.from_klann()
-
-fig, ax = plt.subplots(figsize=(7, 4))
-for name, xs, ys in foot_loci(klann):
-    ax.plot(xs, ys, label=name)
-ax.set_aspect('equal'); ax.grid(True); ax.legend(fontsize=8)
-ax.set_title("Klann — 6-bar, taller swing apex")
-plt.show()
+show_walker(klann, "Klann — 6-bar, taller swing apex")
 """
 
 NB01_CHEBYSHEV_MD = """
@@ -157,13 +164,7 @@ for a 1-DOF single-leg mechanism.
 
 NB01_CHEBYSHEV = """
 cheb = ls.Walker.from_chebyshev()
-
-fig, ax = plt.subplots(figsize=(7, 4))
-for name, xs, ys in foot_loci(cheb):
-    ax.plot(xs, ys, label=name)
-ax.set_aspect('equal'); ax.grid(True); ax.legend(fontsize=8)
-ax.set_title("Chebyshev lambda — 4-bar straight-line approximation")
-plt.show()
+show_walker(cheb, "Chebyshev lambda — 4-bar straight-line approximation")
 """
 
 NB01_STRIDER_MD = """
@@ -177,14 +178,12 @@ count for a smooth curve.
 """
 
 NB01_STRIDER = """
-strider = ls.Walker.from_strider()
-
-fig, ax = plt.subplots(figsize=(7, 4))
-for name, xs, ys in foot_loci(strider, iterations=120):
-    ax.plot(xs, ys, label=name)
-ax.set_aspect('equal'); ax.grid(True); ax.legend(fontsize=7, ncol=2)
-ax.set_title("Strider — two mirrored four-bars, shared crank")
-plt.show()
+# Strider's factory angular velocity is coarse (10 steps per rotation);
+# we pass a finer value so the foot curve is smooth in the plot.
+from math import tau
+strider = ls.Walker.from_strider(angular_velocity=-tau / 60)
+show_walker(strider, "Strider — two mirrored four-bars, shared crank",
+            figsize=(9, 6))
 """
 
 NB01_GHASSAEI_MD = """
@@ -199,13 +198,8 @@ reproduce the Wikibooks Walkin8r foot-locus aspect (x:y ≈ 1:0.24).
 
 NB01_GHASSAEI = """
 ghassaei = ls.Walker.from_ghassaei()
-
-fig, ax = plt.subplots(figsize=(7, 4))
-for name, xs, ys in foot_loci(ghassaei):
-    ax.plot(xs, ys, label=name)
-ax.set_aspect('equal'); ax.grid(True); ax.legend(fontsize=8)
-ax.set_title("Ghassaei (thesis / Boim Walkin8r) — 5-dyad")
-plt.show()
+show_walker(ghassaei, "Ghassaei (thesis / Boim Walkin8r) — 5-dyad",
+            figsize=(9, 6))
 """
 
 NB01_WATT_MD = """
@@ -230,13 +224,8 @@ stephenson = ls.Walker.from_stephenson(
     ground_length=3.0,
 )
 
-fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-for ax, title, walker in [(axes[0], "Watt I", watt), (axes[1], "Stephenson I", stephenson)]:
-    for name, xs, ys in foot_loci(walker):
-        ax.plot(xs, ys, label=name)
-    ax.set_aspect('equal'); ax.grid(True); ax.legend(fontsize=8)
-    ax.set_title(f"{title} — 6 links, richer coupler curve")
-plt.tight_layout(); plt.show()
+show_walker(watt, "Watt I — 6 links, inline coupler", figsize=(8, 5))
+show_walker(stephenson, "Stephenson I — 6 links, branched coupler", figsize=(8, 5))
 """
 
 NB01_SUMMARY = """
