@@ -736,6 +736,7 @@ import matplotlib.pyplot as plt
 import leggedsnake as ls
 from pylinkage import extract_trajectory
 from pylinkage.optimization import generate_bounds
+from pylinkage.visualizer import plot_static_linkage
 
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 """
@@ -743,23 +744,52 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 NB03_START_MD = """
 ## 1. The starting Strider
 
-`Walker.from_strider(...)` takes seven lengths. Most of pylinkage's
-optimizers talk to a linkage via its `.joints` list (dimensions per
-joint). Walker exposes `.joints` for exactly this reason.
+The Strider's 17 edge distances are coupled by symmetry — only seven
+independent lengths really parameterize it (`crank, triangle, femur,
+rocker_l, rocker_s, tibia, foot`). We optimize in that compact
+7-dimensional space: the GA proposes seven numbers, we rebuild a fresh
+Strider from them, and we score that walker. Mutations that break
+symmetry are avoided by construction.
+
+The factory's default crank rate traces just 10 samples per rotation —
+enough for `StrideFitness`, too coarse for a smooth drawing. The
+`show_strider` helper oversamples by shrinking `dt`: one revolution
+rendered in 60 sub-steps without touching the stored angular velocity.
 """
 
 NB03_START = """
-START = dict(crank=1.0, triangle=2.0, femur=1.8, rocker_l=2.6,
-             rocker_s=1.4, tibia=2.5, foot=1.8)
+PARAM_NAMES = ['crank', 'triangle', 'femur', 'rocker_l', 'rocker_s', 'tibia', 'foot']
+START_PARAMS = [1.0, 2.0, 1.8, 2.6, 1.4, 2.5, 1.8]
 
-def make_strider():
-    return ls.Walker.from_strider(**START)
+def make_strider(params=START_PARAMS):
+    return ls.Walker.from_strider(**dict(zip(PARAM_NAMES, params)))
+
+def show_strider(walker, ax, title, n_frames=60):
+    # Draw bars at t=0, every joint locus, and overlay the two feet in bold.
+    mech = walker.to_mechanism()
+    period = mech.get_rotation_period()  # integer steps per revolution at dt=1
+    dt = period / n_frames
+    loci = list(walker.step(iterations=n_frames, dt=dt, skip_unbuildable=True))
+    plot_static_linkage(
+        mech, ax, loci,
+        show_loci=True, show_labels=False, show_legend=False,
+        title=title,
+    )
+    for i, joint in enumerate(mech.joints):
+        name = (getattr(joint, 'name', '') or '').lower()
+        if 'foot' in name:
+            xs, ys = extract_trajectory(loci, i)
+            if xs.size:
+                ax.plot(xs, ys, color='crimson', lw=2.2, alpha=0.9, zorder=10)
+    ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
 
 prototype = make_strider()
 print(f"Strider start: DOF={prototype.dof}, feet={prototype.get_feet()}")
-edge_names = list(prototype.dimensions.edge_distances.keys())
-dim_values = list(prototype.dimensions.edge_distances.values())
-print(f"{len(dim_values)} free edge distances to optimize")
+print(f"{len(PARAM_NAMES)} independent params to optimize: {PARAM_NAMES}")
+
+fig, ax = plt.subplots(figsize=(7, 5))
+show_strider(prototype, ax, "Starting Strider — bars at t=0 + joint loci")
+plt.show()
 """
 
 NB03_FIT_MD = """
@@ -767,8 +797,10 @@ NB03_FIT_MD = """
 
 `StrideFitness` returns the horizontal stride length (the portion of
 the foot locus that stays below a given height — i.e., the stance
-phase). We adapt it to the GA's `(eval_func(dna))` contract with
-`as_ga_fitness`.
+phase). We wrap it in an `eval_func(linkage, dims, pos) -> float` that
+**rebuilds a fresh Strider from the 7 compact params** each evaluation
+— bypassing `set_num_constraints`, which can only partially propagate
+changes through the hypergraph's rigid-triangle constraints.
 """
 
 NB03_FIT = """
@@ -776,8 +808,17 @@ fit = ls.StrideFitness(step_height=0.5, stride_height=0.2, foot_index=-1)
 r = fit(prototype.topology, prototype.dimensions, ls.WorldConfig())
 print(f"Starting stride score: {r.score:.3f}  (valid={r.valid})")
 
-# Adapt to the optimizer contract: (linkage, dims, pos) -> float
-eval_func = ls.as_eval_func(fit, walker_factory=make_strider)
+def eval_func(linkage, dims, pos):
+    # ``dims`` is the GA's current 7-tuple; ``linkage`` / ``pos`` are ignored.
+    # Rebuild from scratch so the factory can recompute consistent node
+    # positions for every candidate.
+    try:
+        w = make_strider(dims)
+        result = fit(w.topology, w.dimensions, ls.WorldConfig())
+        return result.score if result.valid else 0.0
+    except Exception:
+        # Infeasible geometries (e.g. non-intersecting RRR dyads) get score 0.
+        return 0.0
 """
 
 NB03_GA_MD = """
@@ -785,67 +826,72 @@ NB03_GA_MD = """
 
 Small population and few iterations keep the demo fast. On a real
 problem use `max_pop≈40, iters≈80+` and multiprocessing via
-`processes=...`.
+`processes=...`. Bounds are ±40% of each default — tight enough that
+most mutations land in the RRR buildability window.
 """
 
 NB03_GA = """
-bounds = generate_bounds(dim_values, min_ratio=2.0, max_factor=2.0)
+bounds = ([0.6 * v for v in START_PARAMS], [1.4 * v for v in START_PARAMS])
 
 ensemble = ls.genetic_algorithm_optimization(
     eval_func=eval_func,
     linkage=prototype,
-    center=dim_values,
+    center=START_PARAMS,
     bounds=bounds,
-    max_pop=10,
-    iters=4,
+    max_pop=12,
+    iters=15,
     processes=1,
     verbose=False,
 )
 
 print(f"Ensemble size: {len(ensemble)}")
-for i, agent in enumerate(ensemble.top(3)):
-    print(f"  rank {i}: score={agent.score:.3f}")
+for i in range(min(3, len(ensemble))):
+    print(f"  rank {i}: score={ensemble[i].score:.3f}  "
+          f"params={dict(zip(PARAM_NAMES, [round(float(d), 2) for d in ensemble[i].dimensions]))}")
 """
 
 NB03_VIZ_MD = """
 ## 4. Visualize before vs after
 
-Plot the starting and best-after-GA foot loci side-by-side.
+Draw the full mechanism (bars at t=0, every joint locus, feet in bold)
+for the starting Strider and the best GA candidate side-by-side. A
+pure foot-locus line-plot hides which body deformation the optimizer
+actually favored — seeing the whole mechanism tells you that story.
 """
 
 NB03_VIZ = """
-def foot_xy(walker):
-    mech = walker.to_mechanism()
-    loci = list(walker.step(iterations=120))
-    xs, ys = extract_trajectory(loci, len(mech.joints) - 1)
-    return xs, ys
-
 best_agent = ensemble[0]
-# Build a fresh Strider, then swap in the optimized edge distances.
-best_walker = make_strider()
-best_walker.set_num_constraints(list(best_agent.dimensions))
+best_walker = make_strider(list(best_agent.dimensions))
 
-fig, ax = plt.subplots(figsize=(7, 4))
-xs, ys = foot_xy(prototype)
-ax.plot(xs, ys, '--', color='#888', label=f"start (stride={r.score:.2f})")
-xs, ys = foot_xy(best_walker)
-ax.plot(xs, ys, '-', color='#c44e52', label=f"best GA (stride={best_agent.score:.2f})")
-ax.set_aspect('equal'); ax.grid(True); ax.legend()
-ax.set_title("Strider foot locus — GA before/after")
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+show_strider(prototype, axes[0],
+             f"Start (stride={r.score:.2f})")
+show_strider(best_walker, axes[1],
+             f"Best GA (stride={best_agent.score:.2f})")
+plt.tight_layout()
 plt.show()
 """
 
 NB03_ENSEMBLE_MD = """
 ## 5. Ensemble inspection
 
-`Ensemble` wraps the Pareto-ordered population with helpers: `top(n)`,
-`filter_by_score(min_score=...)`. Handy for checkpointing or reseeding
-a follow-up run.
+`Ensemble` wraps the Pareto-ordered population with helpers:
+`filter_by_score(min_score=...)`, `top(n, ascending=False)` for the
+best few. The 1×3 panel below shows the three top survivors — they
+usually cluster around one attractor, revealing how much (or little)
+the GA has diversified at this budget.
 """
 
 NB03_ENSEMBLE = """
 survivors = ensemble.filter_by_score(min_val=r.score)
 print(f"{len(survivors)} / {len(ensemble)} candidates beat the starting score")
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4.5), sharey=True)
+for ax, agent in zip(axes, [ensemble[i] for i in range(min(3, len(ensemble)))]):
+    w = make_strider(list(agent.dimensions))
+    show_strider(w, ax, f"stride={agent.score:.2f}")
+plt.tight_layout()
+plt.show()
 """
 
 NB03_SUMMARY = """
