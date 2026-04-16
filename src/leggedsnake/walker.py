@@ -242,6 +242,7 @@ class Walker:
         angular_velocity: float = -tau / 48,
         motor_rates: float | dict[str, float] = -4.0,
         name: str = "jansen",
+        lengths: dict[str, float] | None = None,
     ) -> Walker:
         """Build a Walker for Theo Jansen's 8-bar "Strandbeest" leg.
 
@@ -264,6 +265,14 @@ class Walker:
             Motor angular velocity (rad/s) for physics simulation.
         name : str
             Name for the linkage.
+        lengths : dict[str, float] | None
+            Per-parameter overrides of the 13 length parameters (keys
+            ``"a"``, ``"b"``, ..., ``"m"`` — see
+            :data:`leggedsnake._classical.JANSEN_HOLY_NUMBERS` for the
+            canonical values). Partial dicts are allowed. Use this to
+            optimize link lengths directly rather than round-tripping
+            through ``set_num_constraints``, which on hypergraph walkers
+            can't propagate through rigid triangles.
         """
         from ._classical import build_jansen
 
@@ -272,6 +281,7 @@ class Walker:
             initial_crank_angle=initial_crank_angle,
             angular_velocity=angular_velocity,
             name=name,
+            lengths=lengths,
         )
         return cls(hg, dims, name=name, motor_rates=motor_rates)
 

@@ -121,13 +121,22 @@ def build_jansen(
     initial_crank_angle: float,
     angular_velocity: float,
     name: str,
+    lengths: dict[str, float] | None = None,
 ) -> tuple[HypergraphLinkage, Dimensions]:
     """Build the (topology, dimensions) of a single Theo Jansen leg.
 
     The Jansen linkage is an 8-bar planar mechanism. All mobile joints
     are Revolute (circle-circle intersection) — no ternary links.
+
+    When ``lengths`` is given, its entries override the canonical
+    :data:`JANSEN_HOLY_NUMBERS` *before* scaling — use this for
+    optimization over the 13 length parameters. Partial dicts are
+    allowed (missing keys fall back to the canonical values).
     """
-    h = {k: v * scale for k, v in JANSEN_HOLY_NUMBERS.items()}
+    base = dict(JANSEN_HOLY_NUMBERS)
+    if lengths is not None:
+        base.update(lengths)
+    h = {k: v * scale for k, v in base.items()}
     coords = _jansen_positions(h, initial_crank_angle)
 
     hg = HypergraphLinkage(name=name)
