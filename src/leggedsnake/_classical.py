@@ -358,14 +358,18 @@ GHASSAEI_DIMENSIONS: dict[str, float] = {
 # Crank: T2→T3. RRR dyads build the chain: J5 off (T3, T1), J4 off (T1, T3),
 # J6 off (T1, J4), J7 off (T1, J6), and the foot J8 off (J7, J5).
 GHASSAEI_POSITIONS: dict[str, Point] = {
-    "T2": (15.140, 9.973),     # ground (crank axle)
-    "T3": (41.140, 9.973),     # crank tip (driver)
-    "T1": (-3.670, 66.626),    # ground (frame hinge, above T2)
-    "J5": (-28.035, 1.307),
-    "J4": (68.997, 46.718),
-    "J6": (24.901, 140.519),
-    "J7": (-53.347, 114.477),
-    "J8": (-55.345, -63.221),  # foot
+    # Grounds and crank axle all on a horizontal frame line.
+    "T1": (-3.670, 66.630),     # ground (left frame hinge)
+    "T2": (56.040, 66.630),     # ground (crank axle)
+    "T3": (75.000, 66.630),     # crank tip (driver, shorter crank)
+    # J5 below, J4 above, both aligned with T2.
+    "J5": (56.040, 0.000),
+    "J4": (56.040, 140.000),
+    # J6, J7 share an x left of T1; J6 at J4.y, J7 at J5.y.
+    "J6": (-60.000, 140.000),
+    "J7": (-60.000, 0.000),
+    # Foot J8 aligned with T1, below J5/J7.
+    "J8": (-3.670, -60.000),
 }
 
 _GHASSAEI_EDGES: tuple[tuple[str, str, str], ...] = (
