@@ -157,14 +157,18 @@ NB01_CHEBYSHEV_MD = """
 ## 4. Chebyshev's lambda (4-bar, 1850s)
 
 The simplest mechanism here: a **four-bar** with a coupler point. The
-foot traces an approximate straight line on the lower half of the
-cycle, and a shallow arc on the upper half. Four bars is the minimum
-for a 1-DOF single-leg mechanism.
+classical Chebyshev ratio `crank:coupler:rocker:ground = 1:2.5:2.5:2`
+places the foot at the coupler midpoint (`foot_ratio=0.5`), where the
+curve degenerates into an approximate straight line on the lower half
+of the cycle — the **λ-shape** the mechanism is named after. Four bars
+is the minimum for a 1-DOF single-leg mechanism.
 """
 
 NB01_CHEBYSHEV = """
-cheb = ls.Walker.from_chebyshev()
-show_walker(cheb, "Chebyshev lambda — 4-bar straight-line approximation")
+cheb = ls.Walker.from_chebyshev(
+    crank=1.0, coupler=2.5, rocker=2.5, ground_length=2.0, foot_ratio=0.5,
+)
+show_walker(cheb, "Chebyshev lambda — classical ratio, foot at coupler midpoint")
 """
 
 NB01_STRIDER_MD = """
@@ -206,26 +210,28 @@ NB01_WATT_MD = """
 ## 7. Watt and Stephenson six-bars
 
 The two six-bar families. Both open richer foot-path geometries than
-a pure four-bar — classical synthesis gives them for coupler-curve
-targets that the 4-bar cannot reach. `Walker.from_watt()` and
-`Walker.from_stephenson()` take explicit link lengths (no factory
-defaults yet); we pass sensible starting values below.
+a pure four-bar: classical synthesis uses them for coupler-curve
+targets a 4-bar cannot reach. `Walker.from_watt()` and
+`Walker.from_stephenson()` take explicit link lengths (no canonical
+defaults exist — any six-bar synthesis textbook gives a different set).
+We pick asymmetric values below so the rigid triangle B-C-E and
+second loop D-F don't accidentally collapse into a four-bar.
 """
 
 NB01_WATT = """
 watt = ls.Walker.from_watt(
-    crank=1.0, coupler1=2.5, rocker1=2.5,
-    link4=2.5, link5=2.5, rocker2=2.5,
+    crank=1.0, coupler1=2.0, rocker1=2.5,
+    link4=1.5, link5=2.0, rocker2=3.0,
     ground_length=3.0,
 )
 stephenson = ls.Walker.from_stephenson(
-    crank=1.0, coupler=2.5, rocker=2.5,
-    link4=1.5, link5=1.5, link6=2.0,
-    ground_length=3.0,
+    crank=0.8, coupler=2.2, rocker=2.8,
+    link4=1.8, link5=1.6, link6=2.5,
+    ground_length=2.5,
 )
 
-show_walker(watt, "Watt I — 6 links, inline coupler", figsize=(8, 5))
-show_walker(stephenson, "Stephenson I — 6 links, branched coupler", figsize=(8, 5))
+show_walker(watt, "Watt I — 6 links, ternary triangle B-C-E", figsize=(8, 5))
+show_walker(stephenson, "Stephenson I — 6 links, separated ternary links", figsize=(8, 5))
 """
 
 NB01_SUMMARY = """
