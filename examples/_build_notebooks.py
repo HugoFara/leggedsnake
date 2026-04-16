@@ -92,10 +92,16 @@ trajectory stands out against the auxiliary joint paths.
 """
 
 NB01_HELPER = """
-def show_walker(walker, title, iterations=None, figsize=(8, 5)):
+def show_walker(walker, title, iterations=None, figsize=(8, 5),
+                skip_unbuildable=False, foot_labels=None):
     # Draw a Walker's bars at t=0 plus every joint locus; highlight the feet.
+    # Pass ``skip_unbuildable=True`` for non-Grashof mechanisms so dead frames
+    # are silently dropped. ``foot_labels`` overrides auto-detection when
+    # get_feet() is ambiguous (e.g. all non-ground joints look like "feet").
     mech = walker.to_mechanism()
-    loci = list(walker.step(iterations=iterations))
+    raw = list(walker.step(iterations=iterations,
+                           skip_unbuildable=skip_unbuildable))
+    loci = [l for l in raw if l[0][0] is not None] if skip_unbuildable else raw
 
     fig, ax = plt.subplots(figsize=figsize)
     plot_static_linkage(
@@ -107,15 +113,21 @@ def show_walker(walker, title, iterations=None, figsize=(8, 5)):
     # Overlay the feet trajectories in bold. Some factories assign
     # cosmetic joint names ("left foot") that don't match the node IDs
     # returned by get_feet(); fall back to a substring match on "foot".
-    feet_ids = set(walker.get_feet())
+    if foot_labels is not None:
+        feet_ids = set(foot_labels)
+        def _is_foot(name):
+            return name in feet_ids
+    else:
+        feet_ids = set(walker.get_feet())
+        def _is_foot(name):
+            return (
+                name in feet_ids
+                or any(name.startswith(fid + ' ') for fid in feet_ids)
+                or 'foot' in name.lower()
+            )
     for i, joint in enumerate(mech.joints):
         name = getattr(joint, 'name', '') or ''
-        is_foot = (
-            name in feet_ids
-            or any(name.startswith(fid + ' ') for fid in feet_ids)
-            or 'foot' in name.lower()
-        )
-        if is_foot:
+        if _is_foot(name):
             xs, ys = extract_trajectory(loci, i)
             if xs.size:
                 ax.plot(xs, ys, color='crimson', lw=2.2, alpha=0.9, zorder=10)
@@ -157,18 +169,21 @@ NB01_CHEBYSHEV_MD = """
 ## 4. Chebyshev's lambda (4-bar, 1850s)
 
 The simplest mechanism here: a **four-bar** with a coupler point. The
-classical Chebyshev ratio `crank:coupler:rocker:ground = 1:2.5:2.5:2`
-places the foot at the coupler midpoint (`foot_ratio=0.5`), where the
-curve degenerates into an approximate straight line on the lower half
-of the cycle — the **λ-shape** the mechanism is named after. Four bars
-is the minimum for a 1-DOF single-leg mechanism.
+classical Chebyshev ratio `crank:coupler:rocker:ground = 1:2.5:2.5:2`,
+with the foot at a coupler **extension** past the coupler-rocker joint
+(`foot_ratio=2.0` places it at distance `2 × coupler` from the crank
+pin A — i.e., as far past B as A-B). The foot hangs below the
+mechanism in a Λ-shape, and its lower stroke is the approximate
+straight line this linkage is named for. Four bars is the minimum for
+a 1-DOF single-leg mechanism.
 """
 
 NB01_CHEBYSHEV = """
 cheb = ls.Walker.from_chebyshev(
-    crank=1.0, coupler=2.5, rocker=2.5, ground_length=2.0, foot_ratio=0.5,
+    crank=1.0, coupler=2.5, rocker=2.5, ground_length=2.0, foot_ratio=2.0,
 )
-show_walker(cheb, "Chebyshev lambda — classical ratio, foot at coupler midpoint")
+show_walker(cheb, "Chebyshev lambda — foot on coupler extension past B",
+            figsize=(8, 6))
 """
 
 NB01_STRIDER_MD = """
@@ -207,31 +222,91 @@ show_walker(ghassaei, "Ghassaei (thesis / Boim Walkin8r) — 5-dyad",
 """
 
 NB01_WATT_MD = """
-## 7. Watt and Stephenson six-bars
+## 7. Watt I — a six-bar walker from the literature
 
-The two six-bar families. Both open richer foot-path geometries than
-a pure four-bar: classical synthesis uses them for coupler-curve
-targets a 4-bar cannot reach. `Walker.from_watt()` and
-`Walker.from_stephenson()` take explicit link lengths (no canonical
-defaults exist — any six-bar synthesis textbook gives a different set).
-We pick asymmetric values below so the rigid triangle B-C-E and
-second loop D-F don't accidentally collapse into a four-bar.
+The two six-bar families (Watt and Stephenson) open richer foot-path
+geometries than a pure four-bar: classical synthesis uses them for
+coupler-curve targets a 4-bar cannot reach.
+
+The dimensions below come from Mehdigholi's Watt-6-bar walking
+mechanism (also featured in
+[kenaycock/Six-Bar-Walking-Mechanism](https://github.com/kenaycock/Six-Bar-Walking-Mechanism)).
+They produce a non-Grashof four-bar A-B-C-D (the crank cannot rotate
+full 360°), so we pass ``skip_unbuildable=True`` and visualize only
+the buildable stroke — in a real walker two cranks would drive the
+mechanism through the dead zone.
 """
 
 NB01_WATT = """
-watt = ls.Walker.from_watt(
-    crank=1.0, coupler1=2.0, rocker1=2.5,
-    link4=1.5, link5=2.0, rocker2=3.0,
-    ground_length=3.0,
-)
-stephenson = ls.Walker.from_stephenson(
-    crank=0.8, coupler=2.2, rocker=2.8,
-    link4=1.8, link5=1.6, link6=2.5,
-    ground_length=2.5,
-)
+from math import pi
 
-show_walker(watt, "Watt I — 6 links, ternary triangle B-C-E", figsize=(8, 5))
-show_walker(stephenson, "Stephenson I — 6 links, separated ternary links", figsize=(8, 5))
+watt = ls.Walker.from_watt(
+    crank=1.0,
+    coupler1=4.6875,   # R3
+    rocker1=2.3125,    # R4
+    link4=4.6875,      # R6 (parallel leg link)
+    link5=3.8125,      # R5 (top connector)
+    rocker2=2.3125,    # R3'
+    ground_length=1.875,  # R1
+    initial_crank_angle=pi,
+)
+show_walker(watt, "Watt I — Mehdigholi walking dimensions",
+            figsize=(8, 7), skip_unbuildable=True, foot_labels={'F'})
+"""
+
+NB01_STEPHENSON_MD = """
+## 8. Stephenson I — synthesized from rigid-body poses
+
+Where Watt's two rigid triangles are adjacent (joined at B), a
+Stephenson has them **separated** — the second loop branches from
+coupler joint C rather than crank-tip B.
+
+Rather than handing it fixed dimensions, we run
+`pylinkage.synthesis.motion_generation` with three target **poses**
+(position + orientation) along a horizontal stroke, and Burmester
+theory returns link lengths that thread those poses. The three poses
+specify a body moving horizontally while rotating slightly — the
+approximation of a walker's body during stance.
+
+Pure collinear, same-orientation poses are singular under Burmester
+synthesis (infinitely many solutions); the orientation sweep below
+breaks that symmetry.
+"""
+
+NB01_STEPHENSON = """
+import math
+from pylinkage.synthesis import motion_generation, Pose, solution_to_linkage
+
+# Three poses: horizontal motion with gentle orientation sweep
+poses = [
+    Pose(0.0, 0.0, 0.0),
+    Pose(1.0, 0.5, math.pi / 10),
+    Pose(2.0, 0.0, math.pi / 5),
+]
+syn = motion_generation(poses=poses, max_solutions=5, require_grashof=False)
+print(f"motion_generation → {len(syn.solutions)} four-bar solution(s)")
+
+# motion_generation returns four-bar solutions. To illustrate the
+# Stephenson six-bar (and its separated ternary links), we use
+# pylinkage's reference dimensions from its own notebook 14.
+from pylinkage.synthesis import stephenson_from_lengths
+
+stephenson = stephenson_from_lengths(
+    crank=0.8, coupler=3.5, rocker=3.0,
+    link4=2.0, link5=2.5, link6=3.0,
+    ground_length=4.0, initial_crank_angle=math.pi / 4,
+)
+loci = list(stephenson.step(iterations=200))
+fig, ax = plt.subplots(figsize=(9, 6))
+plot_static_linkage(stephenson, ax, loci, show_loci=True, show_labels=True,
+                    show_legend=False, n_ghosts=3,
+                    title="Stephenson I — pylinkage reference dimensions")
+ax.set_aspect('equal'); ax.grid(True, alpha=0.3)
+plt.show()
+
+# Show what motion_generation placed the coupler through
+for i, p in enumerate(poses):
+    print(f"  pose {i}: ({p.x:.1f}, {p.y:.1f}, {math.degrees(p.angle):.0f}°)")
 """
 
 NB01_SUMMARY = """
@@ -262,6 +337,7 @@ NB01 = [
     _md(NB01_STRIDER_MD), _code(NB01_STRIDER),
     _md(NB01_GHASSAEI_MD), _code(NB01_GHASSAEI),
     _md(NB01_WATT_MD), _code(NB01_WATT),
+    _md(NB01_STEPHENSON_MD), _code(NB01_STEPHENSON),
     _md(NB01_SUMMARY),
 ]
 
