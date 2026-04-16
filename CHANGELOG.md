@@ -291,6 +291,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking**: default ``WorldConfig.torque`` lowered from ``1e3`` to
+  ``1e2`` N·m. The old default over-drove typical Strandbeest / Klann
+  walkers into pitch chaos before the stance phase could react — at
+  ``scale=0.1`` Jansen, ``1e3`` N·m per motor implied a ~6.5 g chassis
+  acceleration ceiling, yielding unstable tumbling. Users who relied
+  on the old value should pass ``WorldConfig(torque=1e3)`` explicitly.
+- ``World.add_linkage(walker)`` now passes ``cfg.load_mass`` to the
+  ``DynamicLinkage`` constructor by default (previously the ``load=0``
+  default silently ignored the configured chassis mass; users had to
+  pass ``add_linkage(walker, load=cfg.load_mass)`` to get the mass
+  they asked for). Pass ``load=`` explicitly to override.
 - **Breaking**: ``Walker`` no longer inherits from ``pylinkage.Linkage``.
   It is now a standalone class with ``topology`` and ``dimensions``
   attributes.
@@ -343,6 +354,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- ``Walker.add_legs(n)`` now produces genuinely desynchronized legs. The
+  cloned cranks share the template's ``DriverAngle.initial_angle + offset``
+  *and* a pre-stepped kinematic pose, because ``to_mechanism`` derives
+  the crank's phase from ``atan2(crank_pos - motor_pos)`` and previously
+  every clone shared the template's position. Cloned legs now start
+  their cycle at their intended phase, which the kinematic solver and
+  pymunk physics both observe.
+- Gear-coupled drivers in ``create_bodies_from_hypergraph``: crank bodies
+  that share the same motor rate are now locked together with
+  ``pymunk.GearJoint`` (ratio=1, phase=0) so they rotate in lockstep.
+  Without the constraint, independent torque-limited ``SimpleMotor``s
+  slipped against asymmetric ground load and the 8 Jansen cranks drifted
+  through the full 360° of relative phase within ~0.5 s, collapsing the
+  gait and letting the body fall. This emulates a real Strandbeest
+  bolting every crank to a shared shaft. ``PhysicsMapping`` exposes the
+  new joints via ``gear_joints``.
 - Multi-motor energy accounting: ``World.update()`` now sums power from
   all motors (was using only the first motor's power).
 - ``add_legs()`` / ``add_opposite_leg()`` no longer crash with semantic

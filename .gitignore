@@ -147,3 +147,6 @@ cython_debug/
 
 # Ignore .idea files
 .idea
+
+# Ignore Cluade files
+.claude

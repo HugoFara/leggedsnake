@@ -46,6 +46,10 @@ class PhysicsMapping:
         Driver node ID for each motor (parallel to motors list).
     motor_pivots : list[pm.PivotJoint]
         Pivot joints associated with motors (currently unused, kept for compatibility).
+    gear_joints : list[pm.GearJoint]
+        Gear constraints that lock cranks sharing the same motor rate to a
+        common shaft, preventing torque-limited motors from drifting out of
+        phase under asymmetric ground load.
     """
 
     edge_to_body: dict[str, pm.Body] = field(default_factory=dict)
@@ -55,6 +59,7 @@ class PhysicsMapping:
     motors: list[pm.SimpleMotor] = field(default_factory=list)
     motor_node_ids: list[str] = field(default_factory=list)
     motor_pivots: list[pm.PivotJoint] = field(default_factory=list)
+    gear_joints: list[pm.GearJoint] = field(default_factory=list)
 
 
 def _resolve_motor_rate(
@@ -520,6 +525,23 @@ def _create_motor_constraints(
         space.add(motor)
         mapping.motors.append(motor)
         mapping.motor_node_ids.append(driver_id)
+
+    # Gear-lock cranks that share the same motor rate to a common shaft.
+    # Without this, independent torque-limited motors slip against ground
+    # load at different moments and the legs drift out of phase within a
+    # second or two, collapsing the gait. Real Strandbeests bolt every
+    # crank to one axle; the gear constraints emulate that.
+    rate_to_bodies: dict[float, list[pm.Body]] = {}
+    for node_id, motor in zip(mapping.motor_node_ids, mapping.motors):
+        rate_to_bodies.setdefault(round(motor.rate, 9), []).append(motor.a)
+    for bodies in rate_to_bodies.values():
+        if len(bodies) < 2:
+            continue
+        master = bodies[0]
+        for follower in bodies[1:]:
+            gear = pm.GearJoint(master, follower, 0.0, 1.0)
+            space.add(gear)
+            mapping.gear_joints.append(gear)
 
 
 def get_node_world_position(

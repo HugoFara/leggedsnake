@@ -94,6 +94,7 @@ from .physicsengine import (
     TerrainPreset,
     World,
     WorldConfig,
+    linkage_bb,
     params,
 )
 from .walking_objectives import (
@@ -239,6 +240,7 @@ __all__ = [
     "TerrainPreset",
     "World",
     "WorldConfig",
+    "linkage_bb",
     # worldvisualizer
     "all_linkages_video",
     "video",

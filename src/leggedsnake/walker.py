@@ -753,7 +753,41 @@ class Walker:
         driver_ids = {n.id for n in self.topology.driver_nodes()}
         template_node_ids = [nid for nid in self.topology.nodes if nid not in ground_ids]
 
+        # Pre-compute each clone's kinematic pose by stepping the template
+        # mechanism to the phase-offset point. We can't just rotate the
+        # crank's position: ``to_mechanism`` derives the crank's initial
+        # angle from ``atan2(crank_pos - motor_pos)``, so without this the
+        # cloned drivers stay synchronized with the template and the legs
+        # don't desynchronize. Rotating only the crank puts downstream
+        # joints outside their circle-circle solution, which makes the
+        # first solve fail. Simulating the template is the cleanest fix.
         total_legs = number + 1  # existing + new
+        clone_positions: list[dict[str, tuple[float, float]]] = []
+        if template_node_ids:
+            import math as _math
+            omega_vals = [
+                da.angular_velocity
+                for da in self.dimensions.driver_angles.values()
+                if da.angular_velocity
+            ]
+            omega = omega_vals[0] if omega_vals else 1.0
+            omega_sign = 1.0 if omega >= 0 else -1.0
+            for leg_idx in range(1, number + 1):
+                phase_offset = tau * leg_idx / total_legs
+                iters = int(round(phase_offset / abs(omega))) if omega else 0
+                self._invalidate_cache()
+                mech = self.to_mechanism()
+                for _ in range(iters):
+                    mech._step_once(_math.copysign(1.0, omega) if omega else 0.0)
+                pose = {}
+                for j in mech.joints:
+                    jid = getattr(j, 'id', None)
+                    if jid in template_node_ids:
+                        pose[jid] = j.coord()
+                clone_positions.append(pose)
+                _ = omega_sign  # quiet lint; retained for future asymmetric drivers
+            self._invalidate_cache()
+
         edge_counter = len(self.topology.edges)
         node_counter = 0
 
@@ -783,10 +817,16 @@ class Walker:
                 self.topology.add_node(new_node)
                 old_to_new[nid] = new_id
 
-                # Copy position from original
-                orig_pos = self.dimensions.get_node_position(nid)
-                if orig_pos is not None:
-                    self.dimensions.node_positions[new_id] = orig_pos
+                # Use the phase-offset pose we pre-computed by stepping the
+                # template mechanism — this places every cloned joint (not
+                # just the crank) at a kinematically valid pose where the
+                # crank's atan2 angle reflects the phase offset.
+                pose = clone_positions[leg_idx - 1] if clone_positions else {}
+                clone_pos = pose.get(nid)
+                if clone_pos is None:
+                    clone_pos = self.dimensions.get_node_position(nid)
+                if clone_pos is not None:
+                    self.dimensions.node_positions[new_id] = clone_pos
 
                 # For driver nodes, copy DriverAngle with phase offset
                 if nid in driver_ids and nid in self.dimensions.driver_angles:

@@ -228,10 +228,15 @@ class WorldConfig:
     """Gravity vector (m/s²)."""
     physics_period: float = 0.02
     """Time step for each physics computation (s)."""
-    torque: float = 1e3
-    """Maximum motor torque (N·m)."""
+    torque: float = 1e2
+    """Maximum motor torque (N·m). Previously ``1e3``; lowered in 0.5.0 after
+    confirming the old default overdrove typical Strandbeest/Klann walkers
+    into pitch chaos before the stance phase could react."""
     load_mass: float = 10.0
-    """Default load/chassis mass (kg)."""
+    """Default chassis (frame) mass (kg). Applied automatically when a Walker
+    is passed to :meth:`World.add_linkage` without an explicit ``load``
+    override (before 0.5.0 the value was silently dropped — users had to
+    pass ``add_linkage(walker, load=cfg.load_mass)`` to get it)."""
     ground_friction: float = 0.5 ** 0.5
     """Ground friction coefficient (square root of mu)."""
     terrain: TerrainConfig = field(default_factory=TerrainConfig)
@@ -297,7 +302,7 @@ params: Params = {
     # Studied system parameters
     "linkage": {
         # Maximal torque (N.m)
-        "torque": 1e3,
+        "torque": 1e2,
         # Crank length (m) (unused for now)
         "crank_len": .05,
         # Linear mass of bars (kg/m)
@@ -399,7 +404,7 @@ class World:
     def add_linkage(
         self,
         source: Any,
-        load: float = 0,
+        load: float | None = None,
     ) -> None:
         """Add a linkage to the simulation.
 
@@ -407,14 +412,17 @@ class World:
         ----------
         source : Walker, DynamicLinkage, or legacy Linkage
             The mechanism to simulate.
-        load : float
-            Load mass (only used when converting from Walker/Linkage).
+        load : float, optional
+            Chassis mass override (only used when converting from
+            Walker/Linkage). When *None* (the default) the value from
+            :attr:`WorldConfig.load_mass` is used.
         """
         if isinstance(source, dynamiclinkage.DynamicLinkage):
             dl = source
         else:
+            load_mass = self.config.load_mass if load is None else load
             dl = dynamiclinkage.convert_to_dynamic_linkage(
-                source, self.space, load=load
+                source, self.space, load=load_mass
             )
 
         # Disable motors initially (enable when settled)
