@@ -29,7 +29,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Callable, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Callable, Protocol, runtime_checkable
 
 from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph import HypergraphLinkage
@@ -39,11 +39,48 @@ from .physicsengine import World, WorldConfig, linkage_bb
 from .stability import StabilityTimeSeries, compute_stability_snapshot
 from .utility import step as step_check, stride, Point
 
+if TYPE_CHECKING:
+    from .walker import Walker
+
+
+def _compute_buildable_fraction(
+    walker: "Walker", iterations: int | None = None,
+) -> float:
+    """Fraction of one full crank rotation that yields a buildable pose.
+
+    Runs the walker through a kinematic preview with
+    ``skip_unbuildable=True`` and counts how many crank angles produced
+    real joint coordinates. Returns ``1.0`` when fully buildable,
+    ``0.0`` when never buildable (or the iterator itself fails), and
+    the partial fraction otherwise — giving optimizers a smooth signal
+    toward the buildable region of design space instead of a binary
+    pass/fail.
+    """
+    try:
+        poses = list(walker.step(
+            iterations=iterations, skip_unbuildable=True,
+        ))
+    except Exception:
+        # Topology malformed before stepping ever begins.
+        return 0.0
+    if not poses:
+        return 0.0
+    buildable = sum(
+        1 for pose in poses if pose and pose[0][0] is not None
+    )
+    return buildable / len(poses)
+
 
 def _scale_invariant_metrics(
     result: "_SimulationResult", duration: float,
 ) -> dict[str, float]:
-    """Derive Froude number and cost of transport from a simulation result.
+    """Derive scale-invariant metrics from a simulation result.
+
+    Returns Froude number, cost of transport, and the kinematic
+    ``buildable_fraction``. The first two need a successful run to be
+    meaningful; ``buildable_fraction`` is always populated and is the
+    structured failure signal used in place of binary
+    ``UnbuildableError`` handling.
 
     Speed defaults to ``distance / duration`` (mean over the whole run).
     When a ``StabilityTimeSeries`` is attached, its ``mean_speed`` is
@@ -63,6 +100,7 @@ def _scale_invariant_metrics(
         "cost_of_transport": compute_cost_of_transport(
             result.total_energy, result.mass, result.distance,
         ),
+        "buildable_fraction": result.buildable_fraction,
     }
 
 
@@ -305,18 +343,34 @@ class StrideFitness:
                 )
             )
         except Exception:
-            return FitnessResult(score=0.0, valid=False)
+            return FitnessResult(
+                score=0.0, metrics={"buildable_fraction": 0.0}, valid=False,
+            )
+
+        if loci:
+            buildable_fraction = sum(
+                1 for pose in loci if pose and pose[0][0] is not None
+            ) / len(loci)
+        else:
+            buildable_fraction = 0.0
 
         from pylinkage import extract_trajectory
 
         xs, ys = extract_trajectory(loci, self.foot_index)
         if xs.size == 0:
-            return FitnessResult(score=0.0, valid=False)
+            return FitnessResult(
+                score=0.0,
+                metrics={"buildable_fraction": buildable_fraction},
+                valid=False,
+            )
         foot_locus = list(zip(xs.tolist(), ys.tolist()))
         if not step_check(foot_locus, self.step_height, self.step_width):
             return FitnessResult(
                 score=0.0,
-                metrics={"obstacle_clearance": 0.0},
+                metrics={
+                    "obstacle_clearance": 0.0,
+                    "buildable_fraction": buildable_fraction,
+                },
                 valid=True,
             )
 
@@ -328,6 +382,7 @@ class StrideFitness:
             metrics={
                 "stride_length": score,
                 "obstacle_clearance": 1.0,
+                "buildable_fraction": buildable_fraction,
             },
             valid=True,
         )
@@ -385,11 +440,21 @@ class StabilityFitness:
             mirror=self.mirror,
         )
         if not result.valid or result.distance < self.min_distance:
-            return FitnessResult(score=0.0, valid=result.valid, loci=result.loci)
+            return FitnessResult(
+                score=0.0,
+                metrics=_scale_invariant_metrics(result, self.duration),
+                valid=result.valid,
+                loci=result.loci,
+            )
 
         stability = result.stability
         if stability is None or not stability.snapshots:
-            return FitnessResult(score=0.0, valid=True, loci=result.loci)
+            return FitnessResult(
+                score=0.0,
+                metrics=_scale_invariant_metrics(result, self.duration),
+                valid=True,
+                loci=result.loci,
+            )
 
         score = stability.mean_tip_over_margin
         metrics = {
@@ -461,7 +526,12 @@ class CompositeFitness:
             mirror=self.mirror,
         )
         if not result.valid:
-            return FitnessResult(score=0.0, valid=False, loci=result.loci)
+            return FitnessResult(
+                score=0.0,
+                metrics=_scale_invariant_metrics(result, self.duration),
+                valid=False,
+                loci=result.loci,
+            )
 
         metrics: dict[str, float] = {}
 
@@ -562,7 +632,11 @@ class GaitFitness:
             mirror=self.mirror,
         )
         if not result.valid:
-            return FitnessResult(score=0.0, valid=False)
+            return FitnessResult(
+                score=0.0,
+                metrics=_scale_invariant_metrics(result, self.duration),
+                valid=False,
+            )
 
         gait = analyze_gait(
             loci=result.loci,
@@ -866,6 +940,7 @@ class _SimulationResult:
     mass: float = 0.0
     characteristic_length: float = 0.0
     gravity: float = 9.80665
+    buildable_fraction: float = 1.0
 
 
 def _run_simulation(
@@ -897,12 +972,16 @@ def _run_simulation(
         motor_rates=motor_rates,
     )
 
-    # Verify the mechanism is buildable
-    try:
-        from pylinkage import UnbuildableError
-        tuple(walker.step())
-    except UnbuildableError:
-        return _SimulationResult(valid=False)
+    # Kinematic preview: how much of the cycle builds? 0.0 means the
+    # mechanism never assembles, so physics has nothing to chew on. A
+    # partial fraction still triggers the physics run — collapse there
+    # is recorded separately via ``valid=False``, while the kinematic
+    # signal is preserved for the optimizer.
+    buildable_fraction = _compute_buildable_fraction(walker)
+    if buildable_fraction == 0.0:
+        return _SimulationResult(
+            valid=False, buildable_fraction=0.0,
+        )
 
     foot_ids = walker.get_feet()
 
@@ -985,4 +1064,5 @@ def _run_simulation(
         mass=mass,
         characteristic_length=characteristic_length,
         gravity=gravity_mag,
+        buildable_fraction=buildable_fraction,
     )

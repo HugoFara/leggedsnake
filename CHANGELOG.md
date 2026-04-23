@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Structured failure metric** ``buildable_fraction``:
+  - New helper ``_compute_buildable_fraction(walker, iterations=None)``
+    runs a kinematic preview with ``skip_unbuildable=True`` and returns
+    the fraction of crank angles that produce a real assembly. ``1.0``
+    is fully buildable, ``0.0`` is never buildable, and intermediate
+    values describe near-misses — replacing the binary
+    ``UnbuildableError`` / ``valid=False`` cliff with a smooth gradient
+    so optimizers can learn from designs that *almost* work.
+  - Surfaced as ``FitnessResult.metrics["buildable_fraction"]`` for
+    every built-in fitness (``DistanceFitness``, ``EfficiencyFitness``,
+    ``StabilityFitness``, ``CompositeFitness``, ``GaitFitness``,
+    ``StrideFitness``) — including the early-return failure paths,
+    where the metric is the *only* signal the optimizer gets back.
+  - Replaces the binary ``try/except UnbuildableError`` kinematic
+    pre-check inside ``_run_simulation``: physics now runs on any
+    walker with ``buildable_fraction > 0`` and only short-circuits on
+    a fully unbuildable design.
 - **Scale-invariant locomotion metrics**:
   - ``compute_froude_number(speed, gravity, leg_length)`` — Alexander's
     walking Froude number ``Fr = v² / (g · L)``, the canonical
