@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Gait, energy, and speed fitness metrics** (Phase 8.3):
+  - ``GaitAnalysisResult.gait_asymmetry`` — population standard deviation
+    of per-foot duty factors, zero for perfectly symmetric gaits.
+  - ``GaitAnalysisResult.energy_per_cycle(total_energy)`` — joules spent
+    per walker stride, normalising across feet.
+  - ``GaitAnalysisResult.total_cycles`` — total stride count across feet.
+  - ``StabilityTimeSeries.mean_speed`` and ``.speed_variance`` — CoM
+    forward-velocity statistics, surfaced in ``summary_metrics()``.
+  - ``GaitFitness`` — new ``DynamicFitness`` scoring on
+    ``mean_stride_length`` with the full gait metric panel in
+    ``FitnessResult.metrics``.
+  - ``CompositeFitness`` now accepts ``"gait"`` in ``objectives`` so
+    the metrics populate from the single shared simulation run.
+- **Procedural terrain slope profiles** (Phase 8.3):
+  - ``SlopeProfile.SINUSOIDAL`` — smooth sinusoidal undulation in
+    physical x-space, period set by ``TerrainConfig.wave_period``.
+  - ``SlopeProfile.FREQUENCY_SWEEP`` — linear chirp where wave
+    frequency grows with distance, controlled by
+    ``TerrainConfig.wave_sweep_rate``; useful for probing a walker's
+    speed response across terrain frequencies in one run.
+  - ``TerrainPreset.SLOPE_UP`` / ``SLOPE_DOWN`` / ``SINUSOIDAL`` —
+    preassembled configs targeting the Phase 9 terrain panel.
 - **Classical walking-linkage factories on ``Walker``**: one-call
   constructors for six canonical mechanisms, each with unit-scaled
   geometries and published bar lengths.
