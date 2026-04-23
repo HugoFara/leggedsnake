@@ -182,6 +182,11 @@ class WalkingNsgaProblem:
         self.config = config
         self._n_obj = len(objectives)
         self._n_workers = max(1, n_workers)
+        # Lazy-created on first parallel batch and reused across
+        # generations. Pool startup forks N worker processes — doing
+        # that per generation wastes ~50–500 ms per generation depending
+        # on import weight. ``close()`` shuts it down.
+        self._pool: Any = None
 
         xl = np.array(bounds[0], dtype=float)
         xu = np.array(bounds[1], dtype=float)
@@ -226,29 +231,56 @@ class WalkingNsgaProblem:
                 scores = self._evaluate_candidate(X[i].tolist())
                 F[i] = [-s for s in scores]
         else:
-            from concurrent.futures import ProcessPoolExecutor, as_completed
+            from concurrent.futures import as_completed
 
+            pool = self._get_pool()
             candidates = [X[i].tolist() for i in range(n_pop)]
-            with ProcessPoolExecutor(max_workers=self._n_workers) as pool:
-                futures = {
-                    pool.submit(
-                        _evaluate_candidate_worker,
-                        self.walker_factory,
-                        self.objectives,
-                        self.config,
-                        candidate,
-                    ): idx
-                    for idx, candidate in enumerate(candidates)
-                }
-                for future in as_completed(futures):
-                    idx = futures[future]
-                    try:
-                        scores = future.result()
-                        F[idx] = [-s for s in scores]
-                    except Exception:
-                        F[idx] = [float("inf")] * self._n_obj
+            futures = {
+                pool.submit(
+                    _evaluate_candidate_worker,
+                    self.walker_factory,
+                    self.objectives,
+                    self.config,
+                    candidate,
+                ): idx
+                for idx, candidate in enumerate(candidates)
+            }
+            for future in as_completed(futures):
+                idx = futures[future]
+                try:
+                    scores = future.result()
+                    F[idx] = [-s for s in scores]
+                except Exception:
+                    F[idx] = [float("inf")] * self._n_obj
 
         return F
+
+    def _get_pool(self) -> Any:
+        """Return the shared process pool, creating it on first use."""
+        if self._pool is None:
+            from concurrent.futures import ProcessPoolExecutor
+
+            self._pool = ProcessPoolExecutor(max_workers=self._n_workers)
+        return self._pool
+
+    def close(self) -> None:
+        """Shut down the shared process pool, if one was created.
+
+        Safe to call repeatedly. The driver in
+        :func:`nsga_walking_optimization` invokes this in a finally
+        block so workers don't outlive the optimization.
+        """
+        if self._pool is not None:
+            self._pool.shutdown(wait=True)
+            self._pool = None
+
+    def __del__(self) -> None:  # pragma: no cover — best-effort cleanup
+        # Defensive cleanup if the caller forgot ``close()``. Pool
+        # workers otherwise linger until the parent process exits.
+        try:
+            self.close()
+        except Exception:
+            pass
 
     def _evaluate_candidate(
         self, dims: list[float],
@@ -390,13 +422,16 @@ def _run_via_parallel_problem(
     else:
         algo = NSGA2(pop_size=cfg.pop_size)
 
-    res = pymoo_minimize(
-        problem.problem,
-        algo,
-        ("n_gen", cfg.n_generations),
-        seed=cfg.seed,
-        verbose=cfg.verbose,
-    )
+    try:
+        res = pymoo_minimize(
+            problem.problem,
+            algo,
+            ("n_gen", cfg.n_generations),
+            seed=cfg.seed,
+            verbose=cfg.verbose,
+        )
+    finally:
+        problem.close()
 
     if res.F is None or res.X is None:
         return ParetoFront([], tuple(objective_names))

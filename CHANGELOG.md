@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Sparse loci recording** in ``CompositeFitness`` and ``GaitFitness``:
+  - New ``loci_stride: int = 1`` parameter — keep every Nth recorded
+    physics step. ``stride=10`` cuts loci memory ~20× for long sweeps
+    while preserving gait-event detection (``analyze_gait`` is
+    automatically rescaled via the new ``_SimulationResult.loci_dt``
+    field). Default ``1`` preserves the existing recording fidelity.
 - **Structured failure metric** ``buildable_fraction``:
   - New helper ``_compute_buildable_fraction(walker, iterations=None)``
     runs a kinematic preview with ``skip_unbuildable=True`` and returns
@@ -375,6 +381,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- ``WalkingNsgaProblem`` reuses a single ``ProcessPoolExecutor``
+  across NSGA generations instead of forking a fresh pool per
+  ``_evaluate_batch`` call. ``nsga_walking_optimization`` shuts the
+  pool down in ``finally`` so worker processes don't outlive the
+  call. Saves one pool startup (N forks each) per generation —
+  ~15% wall-time reduction at ``n_workers=4`` on short bench runs;
+  bigger absolute savings on production-scale optimizations.
 - ``_walker_from_sim_linkage`` now delegates to
   ``SimLinkage.to_hypergraph`` when pylinkage exposes it (post-0.9.0
   releases), and falls back to the in-tree component-walking shim

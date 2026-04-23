@@ -491,6 +491,13 @@ class CompositeFitness:
     contact_threshold : float
         Y-coordinate below which a foot counts as in ground contact.
         Used when ``"gait"`` is in ``objectives``.
+    loci_stride : int
+        Subsample loci recording — keep every ``loci_stride``-th step.
+        At default ``1`` every physics step is recorded; raising it to
+        e.g. ``10`` cuts loci memory 10× at the cost of trajectory
+        resolution. ``analyze_gait`` is automatically rescaled via
+        ``loci_dt`` so gait timing stays correct, but very large
+        strides degrade event-detection accuracy.
     """
 
     def __init__(
@@ -501,6 +508,7 @@ class CompositeFitness:
         objectives: Sequence[str] = ("distance", "efficiency", "stability"),
         mirror: bool = False,
         contact_threshold: float = 0.1,
+        loci_stride: int = 1,
     ) -> None:
         self.duration = duration
         self.n_legs = n_legs
@@ -508,6 +516,7 @@ class CompositeFitness:
         self.objectives = tuple(objectives)
         self.mirror = mirror
         self.contact_threshold = contact_threshold
+        self.loci_stride = max(1, loci_stride)
 
     def __call__(
         self,
@@ -524,6 +533,7 @@ class CompositeFitness:
             record_loci=True,
             record_stability=needs_stability,
             mirror=self.mirror,
+            loci_stride=self.loci_stride,
         )
         if not result.valid:
             return FitnessResult(
@@ -554,7 +564,7 @@ class CompositeFitness:
                 loci=result.loci,
                 foot_ids=result.foot_ids,
                 stability=result.stability,
-                dt=result.dt,
+                dt=result.loci_dt,
                 contact_threshold=self.contact_threshold,
             )
             gait_metrics = gait.summary_metrics()
@@ -597,6 +607,10 @@ class GaitFitness:
     record_loci : bool
         If True, return joint trajectories in ``FitnessResult.loci``.
         Gait analysis runs regardless — this only controls what's returned.
+    loci_stride : int
+        Subsample loci recording — see :class:`CompositeFitness` for
+        details. Lower values cost more memory; higher values reduce
+        gait event-detection accuracy.
     """
 
     def __init__(
@@ -607,6 +621,7 @@ class GaitFitness:
         mirror: bool = False,
         contact_threshold: float = 0.1,
         record_loci: bool = False,
+        loci_stride: int = 1,
     ) -> None:
         self.duration = duration
         self.n_legs = n_legs
@@ -614,6 +629,7 @@ class GaitFitness:
         self.mirror = mirror
         self.contact_threshold = contact_threshold
         self.record_loci = record_loci
+        self.loci_stride = max(1, loci_stride)
 
     def __call__(
         self,
@@ -630,6 +646,7 @@ class GaitFitness:
             motor_rates=self.motor_rates,
             record_loci=True,
             mirror=self.mirror,
+            loci_stride=self.loci_stride,
         )
         if not result.valid:
             return FitnessResult(
@@ -641,7 +658,7 @@ class GaitFitness:
         gait = analyze_gait(
             loci=result.loci,
             foot_ids=result.foot_ids,
-            dt=result.dt,
+            dt=result.loci_dt,
             contact_threshold=self.contact_threshold,
         )
         metrics = gait.summary_metrics()
@@ -937,6 +954,10 @@ class _SimulationResult:
     stability: StabilityTimeSeries | None = None
     foot_ids: list[str] = field(default_factory=list)
     dt: float = 0.02
+    loci_dt: float = 0.02
+    """Time between consecutive recorded loci entries.
+    Equals ``dt * loci_stride`` — separated so downstream gait analysis
+    works correctly with subsampled loci."""
     mass: float = 0.0
     characteristic_length: float = 0.0
     gravity: float = 9.80665
@@ -954,6 +975,7 @@ def _run_simulation(
     record_loci: bool,
     record_stability: bool = False,
     mirror: bool = False,
+    loci_stride: int = 1,
 ) -> _SimulationResult:
     """Build a Walker, run physics, and collect results.
 
@@ -964,6 +986,11 @@ def _run_simulation(
     mirror : bool
         If True, mirror the leg across the chassis via
         ``add_opposite_leg()`` before phase-offset copies.
+    loci_stride : int
+        Subsample loci recording — keep every ``loci_stride``-th step.
+        ``1`` records every step (default, full fidelity); ``10`` cuts
+        loci memory 10× at the cost of trajectory resolution. Has no
+        effect when ``record_loci`` is False.
     """
     from .walker import Walker
 
@@ -1034,7 +1061,7 @@ def _run_simulation(
 
         dl = world.linkages[0]
 
-        if record_loci:
+        if record_loci and (step_i % loci_stride == 0):
             for proxy in dl.joints:
                 loci[proxy.name].append((proxy.x, proxy.y))
 
@@ -1061,6 +1088,7 @@ def _run_simulation(
         stability=stability_series,
         foot_ids=foot_ids,
         dt=dt,
+        loci_dt=dt * loci_stride,
         mass=mass,
         characteristic_length=characteristic_length,
         gravity=gravity_mag,
