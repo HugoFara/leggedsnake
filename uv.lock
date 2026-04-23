@@ -2684,7 +2684,7 @@ dev = [
     { name = "matplotlib", specifier = ">=3.3.4" },
     { name = "mypy", specifier = ">=1.0.0" },
     { name = "myst-parser", specifier = ">=3.0.1" },
-    { name = "nbconvert", specifier = ">=7.17.0" },
+    { name = "nbconvert", specifier = ">=7.17.1" },
     { name = "numba", specifier = ">=0.60.0" },
     { name = "plotly", specifier = ">=6.5.0" },
     { name = "pytest", specifier = ">=7.0.0" },
