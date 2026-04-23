@@ -789,10 +789,10 @@ class Walker:
                 mech = self.to_mechanism()
                 for _ in range(iters):
                     mech._step_once(_math.copysign(1.0, omega) if omega else 0.0)
-                pose = {}
+                pose: dict[str, tuple[float, float]] = {}
                 for j in mech.joints:
                     jid = getattr(j, 'id', None)
-                    if jid in template_node_ids:
+                    if jid is not None and jid in template_node_ids:
                         pose[jid] = j.coord()
                 clone_positions.append(pose)
                 _ = omega_sign  # quiet lint; retained for future asymmetric drivers
@@ -831,8 +831,10 @@ class Walker:
                 # template mechanism — this places every cloned joint (not
                 # just the crank) at a kinematically valid pose where the
                 # crank's atan2 angle reflects the phase offset.
-                pose = clone_positions[leg_idx - 1] if clone_positions else {}
-                clone_pos = pose.get(nid)
+                leg_pose: dict[str, tuple[float, float]] = (
+                    clone_positions[leg_idx - 1] if clone_positions else {}
+                )
+                clone_pos = leg_pose.get(nid)
                 if clone_pos is None:
                     clone_pos = self.dimensions.get_node_position(nid)
                 if clone_pos is not None:

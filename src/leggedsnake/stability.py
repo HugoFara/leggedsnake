@@ -98,6 +98,27 @@ class StabilityTimeSeries:
         angles = [s.body_angle for s in self.snapshots]
         return float(np.sqrt(np.mean(np.square(angles))))
 
+    @property
+    def mean_speed(self) -> float:
+        """Mean forward (x-axis) CoM speed across the run."""
+        if not self.snapshots:
+            return 0.0
+        vxs = [s.com_velocity[0] for s in self.snapshots]
+        return float(np.mean(vxs))
+
+    @property
+    def speed_variance(self) -> float:
+        """Population variance of the forward CoM speed.
+
+        Captures how steady the walker's progress is under the current
+        terrain — a smooth gait on flat ground has near-zero variance,
+        jerky gaits or rough terrain raise it.
+        """
+        if len(self.snapshots) < 2:
+            return 0.0
+        vxs = [s.com_velocity[0] for s in self.snapshots]
+        return float(np.var(vxs))
+
     def summary_metrics(self) -> dict[str, float]:
         """Flat dictionary of all scalar stability metrics."""
         return {
@@ -105,6 +126,8 @@ class StabilityTimeSeries:
             "min_tip_over_margin": self.min_tip_over_margin,
             "zmp_excursion": self.zmp_excursion,
             "angular_stability": self.angular_stability,
+            "mean_speed": self.mean_speed,
+            "speed_variance": self.speed_variance,
         }
 
 

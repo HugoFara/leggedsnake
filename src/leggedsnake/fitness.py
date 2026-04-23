@@ -392,7 +392,10 @@ class CompositeFitness:
         Motor angular velocity.
     objectives : sequence of str
         Which metrics to compute. Supported: ``"distance"``,
-        ``"efficiency"``, ``"stability"``.
+        ``"efficiency"``, ``"stability"``, ``"gait"``.
+    contact_threshold : float
+        Y-coordinate below which a foot counts as in ground contact.
+        Used when ``"gait"`` is in ``objectives``.
     """
 
     def __init__(
@@ -402,12 +405,14 @@ class CompositeFitness:
         motor_rates: float | dict[str, float] = -4.0,
         objectives: Sequence[str] = ("distance", "efficiency", "stability"),
         mirror: bool = False,
+        contact_threshold: float = 0.1,
     ) -> None:
         self.duration = duration
         self.n_legs = n_legs
         self.motor_rates = motor_rates
         self.objectives = tuple(objectives)
         self.mirror = mirror
+        self.contact_threshold = contact_threshold
 
     def __call__(
         self,
@@ -442,11 +447,107 @@ class CompositeFitness:
         if needs_stability and result.stability is not None:
             metrics.update(result.stability.summary_metrics())
 
+        if "gait" in self.objectives:
+            from .gait_analysis import analyze_gait
+
+            gait = analyze_gait(
+                loci=result.loci,
+                foot_ids=result.foot_ids,
+                stability=result.stability,
+                dt=result.dt,
+                contact_threshold=self.contact_threshold,
+            )
+            gait_metrics = gait.summary_metrics()
+            gait_metrics["energy_per_cycle"] = gait.energy_per_cycle(
+                result.total_energy,
+            )
+            metrics.update(gait_metrics)
+
         return FitnessResult(
             score=result.distance,
             metrics=metrics,
             valid=True,
             loci=result.loci,
+        )
+
+
+class GaitFitness:
+    """Evaluate gait quality via physics simulation.
+
+    Runs the full dynamic sim, analyzes the foot trajectories into touchdown
+    / liftoff events, and reports stride, duty-factor, asymmetry, and
+    energy-per-cycle metrics. The primary score is ``mean_stride_length``
+    (simulation-frame distance between consecutive touchdowns of the same
+    foot), so higher is better.
+
+    Parameters
+    ----------
+    duration : float
+        Simulation duration in seconds.
+    n_legs : int
+        Total legs (``mirror=False``) or legs per side (``mirror=True``).
+    mirror : bool
+        Mirror the leg across the chassis via ``add_opposite_leg()``.
+    motor_rates : float | dict[str, float]
+        Motor angular velocity.
+    contact_threshold : float
+        Y-coordinate below which a foot counts as in ground contact.
+    record_loci : bool
+        If True, return joint trajectories in ``FitnessResult.loci``.
+        Gait analysis runs regardless — this only controls what's returned.
+    """
+
+    def __init__(
+        self,
+        duration: float = 40.0,
+        n_legs: int = 4,
+        motor_rates: float | dict[str, float] = -4.0,
+        mirror: bool = False,
+        contact_threshold: float = 0.1,
+        record_loci: bool = False,
+    ) -> None:
+        self.duration = duration
+        self.n_legs = n_legs
+        self.motor_rates = motor_rates
+        self.mirror = mirror
+        self.contact_threshold = contact_threshold
+        self.record_loci = record_loci
+
+    def __call__(
+        self,
+        topology: HypergraphLinkage,
+        dimensions: Dimensions,
+        config: WorldConfig | None = None,
+    ) -> FitnessResult:
+        from .gait_analysis import analyze_gait
+
+        result = _run_simulation(
+            topology, dimensions, config,
+            duration=self.duration,
+            n_legs=self.n_legs,
+            motor_rates=self.motor_rates,
+            record_loci=True,
+            mirror=self.mirror,
+        )
+        if not result.valid:
+            return FitnessResult(score=0.0, valid=False)
+
+        gait = analyze_gait(
+            loci=result.loci,
+            foot_ids=result.foot_ids,
+            dt=result.dt,
+            contact_threshold=self.contact_threshold,
+        )
+        metrics = gait.summary_metrics()
+        metrics["energy_per_cycle"] = gait.energy_per_cycle(result.total_energy)
+        metrics["distance"] = result.distance
+        metrics["total_energy"] = result.total_energy
+
+        return FitnessResult(
+            score=metrics["mean_stride_length"],
+            metrics=metrics,
+            valid=True,
+            loci=result.loci if self.record_loci else {},
         )
 
 
@@ -728,6 +829,7 @@ class _SimulationResult:
     loci: dict[str, list[Point]] = field(default_factory=dict)
     stability: StabilityTimeSeries | None = None
     foot_ids: list[str] = field(default_factory=list)
+    dt: float = 0.02
 
 
 def _run_simulation(
@@ -837,4 +939,5 @@ def _run_simulation(
         loci=loci,
         stability=stability_series,
         foot_ids=foot_ids,
+        dt=dt,
     )

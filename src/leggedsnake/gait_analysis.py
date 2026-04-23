@@ -146,12 +146,58 @@ class GaitAnalysisResult:
         """
         return compute_phase_offsets(self.gait_cycles)
 
+    @property
+    def gait_asymmetry(self) -> float:
+        """Dispersion of duty factors across feet.
+
+        Population standard deviation of the per-foot mean duty factor.
+        Zero when every foot spends the same fraction of its cycle in
+        stance; larger when some legs drag and others rush.
+        """
+        per_foot = []
+        for foot_cycles in self.gait_cycles.values():
+            if not foot_cycles:
+                continue
+            per_foot.append(
+                sum(c.duty_factor for c in foot_cycles) / len(foot_cycles),
+            )
+        if len(per_foot) < 2:
+            return 0.0
+        return float(np.std(per_foot))
+
+    @property
+    def total_cycles(self) -> int:
+        """Total number of complete stride cycles across all feet."""
+        return sum(len(cycles) for cycles in self.gait_cycles.values())
+
+    def energy_per_cycle(self, total_energy: float) -> float:
+        """Mean dissipated energy per stride cycle.
+
+        Parameters
+        ----------
+        total_energy : float
+            Energy accumulated over the full simulation (from
+            ``_SimulationResult.total_energy`` or equivalent).
+
+        Returns
+        -------
+        float
+            ``total_energy / total_cycles`` averaged across feet. Returns
+            0 when no complete cycles were detected.
+        """
+        n_feet = sum(1 for cycles in self.gait_cycles.values() if cycles)
+        total = self.total_cycles
+        if total == 0 or n_feet == 0:
+            return 0.0
+        return total_energy * n_feet / total
+
     def summary_metrics(self) -> dict[str, float]:
         """Flat dictionary of all scalar gait metrics."""
         metrics: dict[str, float] = {
             "mean_duty_factor": self.mean_duty_factor,
             "mean_stride_frequency": self.mean_stride_frequency,
             "mean_stride_length": self.mean_stride_length,
+            "gait_asymmetry": self.gait_asymmetry,
         }
         if self.stability is not None:
             metrics.update(self.stability.summary_metrics())
