@@ -925,6 +925,7 @@ def _run_simulation(
                 dt=dt,
                 gravity=gravity_mag,
                 foot_ids=foot_ids,
+                static_body=world.space.static_body,
             )
             stability_series.snapshots.append(snap)  # type: ignore[union-attr]
             prev_snap = snap

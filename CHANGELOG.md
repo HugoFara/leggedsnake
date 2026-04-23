@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Ground reaction force metrics** (Phase 8.3):
+  - ``sample_ground_reaction_force(linkage, static_body, dt)`` — sums
+    and finds the peak of pymunk arbiter impulses between a linkage and
+    the space's static body, call after ``space.step``.
+  - ``StabilitySnapshot`` gains ``ground_reaction_force`` and
+    ``peak_contact_force`` fields (Newtons, zero when no foot contact).
+  - ``StabilityTimeSeries`` gains ``peak_ground_reaction_force``,
+    ``mean_ground_reaction_force``, and ``peak_contact_force`` properties,
+    surfaced in ``summary_metrics()`` so ``StabilityFitness`` and
+    ``CompositeFitness`` expose them automatically.
+  - ``compute_stability_snapshot`` now accepts an optional
+    ``static_body`` argument that wires in the GRF sampling.
 - **Gait, energy, and speed fitness metrics** (Phase 8.3):
   - ``GaitAnalysisResult.gait_asymmetry`` — population standard deviation
     of per-foot duty factors, zero for perfectly symmetric gaits.

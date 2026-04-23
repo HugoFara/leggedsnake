@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import numpy as np
+import pymunk as pm
 
 if TYPE_CHECKING:
     from .dynamiclinkage import DynamicLinkage
@@ -49,6 +50,11 @@ class StabilitySnapshot:
     support_polygon: list[tuple[float, float]]
     tip_over_margin: float
     body_angle: float
+    ground_reaction_force: float = 0.0
+    """Sum of contact-force magnitudes between the linkage and the ground
+    (Newtons) — zero when no foot is touching."""
+    peak_contact_force: float = 0.0
+    """Largest single-contact force magnitude this step."""
 
 
 @dataclass
@@ -119,6 +125,39 @@ class StabilityTimeSeries:
         vxs = [s.com_velocity[0] for s in self.snapshots]
         return float(np.var(vxs))
 
+    @property
+    def peak_ground_reaction_force(self) -> float:
+        """Maximum summed foot-ground contact force across the run (N)."""
+        if not self.snapshots:
+            return 0.0
+        return max(s.ground_reaction_force for s in self.snapshots)
+
+    @property
+    def mean_ground_reaction_force(self) -> float:
+        """Mean summed foot-ground contact force across the run (N).
+
+        Averages over *every* step — steps with no foot contact count
+        as zero. A well-footed walker's mean should approximate the
+        weight of the walker.
+        """
+        if not self.snapshots:
+            return 0.0
+        return (
+            sum(s.ground_reaction_force for s in self.snapshots)
+            / len(self.snapshots)
+        )
+
+    @property
+    def peak_contact_force(self) -> float:
+        """Largest single foot-ground contact force across the run (N).
+
+        Useful for spotting impulsive spikes that would shatter a real
+        mechanism even when the summed force looks benign.
+        """
+        if not self.snapshots:
+            return 0.0
+        return max(s.peak_contact_force for s in self.snapshots)
+
     def summary_metrics(self) -> dict[str, float]:
         """Flat dictionary of all scalar stability metrics."""
         return {
@@ -128,6 +167,9 @@ class StabilityTimeSeries:
             "angular_stability": self.angular_stability,
             "mean_speed": self.mean_speed,
             "speed_variance": self.speed_variance,
+            "peak_ground_reaction_force": self.peak_ground_reaction_force,
+            "mean_ground_reaction_force": self.mean_ground_reaction_force,
+            "peak_contact_force": self.peak_contact_force,
         }
 
 
@@ -283,6 +325,57 @@ def get_support_polygon(
     return contacts
 
 
+def sample_ground_reaction_force(
+    linkage: DynamicLinkage,
+    static_body: pm.Body,
+    dt: float,
+) -> tuple[float, float]:
+    """Sample foot–ground contact forces right after a physics step.
+
+    Iterates active pymunk arbiters on every linkage body and sums the
+    impulse magnitude of arbiters that involve the space's static body
+    (the ground / road). Call **after** ``space.step(dt)``; arbiters are
+    only valid then.
+
+    Parameters
+    ----------
+    linkage : DynamicLinkage
+        The linkage whose contacts to sample.
+    static_body : pm.Body
+        The pymunk static body that owns all ground segments — typically
+        ``world.space.static_body``.
+    dt : float
+        The timestep just taken. Used to convert accumulated impulse to
+        an average force (``F = J / dt``). Must be > 0.
+
+    Returns
+    -------
+    tuple[float, float]
+        ``(total_force, peak_force)`` — sum of all foot-ground contact
+        forces this step, and the largest single-contact force. Both in
+        the same units as pymunk mass × m / s² (usually Newtons).
+    """
+    if dt <= 0:
+        return (0.0, 0.0)
+
+    total = 0.0
+    peak = 0.0
+
+    def _collect(arbiter: pm.Arbiter, *args: object) -> None:
+        nonlocal total, peak
+        if static_body not in arbiter.bodies:
+            return
+        mag = float(arbiter.total_impulse.length) / dt
+        total += mag
+        if mag > peak:
+            peak = mag
+
+    for body in linkage.rigidbodies:
+        body.each_arbiter(_collect)
+
+    return total, peak
+
+
 def compute_tip_over_margin(
     com: tuple[float, float],
     support_polygon: list[tuple[float, float]],
@@ -344,6 +437,7 @@ def compute_stability_snapshot(
     gravity: float,
     foot_ids: list[str] | None = None,
     ground_threshold: float = 0.1,
+    static_body: pm.Body | None = None,
 ) -> StabilitySnapshot:
     """Assemble a full stability snapshot from current physics state.
 
@@ -364,6 +458,11 @@ def compute_stability_snapshot(
         Node IDs of feet for support polygon computation.
     ground_threshold : float
         Maximum y-coordinate for ground contact detection.
+    static_body : pm.Body | None
+        If provided, sample foot–ground contact forces via
+        :func:`sample_ground_reaction_force` and populate the
+        ``ground_reaction_force`` and ``peak_contact_force`` fields.
+        Pass ``world.space.static_body`` to enable.
 
     Returns
     -------
@@ -383,6 +482,14 @@ def compute_stability_snapshot(
     margin = compute_tip_over_margin(com, support)
     body_angle = float(linkage.body.angle)
 
+    if static_body is not None:
+        grf_total, grf_peak = sample_ground_reaction_force(
+            linkage, static_body, dt,
+        )
+    else:
+        grf_total = 0.0
+        grf_peak = 0.0
+
     return StabilitySnapshot(
         time=time,
         com=com,
@@ -391,4 +498,6 @@ def compute_stability_snapshot(
         support_polygon=support,
         tip_over_margin=margin,
         body_angle=body_angle,
+        ground_reaction_force=grf_total,
+        peak_contact_force=grf_peak,
     )

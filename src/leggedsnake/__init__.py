@@ -80,6 +80,7 @@ from .stability import (
     StabilityTimeSeries,
     compute_com,
     compute_tip_over_margin,
+    sample_ground_reaction_force,
 )
 from .geneticoptimizer import (
     GeneticOptimization,
@@ -219,6 +220,7 @@ __all__ = [
     "StabilityTimeSeries",
     "compute_com",
     "compute_tip_over_margin",
+    "sample_ground_reaction_force",
     # nsga optimizer
     "NsgaWalkingConfig",
     "NsgaWalkingResult",
