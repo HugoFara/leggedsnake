@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Sphinx documentation refresh**:
+  - ``docs_src/migration_world_config.rst`` — full ``params`` →
+    ``WorldConfig`` migration guide with side-by-side code, the legacy
+    key → dataclass-field mapping table, terrain-preset usage, and the
+    list of new fields with no legacy equivalent
+    (``payload_offset`` / ``wind_force`` / ``drag_coefficient``).
+  - API reference stubs for fifteen previously undocumented modules:
+    ``fitness``, ``stability``, ``gait_analysis``, ``gait_optimization``,
+    ``nsga_optimizer``, ``topology_optimization``, ``co_design``,
+    ``walking_objectives``, ``leg_count``, ``hypergraph_physics``,
+    ``serialization``, ``urdf_export``, ``plotting``,
+    ``worldvisualizer``, ``show_evolution``.
+  - ``index.rst`` toctree regrouped by capability (Mechanism,
+    Physics, Evaluation, Optimization, I/O & Plotting) so the API
+    surface is navigable instead of a single flat list.
+  - ``conf.py`` ``release`` bumped to ``0.5.0`` (was stale at
+    ``0.4.0``).
 - **Sparse loci recording** in ``CompositeFitness`` and ``GaitFitness``:
   - New ``loci_stride: int = 1`` parameter — keep every Nth recorded
     physics step. ``stride=10`` cuts loci memory ~20× for long sweeps
