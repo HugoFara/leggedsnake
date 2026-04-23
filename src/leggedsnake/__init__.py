@@ -69,6 +69,8 @@ from .gait_analysis import (
     GaitCycle,
     FootEvent,
     analyze_gait,
+    compute_cost_of_transport,
+    compute_froude_number,
 )
 from .gait_optimization import (
     GaitOptimizationConfig,
@@ -220,6 +222,8 @@ __all__ = [
     "GaitCycle",
     "FootEvent",
     "analyze_gait",
+    "compute_cost_of_transport",
+    "compute_froude_number",
     # gait optimization
     "GaitOptimizationConfig",
     "GaitOptimizationResult",

@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Scale-invariant locomotion metrics**:
+  - ``compute_froude_number(speed, gravity, leg_length)`` — Alexander's
+    walking Froude number ``Fr = v² / (g · L)``, the canonical
+    dimensionless gait metric. Predicts the walk-to-run transition
+    near ``Fr ≈ 0.5`` and lets walkers of very different sizes be
+    compared directly.
+  - ``compute_cost_of_transport(energy, mass, distance)`` —
+    ``COT = E / (m · d)``, the standard locomotion-efficiency metric
+    (lower is better).
+  - Both are surfaced as ``froude_number`` and ``cost_of_transport``
+    in ``FitnessResult.metrics`` for ``DistanceFitness``,
+    ``EfficiencyFitness``, ``StabilityFitness``, ``CompositeFitness``,
+    and ``GaitFitness`` — derived from the simulation's mass, mean
+    speed, energy, and the linkage's vertical extent (proxy leg length).
 - **Multi-gait support via phase-offset optimization**:
   - ``Walker.add_legs`` now accepts either an ``int`` (even-spacing, the
     classic rotating-stack gait) or a ``Sequence[float]`` of explicit

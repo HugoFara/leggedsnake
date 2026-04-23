@@ -34,9 +34,36 @@ from typing import Any, Callable, Protocol, runtime_checkable
 from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph import HypergraphLinkage
 
+from .gait_analysis import compute_cost_of_transport, compute_froude_number
 from .physicsengine import World, WorldConfig, linkage_bb
 from .stability import StabilityTimeSeries, compute_stability_snapshot
 from .utility import step as step_check, stride, Point
+
+
+def _scale_invariant_metrics(
+    result: "_SimulationResult", duration: float,
+) -> dict[str, float]:
+    """Derive Froude number and cost of transport from a simulation result.
+
+    Speed defaults to ``distance / duration`` (mean over the whole run).
+    When a ``StabilityTimeSeries`` is attached, its ``mean_speed`` is
+    preferred since it tracks the steady-state CoM velocity rather than
+    including startup transients.
+    """
+    if result.stability is not None and result.stability.snapshots:
+        speed = float(result.stability.mean_speed)
+    elif duration > 0:
+        speed = float(result.distance) / duration
+    else:
+        speed = 0.0
+    return {
+        "froude_number": compute_froude_number(
+            speed, result.gravity, result.characteristic_length,
+        ),
+        "cost_of_transport": compute_cost_of_transport(
+            result.total_energy, result.mass, result.distance,
+        ),
+    }
 
 
 @dataclass
@@ -143,6 +170,7 @@ class DistanceFitness:
                 "distance": result.distance,
                 "total_efficiency": result.total_efficiency,
                 "total_energy": result.total_energy,
+                **_scale_invariant_metrics(result, self.duration),
             },
             valid=result.valid,
             loci=result.loci,
@@ -214,6 +242,7 @@ class EfficiencyFitness:
                 "total_efficiency": result.total_efficiency,
                 "total_energy": result.total_energy,
                 "efficiency_ratio": score,
+                **_scale_invariant_metrics(result, self.duration),
             },
             valid=result.valid,
             loci=result.loci,
@@ -366,6 +395,7 @@ class StabilityFitness:
         metrics = {
             "distance": result.distance,
             **stability.summary_metrics(),
+            **_scale_invariant_metrics(result, self.duration),
         }
         return FitnessResult(
             score=score, metrics=metrics, valid=True, loci=result.loci,
@@ -463,6 +493,8 @@ class CompositeFitness:
             )
             metrics.update(gait_metrics)
 
+        metrics.update(_scale_invariant_metrics(result, self.duration))
+
         return FitnessResult(
             score=result.distance,
             metrics=metrics,
@@ -542,6 +574,7 @@ class GaitFitness:
         metrics["energy_per_cycle"] = gait.energy_per_cycle(result.total_energy)
         metrics["distance"] = result.distance
         metrics["total_energy"] = result.total_energy
+        metrics.update(_scale_invariant_metrics(result, self.duration))
 
         return FitnessResult(
             score=metrics["mean_stride_length"],
@@ -830,6 +863,9 @@ class _SimulationResult:
     stability: StabilityTimeSeries | None = None
     foot_ids: list[str] = field(default_factory=list)
     dt: float = 0.02
+    mass: float = 0.0
+    characteristic_length: float = 0.0
+    gravity: float = 9.80665
 
 
 def _run_simulation(
@@ -883,9 +919,15 @@ def _run_simulation(
     # Place the road just beneath the walker's feet so it starts resting on
     # the ground instead of intersecting or free-falling onto it — matches
     # worldvisualizer and the nb02 ``simulate`` helper.
-    road_y = linkage_bb(walker)[0] - 1
+    walker_bb = linkage_bb(walker)
+    road_y = walker_bb[0] - 1
+    # Vertical extent of the linkage in its initial pose — used as the
+    # characteristic length for the Froude number.
+    characteristic_length = float(walker_bb[2] - walker_bb[0])
     world = World(config=config, road_y=road_y)
     world.add_linkage(walker)
+    mass = float(world.linkages[0].mass)
+    gravity_mag = float(abs(world.space.gravity[1]))
 
     dt = world.config.physics_period
     steps = int(duration / dt)
@@ -904,7 +946,6 @@ def _run_simulation(
     prev_snap = None
     if record_stability:
         stability_series = StabilityTimeSeries()
-        gravity_mag = abs(world.space.gravity[1])
 
     for step_i in range(steps):
         result = world.update()
@@ -941,4 +982,7 @@ def _run_simulation(
         stability=stability_series,
         foot_ids=foot_ids,
         dt=dt,
+        mass=mass,
+        characteristic_length=characteristic_length,
+        gravity=gravity_mag,
     )

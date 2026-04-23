@@ -389,6 +389,70 @@ def compute_phase_offsets(
     return offsets
 
 
+def compute_froude_number(
+    speed: float, gravity: float, leg_length: float,
+) -> float:
+    """Walking Froude number ``Fr = v² / (g · L)``.
+
+    Dimensionless gait metric introduced for ship hulls (William Froude)
+    and brought to locomotion by R. McNeill Alexander. Lets walkers of
+    very different sizes be compared directly: the walk-to-run gait
+    transition occurs near ``Fr ≈ 0.5`` across the animal kingdom.
+
+    Parameters
+    ----------
+    speed : float
+        Mean forward speed (m/s).
+    gravity : float
+        Magnitude of gravitational acceleration (m/s², positive).
+    leg_length : float
+        Characteristic length — typically hip height or, for arbitrary
+        planar topologies, the linkage's vertical extent.
+
+    Returns
+    -------
+    float
+        ``v² / (g · L)`` — or ``0.0`` when gravity or leg length is
+        non-positive.
+    """
+    if gravity <= 0 or leg_length <= 0:
+        return 0.0
+    return (speed * speed) / (gravity * leg_length)
+
+
+def compute_cost_of_transport(
+    energy: float, mass: float, distance: float,
+) -> float:
+    """Mechanical cost of transport ``COT = E / (m · d)``.
+
+    Standard locomotion-efficiency metric — *lower is better*. The
+    energy ``E`` should be the total mechanical work done by the motors
+    over the run; ``m`` the walker mass; ``d`` the forward distance
+    travelled. Dimensionless when ``E`` is in Joules, ``m`` in kg,
+    ``d`` in metres (units cancel through ``g`` implicitly when divided
+    by gravity, but the unitful form ``J/(kg·m)`` is what most
+    biomechanics papers report).
+
+    Parameters
+    ----------
+    energy : float
+        Total energy spent (Joules).
+    mass : float
+        Walker mass (kg).
+    distance : float
+        Forward distance travelled (m).
+
+    Returns
+    -------
+    float
+        ``E / (m · d)`` — or ``0.0`` when mass or distance is
+        non-positive.
+    """
+    if mass <= 0 or distance <= 0:
+        return 0.0
+    return energy / (mass * distance)
+
+
 def compute_foot_trajectory_metrics(
     trajectory: list[tuple[float, float]],
 ) -> dict[str, float]:
