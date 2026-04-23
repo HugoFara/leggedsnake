@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Sphinx documentation refresh**:
+  - ``docs_src/concepts.rst`` — orientation page covering the three
+    pieces that compose into everything else: topology + dimensions
+    = walker, the ``DynamicFitness`` / ``FitnessResult`` protocol
+    (and the ``as_eval_func`` / ``as_ga_fitness`` adapters), and the
+    optimizer landscape from kinematic-fast (``StrideFitness`` + PSO)
+    to dynamic-multi-objective (``CompositeFitness`` + NSGA) plus the
+    recommended pipeline.
   - ``docs_src/migration_world_config.rst`` — full ``params`` →
     ``WorldConfig`` migration guide with side-by-side code, the legacy
     key → dataclass-field mapping table, terrain-preset usage, and the

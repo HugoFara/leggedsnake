@@ -17,6 +17,7 @@ Welcome to LeggedSnake's documentation!
    :maxdepth: 2
    :caption: Guides
 
+   concepts
    migration_world_config
 
 .. toctree::

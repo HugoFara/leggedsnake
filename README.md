@@ -117,6 +117,18 @@ ls.video(walker)
 | Export | `to_urdf` (ROS), `save_walker` (JSON), `save_walker_svg` |
 | Plotting | `plot_pareto_front`, `plot_gait_diagram`, `plot_foot_trajectories`, `plot_optimization_dashboard` |
 
+## Documentation
+
+- **[Concepts guide](https://hugofara.github.io/leggedsnake/concepts.html)**
+  — orientation to the three core ideas: topology + dimensions = walker,
+  the `DynamicFitness` protocol, and the optimizer landscape from
+  fast-kinematic to dynamic-multi-objective.
+- **[`params` → `WorldConfig` migration guide](https://hugofara.github.io/leggedsnake/migration_world_config.html)**
+  — for code written against the legacy global `params` dict.
+- **[Full API reference](https://hugofara.github.io/leggedsnake/)** — modules
+  grouped by capability (Mechanism, Physics, Evaluation, Optimization,
+  I/O & Plotting).
+
 ## Tutorials and deeper examples
 
 Start with the numbered notebooks — they walk through the full pipeline end
@@ -174,6 +186,8 @@ your favourite walker also helps.
 ## Quick links
 
 - Documentation: [hugofara.github.io/leggedsnake](https://hugofara.github.io/leggedsnake/)
+- Concepts: [concepts.html](https://hugofara.github.io/leggedsnake/concepts.html)
+- Migration guide: [migration_world_config.html](https://hugofara.github.io/leggedsnake/migration_world_config.html)
 - Source: [HugoFara/leggedsnake](https://github.com/HugoFara/leggedsnake)
 - PyPI: [leggedsnake](https://pypi.org/project/leggedsnake/)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
