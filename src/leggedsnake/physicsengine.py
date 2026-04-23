@@ -11,6 +11,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, TypedDict
 
+import math
+
 import numpy as np
 import pymunk as pm
 
@@ -39,6 +41,12 @@ class SlopeProfile(Enum):
     """V-shaped descent then ascent."""
     SAWTOOTH = "sawtooth"
     """Repeating climb-then-drop pattern."""
+    SINUSOIDAL = "sinusoidal"
+    """Sinusoidal undulation with period :attr:`TerrainConfig.wave_period`."""
+    FREQUENCY_SWEEP = "frequency_sweep"
+    """Linear chirp — wave frequency grows with distance, controlled by
+    :attr:`TerrainConfig.wave_sweep_rate`. Useful for probing the speed
+    response of a walker across a range of terrain frequencies in one run."""
 
 
 def _slope_random(
@@ -80,6 +88,39 @@ def _slope_sawtooth(
     return -terrain.slope * (cycle - 1)
 
 
+def _slope_sinusoidal(
+    terrain: "TerrainConfig", _rng: np.random.Generator, step: int,
+) -> float:
+    """Smooth sinusoidal undulation in physical x-space.
+
+    Amplitude is ``terrain.slope``; spatial period is ``terrain.wave_period``
+    metres. With ``wave_period <= 0`` the slope collapses to 0.
+    """
+    if terrain.wave_period <= 0:
+        return 0.0
+    x = step * terrain.section_len
+    return terrain.slope * math.sin(2 * math.pi * x / terrain.wave_period)
+
+
+def _slope_frequency_sweep(
+    terrain: "TerrainConfig", _rng: np.random.Generator, step: int,
+) -> float:
+    """Linear chirp: frequency grows linearly with distance.
+
+    Phase ``φ(x) = 2π (x / wave_period + sweep_rate · x² / 2)`` so the
+    instantaneous wavelength shortens as ``x`` increases. ``sweep_rate``
+    has units of cycles per metre². With ``sweep_rate = 0`` the profile
+    reduces to :func:`_slope_sinusoidal`.
+    """
+    if terrain.wave_period <= 0:
+        return 0.0
+    x = step * terrain.section_len
+    phase = 2 * math.pi * (
+        x / terrain.wave_period + terrain.wave_sweep_rate * x * x / 2.0
+    )
+    return terrain.slope * math.sin(phase)
+
+
 #: Registry mapping profile keys to generator callables.
 #: Signature: ``(terrain, rng, step_counter) -> angle_in_radians``
 SlopeGenerator = Callable[["TerrainConfig", np.random.Generator, int], float]
@@ -90,6 +131,8 @@ SLOPE_PROFILES: dict[str, SlopeGenerator] = {
     SlopeProfile.CONSTANT.value: _slope_constant,
     SlopeProfile.VALLEY.value: _slope_valley,
     SlopeProfile.SAWTOOTH.value: _slope_sawtooth,
+    SlopeProfile.SINUSOIDAL.value: _slope_sinusoidal,
+    SlopeProfile.FREQUENCY_SWEEP.value: _slope_frequency_sweep,
 }
 
 
@@ -104,6 +147,12 @@ class TerrainPreset(Enum):
     ROUGH = "rough"
     STAIRS = "stairs"
     MIXED = "mixed"
+    SLOPE_UP = "slope_up"
+    """Constant uphill grade — pairs with the Phase 9 terrain panel."""
+    SLOPE_DOWN = "slope_down"
+    """Constant downhill grade — pairs with the Phase 9 terrain panel."""
+    SINUSOIDAL = "sinusoidal"
+    """Smooth undulating ground for measuring speed-variance response."""
 
 
 # ---------------------------------------------------------------------------
@@ -145,6 +194,12 @@ class TerrainConfig:
     """Slope generation strategy.  Accepts a :class:`SlopeProfile` enum, a
     string key from :data:`SLOPE_PROFILES`, or a custom callable with
     signature ``(terrain, rng, step_counter) -> angle``."""
+    wave_period: float = 10.0
+    """Spatial wavelength in metres for ``SINUSOIDAL`` and
+    ``FREQUENCY_SWEEP`` slope profiles. Ignored by other profiles."""
+    wave_sweep_rate: float = 0.0
+    """Frequency sweep rate (cycles per metre²) for ``FREQUENCY_SWEEP``.
+    With ``0`` the chirp degenerates to a pure sinusoid."""
 
     @staticmethod
     def from_preset(preset: TerrainPreset | str) -> "TerrainConfig":
@@ -202,12 +257,37 @@ def _preset_mixed() -> TerrainConfig:
     )
 
 
+def _preset_slope_up() -> TerrainConfig:
+    return TerrainConfig(
+        slope=8 * np.pi / 180, noise=0.0, step_freq=0.0,
+        slope_profile=SlopeProfile.CONSTANT,
+    )
+
+
+def _preset_slope_down() -> TerrainConfig:
+    return TerrainConfig(
+        slope=-8 * np.pi / 180, noise=0.0, step_freq=0.0,
+        slope_profile=SlopeProfile.CONSTANT,
+    )
+
+
+def _preset_sinusoidal() -> TerrainConfig:
+    return TerrainConfig(
+        slope=8 * np.pi / 180, noise=0.0, step_freq=0.0,
+        wave_period=8.0,
+        slope_profile=SlopeProfile.SINUSOIDAL,
+    )
+
+
 _TERRAIN_PRESETS: list[tuple[TerrainPreset, Callable[[], TerrainConfig]]] = [
     (TerrainPreset.FLAT, _preset_flat),
     (TerrainPreset.HILLY, _preset_hilly),
     (TerrainPreset.ROUGH, _preset_rough),
     (TerrainPreset.STAIRS, _preset_stairs),
     (TerrainPreset.MIXED, _preset_mixed),
+    (TerrainPreset.SLOPE_UP, _preset_slope_up),
+    (TerrainPreset.SLOPE_DOWN, _preset_slope_down),
+    (TerrainPreset.SINUSOIDAL, _preset_sinusoidal),
 ]
 
 

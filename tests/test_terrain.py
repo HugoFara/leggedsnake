@@ -3,6 +3,7 @@
 
 import unittest
 
+import numpy as np
 
 from leggedsnake.physicsengine import (
     SLOPE_PROFILES,
@@ -243,6 +244,152 @@ class TestSlopeProfiles(unittest.TestCase):
         has_down = any(d < -1e-6 for d in diffs)
         has_up = any(d > 1e-6 for d in diffs)
         self.assertTrue(has_down and has_up)
+
+
+class TestSinusoidalProfile(unittest.TestCase):
+    """Smooth sinusoidal slope generator."""
+
+    def test_zero_at_origin(self):
+        terrain = TerrainConfig(
+            slope=0.5, wave_period=10.0, section_len=1.0,
+        )
+        gen = SLOPE_PROFILES[SlopeProfile.SINUSOIDAL.value]
+        rng = np.random.default_rng(0)
+        self.assertAlmostEqual(gen(terrain, rng, 0), 0.0, places=12)
+
+    def test_quarter_period_is_amplitude(self):
+        """At x = period/4 the sine peaks at +slope."""
+        terrain = TerrainConfig(
+            slope=0.5, wave_period=8.0, section_len=2.0,
+        )
+        gen = SLOPE_PROFILES[SlopeProfile.SINUSOIDAL.value]
+        rng = np.random.default_rng(0)
+        # x = step * section_len = 1 * 2 = 2 = wave_period / 4
+        self.assertAlmostEqual(gen(terrain, rng, 1), 0.5, places=10)
+
+    def test_half_period_returns_to_zero(self):
+        terrain = TerrainConfig(
+            slope=0.5, wave_period=8.0, section_len=2.0,
+        )
+        gen = SLOPE_PROFILES[SlopeProfile.SINUSOIDAL.value]
+        rng = np.random.default_rng(0)
+        # x = 2 * 2 = 4 = wave_period / 2
+        self.assertAlmostEqual(gen(terrain, rng, 2), 0.0, places=10)
+
+    def test_zero_period_collapses_to_flat(self):
+        """Degenerate wave_period <= 0 yields no slope (no division blow-up)."""
+        terrain = TerrainConfig(
+            slope=0.5, wave_period=0.0, section_len=1.0,
+        )
+        gen = SLOPE_PROFILES[SlopeProfile.SINUSOIDAL.value]
+        rng = np.random.default_rng(0)
+        for step in (0, 1, 5, 17):
+            self.assertEqual(gen(terrain, rng, step), 0.0)
+
+    def test_road_undulates(self):
+        """Built road has both up and down segments."""
+        terrain = TerrainConfig(
+            slope=0.3, wave_period=4.0, section_len=0.5,
+            step_freq=0.0, slope_profile=SlopeProfile.SINUSOIDAL, seed=1,
+        )
+        w = World(config=WorldConfig(terrain=terrain))
+        for _ in range(40):
+            w.build_road(positive=True)
+        ys = [p[1] for p in w.road]
+        diffs = [ys[i + 1] - ys[i] for i in range(len(ys) - 1)]
+        self.assertTrue(any(d < -1e-6 for d in diffs))
+        self.assertTrue(any(d > 1e-6 for d in diffs))
+
+
+class TestFrequencySweepProfile(unittest.TestCase):
+    """Linear-chirp slope generator."""
+
+    def test_degenerates_to_sinusoid(self):
+        """sweep_rate = 0 → identical to SINUSOIDAL."""
+        terrain = TerrainConfig(
+            slope=0.4, wave_period=6.0, section_len=1.0, wave_sweep_rate=0.0,
+        )
+        sweep = SLOPE_PROFILES[SlopeProfile.FREQUENCY_SWEEP.value]
+        sine = SLOPE_PROFILES[SlopeProfile.SINUSOIDAL.value]
+        rng = np.random.default_rng(0)
+        for step in range(10):
+            self.assertAlmostEqual(
+                sweep(terrain, rng, step), sine(terrain, rng, step), places=12,
+            )
+
+    def test_frequency_increases_with_distance(self):
+        """Zero-crossings occur more often as x grows (chirp behaviour).
+
+        Parameters chosen so the second half stays well above Nyquist:
+        with ``section_len=0.5`` and a final wavelength near 1.6 m, each
+        oscillation is sampled ~3 times.
+        """
+        terrain = TerrainConfig(
+            slope=0.3, wave_period=8.0, section_len=0.5, wave_sweep_rate=0.005,
+        )
+        gen = SLOPE_PROFILES[SlopeProfile.FREQUENCY_SWEEP.value]
+        rng = np.random.default_rng(0)
+        n = 200
+        values = [gen(terrain, rng, step) for step in range(n)]
+
+        def zero_crossings(seq: list[float]) -> int:
+            return sum(
+                1 for i in range(1, len(seq))
+                if seq[i - 1] == 0 or (seq[i] * seq[i - 1] < 0)
+            )
+
+        first_half = zero_crossings(values[: n // 2])
+        second_half = zero_crossings(values[n // 2:])
+        self.assertGreater(second_half, first_half)
+
+    def test_zero_period_collapses_to_flat(self):
+        terrain = TerrainConfig(
+            slope=0.5, wave_period=0.0, wave_sweep_rate=0.1,
+        )
+        gen = SLOPE_PROFILES[SlopeProfile.FREQUENCY_SWEEP.value]
+        rng = np.random.default_rng(0)
+        for step in (0, 5, 17):
+            self.assertEqual(gen(terrain, rng, step), 0.0)
+
+
+class TestNewTerrainPresets(unittest.TestCase):
+    """SLOPE_UP / SLOPE_DOWN / SINUSOIDAL terrain presets."""
+
+    def test_all_new_presets_build(self):
+        for preset in (
+            TerrainPreset.SLOPE_UP,
+            TerrainPreset.SLOPE_DOWN,
+            TerrainPreset.SINUSOIDAL,
+        ):
+            cfg = TerrainConfig.from_preset(preset)
+            self.assertIsInstance(cfg, TerrainConfig)
+
+    def test_slope_up_climbs(self):
+        cfg = TerrainConfig.from_preset(TerrainPreset.SLOPE_UP)
+        cfg.seed = 5
+        w = World(config=WorldConfig(terrain=cfg))
+        for _ in range(20):
+            w.build_road(positive=True)
+        ys = [p[1] for p in w.road]
+        # Constant uphill → strictly non-decreasing on the right side
+        # (allowing floating noise).
+        for i in range(1, len(ys)):
+            self.assertGreaterEqual(ys[i], ys[i - 1] - 1e-9)
+        self.assertGreater(ys[-1], ys[0])
+
+    def test_slope_down_descends(self):
+        cfg = TerrainConfig.from_preset(TerrainPreset.SLOPE_DOWN)
+        cfg.seed = 6
+        w = World(config=WorldConfig(terrain=cfg))
+        for _ in range(20):
+            w.build_road(positive=True)
+        ys = [p[1] for p in w.road]
+        self.assertLess(ys[-1], ys[0])
+
+    def test_sinusoidal_preset_uses_wave_profile(self):
+        cfg = TerrainConfig.from_preset(TerrainPreset.SINUSOIDAL)
+        self.assertEqual(cfg.slope_profile, SlopeProfile.SINUSOIDAL)
+        self.assertGreater(cfg.wave_period, 0)
 
 
 class TestMixedBuildRoad(unittest.TestCase):
