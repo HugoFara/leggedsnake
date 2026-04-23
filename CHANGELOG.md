@@ -9,7 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Ground reaction force metrics** (Phase 8.3):
+- **External force-field extensions to ``WorldConfig``**:
+  - ``payload_offset: tuple[float, float]`` — offsets the chassis centre
+    of gravity in body-local coordinates, simulating an uneven or
+    off-centre payload without moving the reference position.
+  - ``wind_force: tuple[float, float]`` — constant (fx, fy) force in
+    Newtons applied to the chassis each physics step.
+  - ``drag_coefficient: float`` — linear drag (``F = -c·v``) applied to
+    the chassis, modelling air or fluid resistance.
+- **Ground reaction force metrics**:
   - ``sample_ground_reaction_force(linkage, static_body, dt)`` — sums
     and finds the peak of pymunk arbiter impulses between a linkage and
     the space's static body, call after ``space.step``.
@@ -21,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ``CompositeFitness`` expose them automatically.
   - ``compute_stability_snapshot`` now accepts an optional
     ``static_body`` argument that wires in the GRF sampling.
-- **Gait, energy, and speed fitness metrics** (Phase 8.3):
+- **Gait, energy, and speed fitness metrics**:
   - ``GaitAnalysisResult.gait_asymmetry`` — population standard deviation
     of per-foot duty factors, zero for perfectly symmetric gaits.
   - ``GaitAnalysisResult.energy_per_cycle(total_energy)`` — joules spent
@@ -34,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ``FitnessResult.metrics``.
   - ``CompositeFitness`` now accepts ``"gait"`` in ``objectives`` so
     the metrics populate from the single shared simulation run.
-- **Procedural terrain slope profiles** (Phase 8.3):
+- **Procedural terrain slope profiles**:
   - ``SlopeProfile.SINUSOIDAL`` — smooth sinusoidal undulation in
     physical x-space, period set by ``TerrainConfig.wave_period``.
   - ``SlopeProfile.FREQUENCY_SWEEP`` — linear chirp where wave
@@ -42,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ``TerrainConfig.wave_sweep_rate``; useful for probing a walker's
     speed response across terrain frequencies in one run.
   - ``TerrainPreset.SLOPE_UP`` / ``SLOPE_DOWN`` / ``SINUSOIDAL`` —
-    preassembled configs targeting the Phase 9 terrain panel.
+    preassembled terrain-benchmark configs.
 - **Classical walking-linkage factories on ``Walker``**: one-call
   constructors for six canonical mechanisms, each with unit-scaled
   geometries and published bar lengths.

@@ -321,6 +321,19 @@ class WorldConfig:
     """Ground friction coefficient (square root of mu)."""
     terrain: TerrainConfig = field(default_factory=TerrainConfig)
     """Terrain generation parameters."""
+    payload_offset: tuple[float, float] = (0.0, 0.0)
+    """Offset (metres) of the chassis centre of gravity relative to its
+    reference position. ``(0, 0)`` keeps the default behaviour; non-zero
+    values simulate an uneven / off-centre payload."""
+    wind_force: tuple[float, float] = (0.0, 0.0)
+    """Constant external force (Newtons) applied to each linkage's
+    chassis every physics step. ``(+x, 0)`` models a steady headwind
+    or tailwind. Applied via ``body.apply_force_at_world_point`` — does
+    not stack with user-applied forces."""
+    drag_coefficient: float = 0.0
+    """Linear drag coefficient (N·s/m). Each step, a force
+    ``-drag_coefficient * chassis_velocity`` is added to the chassis,
+    modelling air / fluid drag. ``0`` disables drag."""
 
 
 DEFAULT_CONFIG = WorldConfig()
@@ -505,6 +518,13 @@ class World:
                 source, self.space, load=load_mass
             )
 
+        # Apply payload offset — shifts the chassis body's local centre of
+        # gravity without moving its reference position, simulating an
+        # off-centre payload.
+        offset = self.config.payload_offset
+        if offset != (0.0, 0.0):
+            dl.body.center_of_gravity = pm.Vec2d(offset[0], offset[1])
+
         # Disable motors initially (enable when settled)
         for motor in dl.physics_mapping.motors:
             motor.max_force = 0
@@ -590,6 +610,21 @@ class World:
         """
         if dt is None:
             dt = self.config.physics_period
+
+        # Apply external force field (wind) and linear drag to each
+        # chassis before integrating. pymunk zeroes body forces after
+        # every step, so these must be reapplied here.
+        wx, wy = self.config.wind_force
+        drag = self.config.drag_coefficient
+        if wx != 0.0 or wy != 0.0 or drag != 0.0:
+            for lin in self.linkages:
+                body = lin.body
+                fx = wx - drag * body.velocity.x
+                fy = wy - drag * body.velocity.y
+                if fx != 0.0 or fy != 0.0:
+                    body.apply_force_at_world_point(
+                        (fx, fy), body.position,
+                    )
 
         # Compute motor power for each linkage
         powers: list[list[float]] = [
