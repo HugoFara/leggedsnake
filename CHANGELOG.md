@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Multi-gait support via phase-offset optimization**:
+  - ``Walker.add_legs`` now accepts either an ``int`` (even-spacing, the
+    classic rotating-stack gait) or a ``Sequence[float]`` of explicit
+    per-leg phase offsets in radians, enabling trot, pace, canter,
+    bound, and other asymmetric gaits. Offsets are taken modulo ``tau``.
+  - ``optimize_gait(GaitOptimizationConfig)`` evolves the ``n_legs - 1``
+    phase offsets of a multi-leg walker using
+    ``scipy.optimize.differential_evolution``, with optional
+    ``initial_offsets`` warm-start and parallel workers.
+  - ``GaitOptimizationResult`` reports best offsets, best score, and
+    evaluation count.
 - **External force-field extensions to ``WorldConfig``**:
   - ``payload_offset: tuple[float, float]`` — offsets the chassis centre
     of gravity in body-local coordinates, simulating an uneven or

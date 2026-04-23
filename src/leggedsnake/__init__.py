@@ -70,6 +70,11 @@ from .gait_analysis import (
     FootEvent,
     analyze_gait,
 )
+from .gait_optimization import (
+    GaitOptimizationConfig,
+    GaitOptimizationResult,
+    optimize_gait,
+)
 from .nsga_optimizer import (
     NsgaWalkingConfig,
     NsgaWalkingResult,
@@ -215,6 +220,10 @@ __all__ = [
     "GaitCycle",
     "FootEvent",
     "analyze_gait",
+    # gait optimization
+    "GaitOptimizationConfig",
+    "GaitOptimizationResult",
+    "optimize_gait",
     # stability
     "StabilitySnapshot",
     "StabilityTimeSeries",

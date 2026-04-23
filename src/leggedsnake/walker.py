@@ -10,7 +10,7 @@ multiple DRIVER nodes with independent angular velocities.
 """
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from math import tau
 from typing import TYPE_CHECKING, Any
 
@@ -742,21 +742,37 @@ class Walker:
 
     # --- Leg management ---
 
-    def add_legs(self, number: int = 1) -> None:
+    def add_legs(self, legs: int | Sequence[float] = 1) -> None:
         """Add phase-offset copies of all non-ground mechanism parts.
 
         Each copy shares the same ground nodes but has its driver(s)
-        phase-offset by ``tau / (number + 1)`` from the existing legs.
-        Cloned drivers remain DRIVER nodes with offset ``initial_angle``,
-        so each leg is independently driven at the same angular velocity.
+        phase-offset from the template. Cloned drivers remain DRIVER
+        nodes with offset ``initial_angle``, so each leg is
+        independently driven at the same angular velocity.
 
         Parameters
         ----------
-        number : int
-            Number of additional legs to add (default 1).
+        legs : int or sequence of float
+            When ``int`` (default behaviour), add that many legs with
+            phase offsets evenly spaced at ``tau * k / (n + 1)`` for
+            ``k in 1..n`` — the classic rotating-stack gait.
+
+            When a sequence of floats, each entry is the phase offset
+            (radians, taken modulo ``tau``) of one new leg. This enables
+            discovery of trot, pace, canter, bound, and other gait
+            patterns when phase offsets are evolved by an optimizer.
         """
-        if number < 1:
-            return
+        if isinstance(legs, int):
+            number = legs
+            if number < 1:
+                return
+            total_legs = number + 1
+            offsets = [tau * k / total_legs for k in range(1, number + 1)]
+        else:
+            offsets = [float(o) % tau for o in legs]
+            number = len(offsets)
+            if number < 1:
+                return
 
         # Identify non-ground nodes (the "leg" template)
         ground_ids = {n.id for n in self.topology.ground_nodes()}
@@ -771,7 +787,6 @@ class Walker:
         # don't desynchronize. Rotating only the crank puts downstream
         # joints outside their circle-circle solution, which makes the
         # first solve fail. Simulating the template is the cleanest fix.
-        total_legs = number + 1  # existing + new
         clone_positions: list[dict[str, tuple[float, float]]] = []
         if template_node_ids:
             import math as _math
@@ -782,8 +797,7 @@ class Walker:
             ]
             omega = omega_vals[0] if omega_vals else 1.0
             omega_sign = 1.0 if omega >= 0 else -1.0
-            for leg_idx in range(1, number + 1):
-                phase_offset = tau * leg_idx / total_legs
+            for phase_offset in offsets:
                 iters = int(round(phase_offset / abs(omega))) if omega else 0
                 self._invalidate_cache()
                 mech = self.to_mechanism()
@@ -803,7 +817,7 @@ class Walker:
 
         for leg_idx in range(1, number + 1):
             suffix = f" ({leg_idx})"
-            phase_offset = tau * leg_idx / total_legs
+            phase_offset = offsets[leg_idx - 1]
             old_to_new: dict[str, str] = {}
 
             # Map ground nodes to themselves
