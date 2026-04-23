@@ -1234,6 +1234,19 @@ def _walker_from_sim_linkage(
         If ``sim_linkage`` contains a component type this shim doesn't
         yet handle. Fix the upstream feature gap or extend the shim.
     """
+    # Prefer pylinkage's native bridge when available (pylinkage > 0.9.0).
+    # The in-tree fallback below stays until the floor in pyproject.toml
+    # is bumped past the release that ships ``SimLinkage.to_hypergraph``.
+    to_hypergraph = getattr(sim_linkage, "to_hypergraph", None)
+    if callable(to_hypergraph):
+        hg, dims = to_hypergraph()
+        return Walker(
+            topology=hg,
+            dimensions=dims,
+            name=getattr(sim_linkage, "name", "") or "",
+            motor_rates=motor_rates,
+        )
+
     components = getattr(sim_linkage, "components", None)
     if components is None:
         raise TypeError(

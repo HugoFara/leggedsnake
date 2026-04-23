@@ -358,6 +358,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- ``_walker_from_sim_linkage`` now delegates to
+  ``SimLinkage.to_hypergraph`` when pylinkage exposes it (post-0.9.0
+  releases), and falls back to the in-tree component-walking shim
+  otherwise. The native bridge handles a wider component set
+  (``LinearActuator``, ``RRPDyad``, ``PPDyad``); the fallback stays
+  in place until the ``pylinkage`` floor is bumped.
 - **Breaking**: default ``WorldConfig.torque`` lowered from ``1e3`` to
   ``1e2`` N·m. The old default over-drove typical Strandbeest / Klann
   walkers into pitch chaos before the stance phase could react — at
