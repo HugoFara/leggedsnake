@@ -213,6 +213,98 @@ class TestCreateBodiesFromHypergraph(unittest.TestCase):
             self.assertIs(bodies[0], bodies[1])
 
 
+class TestPassiveDriver(unittest.TestCase):
+    """Drivers with rate ~0 are passive: no SimpleMotor, no gear-lock."""
+
+    def setUp(self):
+        self.space = pm.Space()
+        self.space.gravity = (0, -9.8)
+        self.load_body = pm.Body(1, 1)
+        self.load_body.position = (0, 0)
+        self.space.add(self.load_body)
+        self.filter = pm.ShapeFilter(group=1)
+
+    def test_zero_rate_skips_motor(self):
+        """motor_rates=0.0 produces no SimpleMotor; crank body still exists."""
+        hg, dims = _make_simple_crank()
+        mapping = create_bodies_from_hypergraph(
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
+            motor_rates=0.0,
+        )
+
+        self.assertEqual(mapping.motors, [])
+        self.assertEqual(mapping.motor_node_ids, [])
+        self.assertEqual(mapping.gear_joints, [])
+        # Crank edge still becomes a rigid body — it's just unpowered.
+        self.assertIn("base_crank", mapping.edge_to_body)
+        # No SimpleMotor was added to the space either.
+        motor_constraints = [
+            c for c in self.space.constraints
+            if isinstance(c, pm.SimpleMotor)
+        ]
+        self.assertEqual(motor_constraints, [])
+
+    def test_dimensions_zero_angular_velocity_is_passive(self):
+        """Fallback path (motor_rates=None) honors zero angular_velocity."""
+        hg = HypergraphLinkage(name="passive_via_dims")
+        hg.add_node(Node("base", role=NodeRole.GROUND))
+        hg.add_node(Node("crank", role=NodeRole.DRIVER))
+        hg.add_edge(Edge("base_crank", "base", "crank"))
+        dims = Dimensions(
+            node_positions={"base": (0, 0), "crank": (1, 0)},
+            driver_angles={"crank": DriverAngle(angular_velocity=0.0)},
+            edge_distances={"base_crank": 1.0},
+        )
+
+        mapping = create_bodies_from_hypergraph(
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
+            motor_rates=None,
+        )
+
+        self.assertEqual(mapping.motors, [])
+        self.assertEqual(mapping.gear_joints, [])
+
+    def test_passive_does_not_gear_lock_active_drivers(self):
+        """Mixed passive/active multi-driver topology: only the active pair gear-locks."""
+        hg = HypergraphLinkage(name="mixed_drive")
+        hg.add_node(Node("ground", role=NodeRole.GROUND))
+        hg.add_node(Node("active_a", role=NodeRole.DRIVER))
+        hg.add_node(Node("active_b", role=NodeRole.DRIVER))
+        hg.add_node(Node("passive", role=NodeRole.DRIVER))
+        hg.add_edge(Edge("g_a", "ground", "active_a"))
+        hg.add_edge(Edge("g_b", "ground", "active_b"))
+        hg.add_edge(Edge("g_p", "ground", "passive"))
+
+        dims = Dimensions(
+            node_positions={
+                "ground": (0, 0),
+                "active_a": (1, 0),
+                "active_b": (-1, 0),
+                "passive": (0, 1),
+            },
+            driver_angles={
+                "active_a": DriverAngle(angular_velocity=0.1),
+                "active_b": DriverAngle(angular_velocity=0.1),
+                "passive": DriverAngle(angular_velocity=0.0),
+            },
+            edge_distances={"g_a": 1.0, "g_b": 1.0, "g_p": 1.0},
+        )
+
+        mapping = create_bodies_from_hypergraph(
+            hg, dims, self.space, self.load_body,
+            density=1, thickness=0.1, shape_filter=self.filter,
+            motor_rates={"active_a": -3.0, "active_b": -3.0, "passive": 0.0},
+        )
+
+        # Two motors (the active drivers); the passive driver is skipped.
+        self.assertEqual(len(mapping.motors), 2)
+        self.assertNotIn("passive", mapping.motor_node_ids)
+        # Only the two same-rate active drivers gear-lock.
+        self.assertEqual(len(mapping.gear_joints), 1)
+
+
 class TestGetNodeWorldPosition(unittest.TestCase):
     def test_get_position_from_mapping(self):
         space = pm.Space()

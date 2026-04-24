@@ -25,6 +25,15 @@ if TYPE_CHECKING:
 # driver node IDs to individual rates, enabling multi-DOF mechanisms.
 MotorRates = float | dict[str, float]
 
+# Drivers whose resolved rate magnitude is below this threshold are treated as
+# passive: no SimpleMotor is created and no gear-lock is applied. The crank
+# edge becomes an ordinary pinned rigid body, free to swing under gravity,
+# wind, or external loads. The threshold is small enough that any non-trivial
+# user-supplied rate (and any evolved rate the optimizer would actually pick)
+# clears it, while exactly-zero rates from "make this driver passive" intent
+# resolve cleanly.
+_PASSIVE_RATE_EPS = 1e-9
+
 
 @dataclass
 class PhysicsMapping:
@@ -520,6 +529,13 @@ def _create_motor_constraints(
 
         # Resolve per-driver rate
         rate = _resolve_motor_rate(motor_rates, driver_id, dimensions)
+
+        # Passive driver: skip motor + gear-lock so the crank edge stays a
+        # free-pivoting rigid body. A SimpleMotor at rate=0 would be a
+        # velocity-lock (and the gear-lock below would couple all such
+        # cranks to a common shaft), which is not the intent here.
+        if abs(rate) < _PASSIVE_RATE_EPS:
+            continue
 
         motor = pm.SimpleMotor(driver_body, load_body, rate)
         space.add(motor)
