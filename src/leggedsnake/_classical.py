@@ -586,7 +586,7 @@ def build_strider(
     H = _pick_branch(
         _circle_intersect(D, tibia, F, foot), "lower", "Strider H (left foot)",
     )
-    I = _pick_branch(
+    I = _pick_branch(  # noqa: E741 — joint label, mirrors A-H above
         _circle_intersect(E, tibia, G, foot), "lower", "Strider I (right foot)",
     )
 
