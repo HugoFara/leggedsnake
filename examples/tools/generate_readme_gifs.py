@@ -14,9 +14,9 @@ Rendering goes through ``matplotlib.animation.PillowWriter``, which is
 headless and reproducible — unlike ``leggedsnake.video()`` (pyglet,
 interactive only).
 
-Run from the repo root so ``examples.strider`` is importable:
+Run from the repo root:
 
-    uv run python -m examples.generate_readme_gifs
+    uv run python examples/tools/generate_readme_gifs.py
 """
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ from matplotlib import animation
 import leggedsnake as ls
 
 
-IMAGES_DIR = Path(__file__).parent / "images"
+IMAGES_DIR = Path(__file__).parent.parent / "images"
 
 STRIDER_PARAM_NAMES = [
     "crank", "triangle", "femur", "rocker_l", "rocker_s", "tibia", "foot",

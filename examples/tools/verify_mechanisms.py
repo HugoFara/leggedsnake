@@ -5,17 +5,15 @@ Verification script for leg mechanisms.
 This script generates and saves foot trajectory plots for all implemented
 leg mechanisms to verify they produce proper walking motion.
 
-Run with: uv run python examples/verify_mechanisms.py
+Run with: uv run python examples/tools/verify_mechanisms.py
 """
-import matplotlib.pyplot as plt
-import numpy as np
 from pathlib import Path
+
+import matplotlib.pyplot as plt
 
 from pylinkage import extract_trajectory
 
-from theo_jansen import create_theo_jansen_linkage
-from klann_linkage import create_klann_linkage
-from chebyshev_linkage import create_chebyshev_linkage
+import leggedsnake as ls
 
 
 def plot_mechanism_trajectory(ax, walker, name, iterations=48):
@@ -101,13 +99,13 @@ def main():
     print("Generating mechanism verification plots...")
 
     # Create output directory
-    output_dir = Path(__file__).parent / "verification_plots"
+    output_dir = Path(__file__).parent.parent / "verification_plots"
     output_dir.mkdir(exist_ok=True)
 
     mechanisms = [
-        ('Theo Jansen (8-bar)', create_theo_jansen_linkage),
-        ('Klann (6-bar Stephenson III)', create_klann_linkage),
-        ('Chebyshev Lambda (4-bar)', create_chebyshev_linkage),
+        ('Theo Jansen (8-bar)', ls.Walker.from_jansen),
+        ('Klann (6-bar Stephenson III)', ls.Walker.from_klann),
+        ('Chebyshev Lambda (4-bar)', ls.Walker.from_chebyshev),
     ]
 
     # Create individual plots

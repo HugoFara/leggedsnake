@@ -353,8 +353,9 @@ class Walker:
         Parameters
         ----------
         crank, triangle, femur, rocker_l, rocker_s, tibia, foot : float
-            Link lengths. Defaults reproduce the Strider example shipped
-            with ``leggedsnake`` (``examples/strider.py``).
+            Link lengths. Defaults reproduce the canonical Strider geometry
+            documented in the gallery notebook
+            (``examples/01_walkers_gallery.ipynb``).
         angular_velocity : float
             Kinematic crank step (rad per ``step()`` iteration). Default
             traces 10 samples per revolution (matches the example).

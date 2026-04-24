@@ -331,25 +331,5 @@ class TestWorldConfig(unittest.TestCase):
         self.assertTrue(hasattr(ls, 'DEFAULT_CONFIG'))
 
 
-class TestExampleImports(unittest.TestCase):
-    """Smoke tests that example modules can be imported and built."""
-
-    def test_strider_build(self):
-        """Strider example can build and add legs."""
-        import sys
-        import os
-        examples_dir = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "examples"
-        )
-        sys.path.insert(0, examples_dir)
-        try:
-            from strider import complete_strider, DIMENSIONS, INIT_COORD
-            strider = complete_strider(DIMENSIONS, INIT_COORD)
-            strider.add_legs(1)
-            self.assertGreater(len(strider.topology.nodes), 11)
-        finally:
-            sys.path.pop(0)
-
-
 if __name__ == "__main__":
     unittest.main()

@@ -142,20 +142,17 @@ to end:
    — evolve a walker with the genetic algorithm.
 4. [`examples/04_multi_objective_and_gait.ipynb`](examples/04_multi_objective_and_gait.ipynb)
    — NSGA Pareto fronts plus gait / stability analysis.
+5. [`examples/discover_walker.ipynb`](examples/discover_walker.ipynb)
+   — topology + dimensions co-optimization (the `optimize_walking_mechanism`
+   pipeline).
 
-The scripted examples cover specific mechanisms and full pipelines:
-[`strider.py`](examples/strider.py) (PSO + GA on the Strider),
-[`theo_jansen.py`](examples/theo_jansen.py),
-[`klann_linkage.py`](examples/klann_linkage.py),
-[`chebyshev_linkage.py`](examples/chebyshev_linkage.py),
-[`simple_fourbar.py`](examples/simple_fourbar.py),
-[`simple_walker.py`](examples/simple_walker.py),
-[`optimization_pipeline.py`](examples/optimization_pipeline.py),
-[`compare_linkages.py`](examples/compare_linkages.py).
-
-The two GIFs above are regenerated deterministically by
-[`examples/generate_readme_gifs.py`](examples/generate_readme_gifs.py)
-(matplotlib `PillowWriter`, headless).
+The [`examples/tools/`](examples/tools/) directory holds maintenance
+scripts, not tutorials: [`verify_mechanisms.py`](examples/tools/verify_mechanisms.py)
+renders foot-trajectory plots for every classical builder
+(`Walker.from_jansen` / `from_klann` / `from_chebyshev`) as a smoke
+test, and [`generate_readme_gifs.py`](examples/tools/generate_readme_gifs.py)
+regenerates the two animated GIFs above deterministically via
+matplotlib `PillowWriter` (headless).
 
 ## Tips for faster experiments
 

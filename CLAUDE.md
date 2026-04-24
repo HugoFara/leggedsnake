@@ -18,11 +18,11 @@ uv run pytest -k "strider"                    # tests matching pattern
 uv run pytest --cov=leggedsnake               # coverage
 uv run ruff check src/                        # lint
 uv run mypy                                   # type-check (strict)
-uv run python examples/strider.py             # run an example (must use __main__ guard — multiprocessing)
-uv run jupyter lab examples/                  # numbered tutorial notebooks 01–04
+uv run jupyter lab examples/                  # numbered tutorial notebooks 01–04 + discover_walker
+uv run python examples/tools/verify_mechanisms.py  # smoke-test classical builders
 ```
 
-Examples that spawn worker processes (GA, NSGA) MUST be run under `if __name__ == "__main__":` or they will fork-bomb on import.
+Notebooks that spawn worker processes (GA, NSGA) execute their long-running cells under `if __name__ == "__main__":`-equivalent guards — `multiprocessing` workers fork-bomb on import otherwise.
 
 ## Architecture
 
@@ -94,8 +94,11 @@ Three layers, listed from general → walking-specific:
 
 ## Examples
 
-- `examples/strider.py` — canonical end-to-end (Walker build → PSO kinematic → GA dynamic → visualize).
-- `examples/01_walkers_gallery.ipynb`…`04_multi_objective_and_gait.ipynb` — numbered tutorial notebooks covering walker construction, physics+fitness, GA, and NSGA/gait analysis.
-- `examples/theo_jansen.py`, `klann_linkage.py`, `chebyshev_linkage.py` — classical mechanisms via `from_*` factories.
-- `examples/simple_fourbar.py`, `simple_walker.py` — minimal starting points.
-- `examples/compare_linkages.py`, `optimization_pipeline.py`, `verify_mechanisms.py`, `quick_demo.py` — scripted workflows.
+Notebook-first. The tutorial surface is the numbered notebooks plus `discover_walker`; classical mechanisms (Jansen, Klann, Chebyshev, Strider) are reached through `Walker.from_*` factories inside the notebooks rather than per-mechanism scripts.
+
+- `examples/01_walkers_gallery.ipynb` — `Walker.from_*` factories and the classical-walker gallery.
+- `examples/02_physics_and_fitness.ipynb` — `World`, `WorldConfig` / `TerrainConfig` / `SLOPE_PROFILES`, and the `DynamicFitness` protocol.
+- `examples/03_genetic_optimization.ipynb` — single-objective GA with checkpointing.
+- `examples/04_multi_objective_and_gait.ipynb` — NSGA-II Pareto fronts, gait analysis, stability time series.
+- `examples/discover_walker.ipynb` — topology + dimensions co-optimization (`optimize_walking_mechanism`).
+- `examples/tools/` — maintenance scripts, not tutorials. `verify_mechanisms.py` smoke-tests the classical builders; `generate_readme_gifs.py` regenerates the README animations.
