@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Phase-offset genes folded into the topology co-optimization
+  chromosome** (Phase 8.3). ``TopologyCoOptConfig`` gains an
+  ``evolve_offsets: bool`` flag and a derived ``n_offset_genes``
+  property. When set, the NSGA-II/III chromosome becomes
+  ``[topology_idx, [n_legs,] dim_1, ..., dim_max,
+  off_1, ..., off_M]`` with ``M = max(leg_bounds) - 1`` continuous
+  genes bounded ``[0, tau)``. Geometry, structure, and gait now
+  co-evolve in a single Pareto sweep instead of running
+  ``optimize_gait`` as a separate pass on top of a fixed mechanism.
+  Offset genes use the same fixed-length-padded encoding as the
+  dimension genes — the chromosome length stays constant under a
+  variable ``n_legs`` and the trailing offsets are simply ignored
+  for candidates with fewer legs. Each Pareto solution's
+  ``TopologySolutionInfo`` now carries the evolved
+  ``phase_offsets`` (or ``None`` when ``evolve_offsets=False``,
+  in which case the classical evenly-spaced rotating-stack gait
+  from ``Walker.add_legs(n)`` is used).
 - **Sphinx documentation refresh**:
   - ``docs_src/concepts.rst`` — orientation page covering the three
     pieces that compose into everything else: topology + dimensions

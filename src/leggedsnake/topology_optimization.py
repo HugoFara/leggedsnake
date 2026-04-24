@@ -2,8 +2,10 @@
 Topology co-optimization for walking mechanisms.
 
 Jointly optimizes the discrete mechanism topology (four-bar, six-bar,
-eight-bar variants) alongside continuous link dimensions using NSGA-II.
-Each candidate is a mixed chromosome: ``[topology_index, dim_1, ..., dim_N]``.
+eight-bar variants) alongside continuous link dimensions — and, when
+``evolve_offsets=True``, the per-leg phase offsets that determine
+gait — using NSGA-II/III. Each candidate is a mixed chromosome:
+``[topology_index, [n_legs,] dim_1, ..., dim_N, [off_1, ..., off_M]]``.
 
 Leverages pylinkage's topology catalog and co-optimization infrastructure
 while evaluating candidates through leggedsnake's physics-based fitness
@@ -77,6 +79,12 @@ class TopologySolutionInfo:
         ``config.n_legs`` when the leg-count range is fixed, or the
         value chosen by the evolutionary search when
         ``n_legs_min != n_legs_max``.
+    phase_offsets : list[float] | None
+        Evolved per-leg phase offsets (radians) when
+        ``TopologyCoOptConfig.evolve_offsets`` is set. ``None`` when
+        offsets are not part of the chromosome — the walker was built
+        with the classic evenly-spaced rotating-stack gait. Length
+        equals ``n_legs - 1``.
     """
 
     topology_name: str
@@ -84,6 +92,7 @@ class TopologySolutionInfo:
     topology_idx: int
     num_links: int
     n_legs: int = 1
+    phase_offsets: list[float] | None = None
 
 
 @dataclass
@@ -169,6 +178,17 @@ class TopologyCoOptConfig:
         Upper bound for link lengths.
     topology_mutation_rate : float
         Probability of mutating the topology gene.
+    evolve_offsets : bool
+        If True, append per-leg phase-offset genes (radians, bounded
+        ``[0, tau)``) to the chromosome so the optimizer co-evolves
+        gait pattern alongside topology + dimensions. The offset
+        region is sized for ``max(leg_bounds) - 1`` so the chromosome
+        length stays fixed under a variable ``n_legs``; surplus
+        offset genes are ignored when a candidate uses fewer legs
+        (mirroring the existing dimension-padding scheme). Requires
+        ``max(leg_bounds) >= 2``. Default ``False`` keeps the
+        classical evenly-spaced rotating-stack gait of
+        ``Walker.add_legs(n)``.
     """
 
     max_links: int = 8
@@ -184,8 +204,16 @@ class TopologyCoOptConfig:
     dimension_lower: float = 0.3
     dimension_upper: float = 5.0
     topology_mutation_rate: float = 0.1
+    evolve_offsets: bool = False
     n_workers: int = 1
     """Number of parallel workers. 1 = sequential. >1 uses process pool."""
+
+    def __post_init__(self) -> None:
+        if self.evolve_offsets and max(self.leg_bounds) < 2:
+            raise ValueError(
+                "evolve_offsets=True requires max(leg_bounds) >= 2 — "
+                "a single-leg walker has no phase offsets to evolve."
+            )
 
     @property
     def leg_gene_active(self) -> bool:
@@ -203,6 +231,20 @@ class TopologyCoOptConfig:
             return int(self.n_legs_min), int(self.n_legs_max)
         fixed = int(self.n_legs)
         return fixed, fixed
+
+    @property
+    def n_offset_genes(self) -> int:
+        """Number of phase-offset genes appended to the chromosome.
+
+        Zero when ``evolve_offsets`` is False. Otherwise sized for the
+        upper bound on leg count (``max(leg_bounds) - 1``) so the
+        chromosome remains fixed-length under a variable ``n_legs``;
+        only the first ``current_n_legs - 1`` offsets are read per
+        evaluation and the rest are ignored.
+        """
+        if not self.evolve_offsets:
+            return 0
+        return max(0, max(self.leg_bounds) - 1)
 
 
 # ---------------------------------------------------------------------------
@@ -396,10 +438,17 @@ class _TopologyWalkingProblem:
       * ``[topology_idx, n_legs, dim_1, ..., dim_max]`` when
         :attr:`TopologyCoOptConfig.leg_gene_active` (length
         ``2 + max_edges``)
+      * ``[topology_idx, [n_legs,] dim_1, ..., dim_max,
+        off_1, ..., off_M]`` when
+        :attr:`TopologyCoOptConfig.evolve_offsets` is also set, with
+        ``M = max(leg_bounds) - 1`` (length ``... + M``)
 
     Integer genes (topology index and, when present, leg count) are
-    rounded and clamped; dimension genes for topologies with fewer
-    than ``max_edges`` links are ignored.
+    rounded and clamped. Dimension genes for topologies with fewer
+    than ``max_edges`` links are ignored, and offset genes beyond
+    ``current_n_legs - 1`` are likewise ignored — the same
+    fixed-length-padded encoding scheme on both ends of the
+    chromosome.
     """
 
     def __init__(
@@ -410,6 +459,8 @@ class _TopologyWalkingProblem:
         world_config: Any | None = None,
     ) -> None:
         _check_pymoo()
+        from math import tau
+
         from pymoo.core.problem import Problem
 
         self.ctx = ctx
@@ -420,7 +471,8 @@ class _TopologyWalkingProblem:
 
         leg_active = config.leg_gene_active
         n_leg_genes = 1 if leg_active else 0
-        n_var = 1 + n_leg_genes + ctx.max_edges
+        n_offset_genes = config.n_offset_genes
+        n_var = 1 + n_leg_genes + ctx.max_edges + n_offset_genes
         xl = np.zeros(n_var, dtype=float)
         xu = np.ones(n_var, dtype=float)
         xl[0] = 0.0
@@ -429,8 +481,13 @@ class _TopologyWalkingProblem:
             lo, hi = config.leg_bounds
             xl[1] = float(lo)
             xu[1] = float(hi)
-        xl[1 + n_leg_genes:] = config.dimension_lower
-        xu[1 + n_leg_genes:] = config.dimension_upper
+        dim_start = 1 + n_leg_genes
+        dim_end = dim_start + ctx.max_edges
+        xl[dim_start:dim_end] = config.dimension_lower
+        xu[dim_start:dim_end] = config.dimension_upper
+        if n_offset_genes > 0:
+            xl[dim_end:] = 0.0
+            xu[dim_end:] = float(tau)
 
         outer = self
 
@@ -496,7 +553,9 @@ class _TopologyWalkingProblem:
 
     def _evaluate_candidate(self, x: np.ndarray) -> list[float]:
         """Evaluate a single mixed chromosome."""
-        topo_idx, n_legs, dims = _decode_chromosome(x, self._config)
+        topo_idx, n_legs, dims, offsets = _decode_chromosome(
+            x, self._config, max_edges=self.ctx.max_edges,
+        )
 
         walker = self.ctx.build_walker(
             topo_idx, dims, self._config.motor_rates,
@@ -504,11 +563,8 @@ class _TopologyWalkingProblem:
         if walker is None:
             return [0.0] * self._n_obj
 
-        if n_legs > 1:
-            try:
-                walker.add_legs(n_legs - 1)
-            except Exception:
-                return [0.0] * self._n_obj
+        if not _apply_legs(walker, n_legs, offsets):
+            return [0.0] * self._n_obj
 
         scores: list[float] = []
         for objective in self.objectives:
@@ -531,26 +587,93 @@ class _TopologyWalkingProblem:
 
 
 def _decode_chromosome(
-    x: np.ndarray, config: TopologyCoOptConfig,
-) -> tuple[int, int, list[float]]:
-    """Extract ``(topo_idx, n_legs, dimensions)`` from a chromosome.
+    x: np.ndarray,
+    config: TopologyCoOptConfig,
+    max_edges: int | None = None,
+) -> tuple[int, int, list[float], list[float] | None]:
+    """Extract ``(topo_idx, n_legs, dimensions, offsets)`` from a chromosome.
 
     Mirrors the bounds and layout set up in
-    :class:`_TopologyWalkingProblem`. Works for both the fixed-leg
-    default layout and the leg-gene layout.
+    :class:`_TopologyWalkingProblem`. Works for the fixed-leg default
+    layout, the leg-gene layout, and either with the optional
+    ``evolve_offsets`` tail.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        Encoded chromosome from pymoo.
+    config : TopologyCoOptConfig
+        Provides leg-bound and offset-region sizing.
+    max_edges : int, optional
+        Number of dimension genes. Required when
+        ``config.evolve_offsets`` is True so the decoder can split the
+        dimension region from the offset region. When ``None`` and
+        ``evolve_offsets`` is False, the entire post-leg suffix is
+        treated as dimensions (preserves the historical signature).
+
+    Returns
+    -------
+    tuple
+        ``(topology_index, n_legs, dimensions, offsets)``. ``offsets``
+        is ``None`` when ``evolve_offsets`` is False — callers fall
+        back to ``Walker.add_legs(n_legs - 1)`` for the classical
+        evenly-spaced rotating-stack gait. Otherwise it is the first
+        ``n_legs - 1`` offsets read from the chromosome's offset
+        region (any surplus genes are dropped).
     """
     topo_idx = int(round(float(x[0])))
+    leg_offset = 1
     if config.leg_gene_active:
         lo, hi = config.leg_bounds
         n_legs = max(lo, min(hi, int(round(float(x[1])))))
-        dims = x[2:].tolist()
+        leg_offset = 2
     else:
         # Fixed leg count — prefer the collapsed range bounds when the
         # user set them explicitly (handles n_legs_min==n_legs_max), else
         # fall back to the scalar ``n_legs`` field.
         n_legs = config.leg_bounds[0]
-        dims = x[1:].tolist()
-    return topo_idx, n_legs, dims
+
+    if config.evolve_offsets:
+        if max_edges is None:
+            raise ValueError(
+                "_decode_chromosome requires max_edges when "
+                "config.evolve_offsets is True — needed to split the "
+                "dimension region from the offset region."
+            )
+        dim_end = leg_offset + max_edges
+        dims = x[leg_offset:dim_end].tolist()
+        # Read only as many offsets as the candidate's leg count
+        # actually needs; surplus genes are padding.
+        n_used = max(0, n_legs - 1)
+        offsets: list[float] | None = x[dim_end:dim_end + n_used].tolist()
+    else:
+        dims = x[leg_offset:].tolist()
+        offsets = None
+    return topo_idx, n_legs, dims, offsets
+
+
+def _apply_legs(
+    walker: Walker,
+    n_legs: int,
+    offsets: list[float] | None,
+) -> bool:
+    """Add legs to a walker, returning False on failure.
+
+    When ``offsets`` is None the classical evenly-spaced gait is used
+    (``add_legs(n_legs - 1)``). When offsets are provided the explicit
+    sequence drives the gait; the optimizer evolves these alongside
+    topology + dimensions.
+    """
+    if n_legs <= 1:
+        return True
+    try:
+        if offsets is None:
+            walker.add_legs(n_legs - 1)
+        else:
+            walker.add_legs(offsets)
+    except Exception:
+        return False
+    return True
 
 
 def _topology_evaluate_worker(
@@ -561,17 +684,16 @@ def _topology_evaluate_worker(
     x: np.ndarray,
 ) -> list[float]:
     """Evaluate a single topology chromosome in a worker process."""
-    topo_idx, n_legs, dims = _decode_chromosome(x, config)
+    topo_idx, n_legs, dims, offsets = _decode_chromosome(
+        x, config, max_edges=ctx.max_edges,
+    )
 
     walker = ctx.build_walker(topo_idx, dims, config.motor_rates)
     if walker is None:
         return [0.0] * len(objectives)
 
-    if n_legs > 1:
-        try:
-            walker.add_legs(n_legs - 1)
-        except Exception:
-            return [0.0] * len(objectives)
+    if not _apply_legs(walker, n_legs, offsets):
+        return [0.0] * len(objectives)
 
     scores: list[float] = []
     for objective in objectives:
@@ -720,7 +842,9 @@ def topology_walking_optimization(
     X = np.asarray(res.X).reshape(F.shape[0], -1)
     for i in range(F.shape[0]):
         scores = tuple(-float(v) for v in F[i])
-        topo_idx, n_legs, _ = _decode_chromosome(X[i], cfg)
+        topo_idx, n_legs, _, offsets = _decode_chromosome(
+            X[i], cfg, max_edges=ctx.max_edges,
+        )
         topo_idx = max(0, min(topo_idx, ctx.n_topologies - 1))
         entry = ctx.entries[topo_idx]
 
@@ -735,6 +859,7 @@ def topology_walking_optimization(
             topology_idx=topo_idx,
             num_links=entry.num_links,
             n_legs=n_legs,
+            phase_offsets=offsets,
         )
 
     pareto = ParetoFront(solutions, tuple(objective_names))
@@ -748,16 +873,15 @@ def topology_walking_optimization(
         stability_map = {} if include_stability else None
 
         for idx, sol in enumerate(solutions):
-            topo_idx, n_legs, dims = _decode_chromosome(sol.dimensions, cfg)
+            topo_idx, n_legs, dims, offsets = _decode_chromosome(
+                sol.dimensions, cfg, max_edges=ctx.max_edges,
+            )
             walker = ctx.build_walker(topo_idx, dims, cfg.motor_rates)
             if walker is None:
                 continue
 
-            if n_legs > 1:
-                try:
-                    walker.add_legs(n_legs - 1)
-                except Exception:
-                    continue
+            if not _apply_legs(walker, n_legs, offsets):
+                continue
 
             composite = CompositeFitness(
                 objectives=("distance", "efficiency", "stability"),

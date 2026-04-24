@@ -237,20 +237,22 @@ class TestLegGeneChromosome(unittest.TestCase):
         cfg = TopologyCoOptConfig(n_legs=4)
         import numpy as np
         x = np.array([2.0, 1.0, 2.0, 3.0])
-        topo, n_legs, dims = _decode_chromosome(x, cfg)
+        topo, n_legs, dims, offsets = _decode_chromosome(x, cfg)
         self.assertEqual(topo, 2)
         self.assertEqual(n_legs, 4)
         self.assertEqual(dims, [1.0, 2.0, 3.0])
+        self.assertIsNone(offsets)
 
     def test_decode_chromosome_with_leg_gene(self):
         from leggedsnake.topology_optimization import _decode_chromosome
         cfg = TopologyCoOptConfig(n_legs_min=2, n_legs_max=6)
         import numpy as np
         x = np.array([1.0, 4.7, 1.0, 2.0, 3.0])
-        topo, n_legs, dims = _decode_chromosome(x, cfg)
+        topo, n_legs, dims, offsets = _decode_chromosome(x, cfg)
         self.assertEqual(topo, 1)
         self.assertEqual(n_legs, 5)  # rounded
         self.assertEqual(dims, [1.0, 2.0, 3.0])
+        self.assertIsNone(offsets)
 
     def test_decode_chromosome_clamps_leg_gene(self):
         from leggedsnake.topology_optimization import _decode_chromosome
@@ -258,10 +260,125 @@ class TestLegGeneChromosome(unittest.TestCase):
         import numpy as np
         x_high = np.array([0.0, 10.0, 1.0])
         x_low = np.array([0.0, -5.0, 1.0])
-        _, high, _ = _decode_chromosome(x_high, cfg)
-        _, low, _ = _decode_chromosome(x_low, cfg)
+        _, high, _, _ = _decode_chromosome(x_high, cfg)
+        _, low, _, _ = _decode_chromosome(x_low, cfg)
         self.assertEqual(high, 5)
         self.assertEqual(low, 3)
+
+
+class TestPhaseOffsetChromosome(unittest.TestCase):
+    """Phase 8.3 — gait genes folded into the topology+dims chromosome."""
+
+    def test_evolve_offsets_default_off(self):
+        cfg = TopologyCoOptConfig()
+        self.assertFalse(cfg.evolve_offsets)
+        self.assertEqual(cfg.n_offset_genes, 0)
+
+    def test_n_offset_genes_fixed_legs(self):
+        cfg = TopologyCoOptConfig(n_legs=4, evolve_offsets=True)
+        # 4 legs -> 3 phase offsets to evolve
+        self.assertEqual(cfg.n_offset_genes, 3)
+
+    def test_n_offset_genes_variable_legs_uses_upper_bound(self):
+        # Chromosome must accommodate the largest possible n_legs.
+        cfg = TopologyCoOptConfig(
+            n_legs_min=2, n_legs_max=6, evolve_offsets=True,
+        )
+        self.assertEqual(cfg.n_offset_genes, 5)
+
+    def test_evolve_offsets_rejects_single_leg(self):
+        with self.assertRaises(ValueError):
+            TopologyCoOptConfig(n_legs=1, evolve_offsets=True)
+
+    def test_problem_extends_n_var_with_offsets(self):
+        ctx = _TopologyContext(max_links=4)
+        cfg = TopologyCoOptConfig(n_legs=3, evolve_offsets=True)
+        problem = _TopologyWalkingProblem(
+            ctx=ctx,
+            objectives=[DistanceFitness(duration=1, n_legs=1)],
+            config=cfg,
+        )
+        # 1 (topology) + max_edges + (n_legs - 1) offsets
+        self.assertEqual(
+            problem.problem.n_var, 1 + ctx.max_edges + 2,
+        )
+
+    def test_problem_offset_bounds_are_zero_to_tau(self):
+        from math import tau
+        ctx = _TopologyContext(max_links=4)
+        cfg = TopologyCoOptConfig(n_legs=3, evolve_offsets=True)
+        problem = _TopologyWalkingProblem(
+            ctx=ctx,
+            objectives=[DistanceFitness(duration=1, n_legs=1)],
+            config=cfg,
+        )
+        # Offset region is the trailing 2 entries.
+        self.assertAlmostEqual(problem.problem.xl[-1], 0.0)
+        self.assertAlmostEqual(problem.problem.xu[-1], tau)
+        self.assertAlmostEqual(problem.problem.xl[-2], 0.0)
+        self.assertAlmostEqual(problem.problem.xu[-2], tau)
+
+    def test_decode_returns_offsets_when_active(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        import numpy as np
+        cfg = TopologyCoOptConfig(n_legs=3, evolve_offsets=True)
+        # [topology, dim_1, dim_2, dim_3, off_1, off_2]
+        x = np.array([0.0, 1.0, 2.0, 3.0, 1.5, 4.7])
+        topo, n_legs, dims, offsets = _decode_chromosome(
+            x, cfg, max_edges=3,
+        )
+        self.assertEqual(topo, 0)
+        self.assertEqual(n_legs, 3)
+        self.assertEqual(dims, [1.0, 2.0, 3.0])
+        self.assertEqual(offsets, [1.5, 4.7])
+
+    def test_decode_truncates_padded_offsets(self):
+        """Variable n_legs: chromosome carries max_legs-1 offsets, decoder
+        trims to current n_legs-1."""
+        from leggedsnake.topology_optimization import _decode_chromosome
+        import numpy as np
+        cfg = TopologyCoOptConfig(
+            n_legs_min=2, n_legs_max=4, evolve_offsets=True,
+        )
+        # Layout: [topo, n_legs, dim_1, dim_2, off_1, off_2, off_3]
+        x = np.array([0.0, 2.4, 1.0, 2.0, 0.5, 1.5, 2.5])
+        # n_legs rounds to 2 -> only 1 offset is used.
+        topo, n_legs, dims, offsets = _decode_chromosome(
+            x, cfg, max_edges=2,
+        )
+        self.assertEqual(topo, 0)
+        self.assertEqual(n_legs, 2)
+        self.assertEqual(dims, [1.0, 2.0])
+        self.assertEqual(offsets, [0.5])
+
+    def test_decode_requires_max_edges_when_offsets_active(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        import numpy as np
+        cfg = TopologyCoOptConfig(n_legs=3, evolve_offsets=True)
+        x = np.array([0.0, 1.0, 2.0, 3.0, 1.5, 4.7])
+        with self.assertRaises(ValueError):
+            _decode_chromosome(x, cfg)  # max_edges missing
+
+    def test_optimization_runs_with_offsets(self):
+        """Smoke test: the full pipeline accepts the new chromosome."""
+        result = topology_walking_optimization(
+            objectives=[DistanceFitness(duration=2, n_legs=1)],
+            objective_names=["distance"],
+            config=TopologyCoOptConfig(
+                max_links=4,
+                n_generations=2,
+                pop_size=4,
+                seed=42,
+                verbose=False,
+                n_legs=2,
+                evolve_offsets=True,
+            ),
+        )
+        self.assertIsInstance(result, TopologyWalkingResult)
+        # Each Pareto entry should have phase_offsets populated.
+        for idx, info in result.topology_info.items():
+            self.assertIsNotNone(info.phase_offsets)
+            self.assertEqual(len(info.phase_offsets), info.n_legs - 1)
 
 
 if __name__ == "__main__":
