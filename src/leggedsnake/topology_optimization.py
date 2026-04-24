@@ -527,9 +527,17 @@ class _TopologyWalkingProblem:
                 scores = self._evaluate_candidate(X[i])
                 F[i] = [-s for s in scores]
         else:
+            import multiprocessing as mp
             from concurrent.futures import ProcessPoolExecutor, as_completed
 
-            with ProcessPoolExecutor(max_workers=n_workers) as pool:
+            # ``spawn`` instead of the default ``fork``: Python 3.12+
+            # warns (and may eventually error) when fork() is used in a
+            # multi-threaded parent. See nsga_optimizer._get_pool for
+            # the rationale; cost is a one-time import per worker.
+            with ProcessPoolExecutor(
+                max_workers=n_workers,
+                mp_context=mp.get_context("spawn"),
+            ) as pool:
                 futures = {
                     pool.submit(
                         _topology_evaluate_worker,

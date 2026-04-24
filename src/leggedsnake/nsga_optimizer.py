@@ -256,11 +256,23 @@ class WalkingNsgaProblem:
         return F
 
     def _get_pool(self) -> Any:
-        """Return the shared process pool, creating it on first use."""
+        """Return the shared process pool, creating it on first use.
+
+        Uses the ``spawn`` start method explicitly. The default ``fork``
+        emits a ``DeprecationWarning`` under Python 3.12+ when the
+        parent has live threads (which pytest, matplotlib, and many
+        Jupyter setups do) and risks deadlocks in the child. Spawn pays
+        a one-time module-import cost per worker — already amortized
+        because the pool is reused across generations.
+        """
         if self._pool is None:
+            import multiprocessing as mp
             from concurrent.futures import ProcessPoolExecutor
 
-            self._pool = ProcessPoolExecutor(max_workers=self._n_workers)
+            self._pool = ProcessPoolExecutor(
+                max_workers=self._n_workers,
+                mp_context=mp.get_context("spawn"),
+            )
         return self._pool
 
     def close(self) -> None:
