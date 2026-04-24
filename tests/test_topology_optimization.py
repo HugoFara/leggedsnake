@@ -237,7 +237,7 @@ class TestLegGeneChromosome(unittest.TestCase):
         cfg = TopologyCoOptConfig(n_legs=4)
         import numpy as np
         x = np.array([2.0, 1.0, 2.0, 3.0])
-        topo, n_legs, dims, offsets = _decode_chromosome(x, cfg)
+        topo, n_legs, dims, offsets, motors = _decode_chromosome(x, cfg)
         self.assertEqual(topo, 2)
         self.assertEqual(n_legs, 4)
         self.assertEqual(dims, [1.0, 2.0, 3.0])
@@ -248,7 +248,7 @@ class TestLegGeneChromosome(unittest.TestCase):
         cfg = TopologyCoOptConfig(n_legs_min=2, n_legs_max=6)
         import numpy as np
         x = np.array([1.0, 4.7, 1.0, 2.0, 3.0])
-        topo, n_legs, dims, offsets = _decode_chromosome(x, cfg)
+        topo, n_legs, dims, offsets, motors = _decode_chromosome(x, cfg)
         self.assertEqual(topo, 1)
         self.assertEqual(n_legs, 5)  # rounded
         self.assertEqual(dims, [1.0, 2.0, 3.0])
@@ -260,8 +260,8 @@ class TestLegGeneChromosome(unittest.TestCase):
         import numpy as np
         x_high = np.array([0.0, 10.0, 1.0])
         x_low = np.array([0.0, -5.0, 1.0])
-        _, high, _, _ = _decode_chromosome(x_high, cfg)
-        _, low, _, _ = _decode_chromosome(x_low, cfg)
+        _, high, _, _, _ = _decode_chromosome(x_high, cfg)
+        _, low, _, _, _ = _decode_chromosome(x_low, cfg)
         self.assertEqual(high, 5)
         self.assertEqual(low, 3)
 
@@ -324,13 +324,14 @@ class TestPhaseOffsetChromosome(unittest.TestCase):
         cfg = TopologyCoOptConfig(n_legs=3, evolve_offsets=True)
         # [topology, dim_1, dim_2, dim_3, off_1, off_2]
         x = np.array([0.0, 1.0, 2.0, 3.0, 1.5, 4.7])
-        topo, n_legs, dims, offsets = _decode_chromosome(
+        topo, n_legs, dims, offsets, motors = _decode_chromosome(
             x, cfg, max_edges=3,
         )
         self.assertEqual(topo, 0)
         self.assertEqual(n_legs, 3)
         self.assertEqual(dims, [1.0, 2.0, 3.0])
         self.assertEqual(offsets, [1.5, 4.7])
+        self.assertIsNone(motors)
 
     def test_decode_truncates_padded_offsets(self):
         """Variable n_legs: chromosome carries max_legs-1 offsets, decoder
@@ -343,13 +344,14 @@ class TestPhaseOffsetChromosome(unittest.TestCase):
         # Layout: [topo, n_legs, dim_1, dim_2, off_1, off_2, off_3]
         x = np.array([0.0, 2.4, 1.0, 2.0, 0.5, 1.5, 2.5])
         # n_legs rounds to 2 -> only 1 offset is used.
-        topo, n_legs, dims, offsets = _decode_chromosome(
+        topo, n_legs, dims, offsets, motors = _decode_chromosome(
             x, cfg, max_edges=2,
         )
         self.assertEqual(topo, 0)
         self.assertEqual(n_legs, 2)
         self.assertEqual(dims, [1.0, 2.0])
         self.assertEqual(offsets, [0.5])
+        self.assertIsNone(motors)
 
     def test_decode_requires_max_edges_when_offsets_active(self):
         from leggedsnake.topology_optimization import _decode_chromosome
@@ -379,6 +381,175 @@ class TestPhaseOffsetChromosome(unittest.TestCase):
         for idx, info in result.topology_info.items():
             self.assertIsNotNone(info.phase_offsets)
             self.assertEqual(len(info.phase_offsets), info.n_legs - 1)
+
+
+class TestMotorRateChromosome(unittest.TestCase):
+    """Motor angular velocity folded into the topology+dims chromosome."""
+
+    def test_evolve_motor_rates_default_off(self):
+        cfg = TopologyCoOptConfig()
+        self.assertFalse(cfg.evolve_motor_rates)
+
+    def test_evolve_motor_rates_rejects_inverted_bounds(self):
+        with self.assertRaises(ValueError):
+            TopologyCoOptConfig(
+                evolve_motor_rates=True,
+                motor_rate_lower=2.0,
+                motor_rate_upper=-2.0,
+            )
+
+    def test_context_exposes_max_drivers(self):
+        ctx = _TopologyContext(max_links=6)
+        # Built-in catalog topologies all have exactly 1 driver today;
+        # the field exists so multi-DOF entries land cleanly.
+        self.assertGreaterEqual(ctx.max_drivers, 1)
+
+    def test_problem_extends_n_var_with_motor_genes(self):
+        ctx = _TopologyContext(max_links=4)
+        cfg = TopologyCoOptConfig(n_legs=1, evolve_motor_rates=True)
+        problem = _TopologyWalkingProblem(
+            ctx=ctx,
+            objectives=[DistanceFitness(duration=1, n_legs=1)],
+            config=cfg,
+        )
+        # 1 (topology) + max_edges + max_drivers
+        self.assertEqual(
+            problem.problem.n_var, 1 + ctx.max_edges + ctx.max_drivers,
+        )
+
+    def test_problem_motor_bounds_use_config(self):
+        ctx = _TopologyContext(max_links=4)
+        cfg = TopologyCoOptConfig(
+            n_legs=1,
+            evolve_motor_rates=True,
+            motor_rate_lower=-6.0,
+            motor_rate_upper=6.0,
+        )
+        problem = _TopologyWalkingProblem(
+            ctx=ctx,
+            objectives=[DistanceFitness(duration=1, n_legs=1)],
+            config=cfg,
+        )
+        # Motor region is the trailing max_drivers entries.
+        self.assertAlmostEqual(problem.problem.xl[-1], -6.0)
+        self.assertAlmostEqual(problem.problem.xu[-1], 6.0)
+
+    def test_problem_motor_genes_after_offsets(self):
+        ctx = _TopologyContext(max_links=4)
+        cfg = TopologyCoOptConfig(
+            n_legs=3, evolve_offsets=True, evolve_motor_rates=True,
+        )
+        problem = _TopologyWalkingProblem(
+            ctx=ctx,
+            objectives=[DistanceFitness(duration=1, n_legs=1)],
+            config=cfg,
+        )
+        # 1 (topology) + max_edges + 2 offsets + max_drivers motors
+        self.assertEqual(
+            problem.problem.n_var,
+            1 + ctx.max_edges + 2 + ctx.max_drivers,
+        )
+
+    def test_decode_returns_motor_rates_when_active(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        import numpy as np
+        cfg = TopologyCoOptConfig(n_legs=1, evolve_motor_rates=True)
+        # [topology, dim_1, dim_2, dim_3, motor_1] (max_drivers=1)
+        x = np.array([0.0, 1.0, 2.0, 3.0, -3.5])
+        topo, n_legs, dims, offsets, motors = _decode_chromosome(
+            x, cfg, max_edges=3, max_drivers=1,
+        )
+        self.assertEqual(topo, 0)
+        self.assertEqual(n_legs, 1)
+        self.assertEqual(dims, [1.0, 2.0, 3.0])
+        self.assertIsNone(offsets)
+        self.assertEqual(motors, [-3.5])
+
+    def test_decode_combined_offsets_and_motors(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        import numpy as np
+        cfg = TopologyCoOptConfig(
+            n_legs=3, evolve_offsets=True, evolve_motor_rates=True,
+        )
+        # [topology, dim_1, dim_2, dim_3, off_1, off_2, motor_1]
+        x = np.array([0.0, 1.0, 2.0, 3.0, 0.5, 1.5, 5.0])
+        topo, n_legs, dims, offsets, motors = _decode_chromosome(
+            x, cfg, max_edges=3, max_drivers=1,
+        )
+        self.assertEqual(dims, [1.0, 2.0, 3.0])
+        self.assertEqual(offsets, [0.5, 1.5])
+        self.assertEqual(motors, [5.0])
+
+    def test_decode_requires_max_drivers_when_motors_active(self):
+        from leggedsnake.topology_optimization import _decode_chromosome
+        import numpy as np
+        cfg = TopologyCoOptConfig(n_legs=1, evolve_motor_rates=True)
+        x = np.array([0.0, 1.0, 2.0, 3.0, -3.5])
+        with self.assertRaises(ValueError):
+            _decode_chromosome(x, cfg, max_edges=3)
+
+    def test_resolve_evolved_motor_rates_maps_to_driver_ids(self):
+        from leggedsnake.topology_optimization import (
+            _resolve_evolved_motor_rates,
+        )
+        ctx = _TopologyContext(max_links=4)
+        result = _resolve_evolved_motor_rates(
+            ctx, topo_idx=0, raw_motors=[-3.5], fallback=-4.0,
+        )
+        # Four-bar has one driver; the evolved rate is mapped to its ID.
+        self.assertIsInstance(result, dict)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(list(result.values())[0], -3.5)
+
+    def test_resolve_evolved_motor_rates_falls_back(self):
+        from leggedsnake.topology_optimization import (
+            _resolve_evolved_motor_rates,
+        )
+        ctx = _TopologyContext(max_links=4)
+        result = _resolve_evolved_motor_rates(
+            ctx, topo_idx=0, raw_motors=None, fallback=-4.0,
+        )
+        # No motor genes — fall back to the config scalar unchanged.
+        self.assertEqual(result, -4.0)
+
+    def test_with_motor_rates_clones_fitness(self):
+        from leggedsnake.topology_optimization import _with_motor_rates
+        original = DistanceFitness(duration=1, n_legs=1, motor_rates=-4.0)
+        tuned = _with_motor_rates(original, [3.0], {"crank": 3.0})
+        self.assertIsNot(tuned, original)
+        self.assertEqual(original.motor_rates, -4.0)
+        self.assertEqual(tuned.motor_rates, {"crank": 3.0})
+
+    def test_with_motor_rates_no_op_when_disabled(self):
+        from leggedsnake.topology_optimization import _with_motor_rates
+        original = DistanceFitness(duration=1, n_legs=1)
+        same = _with_motor_rates(original, None, -4.0)
+        self.assertIs(same, original)
+
+    def test_optimization_runs_with_motor_genes(self):
+        """Smoke test: full pipeline accepts motor genes."""
+        result = topology_walking_optimization(
+            objectives=[DistanceFitness(duration=2, n_legs=1)],
+            objective_names=["distance"],
+            config=TopologyCoOptConfig(
+                max_links=4,
+                n_generations=2,
+                pop_size=4,
+                seed=42,
+                verbose=False,
+                n_legs=1,
+                evolve_motor_rates=True,
+                motor_rate_lower=-6.0,
+                motor_rate_upper=6.0,
+            ),
+        )
+        self.assertIsInstance(result, TopologyWalkingResult)
+        for info in result.topology_info.values():
+            self.assertIsNotNone(info.motor_rates)
+            self.assertIsInstance(info.motor_rates, dict)
+            for rate in info.motor_rates.values():
+                self.assertGreaterEqual(rate, -6.0)
+                self.assertLessEqual(rate, 6.0)
 
 
 if __name__ == "__main__":

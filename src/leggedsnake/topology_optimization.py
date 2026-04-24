@@ -4,8 +4,11 @@ Topology co-optimization for walking mechanisms.
 Jointly optimizes the discrete mechanism topology (four-bar, six-bar,
 eight-bar variants) alongside continuous link dimensions — and, when
 ``evolve_offsets=True``, the per-leg phase offsets that determine
-gait — using NSGA-II/III. Each candidate is a mixed chromosome:
-``[topology_index, [n_legs,] dim_1, ..., dim_N, [off_1, ..., off_M]]``.
+gait, and when ``evolve_motor_rates=True``, the crank angular velocity
+per DRIVER node — using NSGA-II/III. Each candidate is a mixed
+chromosome:
+``[topology_index, [n_legs,] dim_1, ..., dim_N, [off_1, ..., off_M],
+[motor_1, ..., motor_K]]``.
 
 Leverages pylinkage's topology catalog and co-optimization infrastructure
 while evaluating candidates through leggedsnake's physics-based fitness
@@ -38,6 +41,7 @@ Example::
 """
 from __future__ import annotations
 
+import copy
 from collections.abc import Sequence
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -85,6 +89,11 @@ class TopologySolutionInfo:
         offsets are not part of the chromosome — the walker was built
         with the classic evenly-spaced rotating-stack gait. Length
         equals ``n_legs - 1``.
+    motor_rates : dict[str, float] | None
+        Evolved motor angular velocities (rad/s) keyed by DRIVER node
+        ID, when ``TopologyCoOptConfig.evolve_motor_rates`` is set.
+        ``None`` when the chromosome did not carry motor genes — the
+        walker used the fixed ``TopologyCoOptConfig.motor_rates``.
     """
 
     topology_name: str
@@ -93,6 +102,7 @@ class TopologySolutionInfo:
     num_links: int
     n_legs: int = 1
     phase_offsets: list[float] | None = None
+    motor_rates: dict[str, float] | None = None
 
 
 @dataclass
@@ -189,6 +199,27 @@ class TopologyCoOptConfig:
         ``max(leg_bounds) >= 2``. Default ``False`` keeps the
         classical evenly-spaced rotating-stack gait of
         ``Walker.add_legs(n)``.
+    evolve_motor_rates : bool
+        If True, append per-DRIVER motor-rate genes (rad/s, bounded
+        ``[motor_rate_lower, motor_rate_upper]``) to the chromosome so
+        the optimizer co-evolves crank angular velocity alongside
+        structure and geometry. The motor region is sized for the
+        maximum DRIVER count across all candidate topologies; topologies
+        with fewer drivers consume the leading slots and the rest are
+        ignored (mirroring the dimension-padding scheme). Default
+        ``False`` keeps the fixed ``motor_rates`` value. The evolved
+        rates override the ``motor_rates`` attribute on each fitness
+        objective (which defaults to ``-4.0`` and would otherwise
+        always win against ``Dimensions.driver_angles``); fitness
+        objects without a settable ``motor_rates`` attribute are not
+        affected.
+    motor_rate_lower, motor_rate_upper : float
+        Bounds (rad/s) for the motor-rate genes when
+        ``evolve_motor_rates=True``. Default ``[-8.0, +8.0]`` covers
+        the practical walking-speed range; the sign sets crank
+        direction. Using ``0`` as a bound endpoint allows the optimizer
+        to converge on a stationary driver — useful for prototyping
+        wind- or slope-driven passive walkers.
     """
 
     max_links: int = 8
@@ -205,6 +236,9 @@ class TopologyCoOptConfig:
     dimension_upper: float = 5.0
     topology_mutation_rate: float = 0.1
     evolve_offsets: bool = False
+    evolve_motor_rates: bool = False
+    motor_rate_lower: float = -8.0
+    motor_rate_upper: float = 8.0
     n_workers: int = 1
     """Number of parallel workers. 1 = sequential. >1 uses process pool."""
 
@@ -213,6 +247,15 @@ class TopologyCoOptConfig:
             raise ValueError(
                 "evolve_offsets=True requires max(leg_bounds) >= 2 — "
                 "a single-leg walker has no phase offsets to evolve."
+            )
+        if (
+            self.evolve_motor_rates
+            and self.motor_rate_lower >= self.motor_rate_upper
+        ):
+            raise ValueError(
+                "evolve_motor_rates=True requires "
+                "motor_rate_lower < motor_rate_upper, got "
+                f"[{self.motor_rate_lower}, {self.motor_rate_upper}]."
             )
 
     @property
@@ -279,18 +322,33 @@ class _TopologyContext:
                 f"No topologies found with max_links={max_links}"
             )
 
-        # Count edges per topology (continuous variables)
+        # Count edges and drivers per topology. Drivers vary per
+        # topology (currently always 1 in the built-in catalog, but the
+        # model is built around the general case so multi-DOF topologies
+        # added later land cleanly into the chromosome).
         self._edges_per_topo: list[int] = []
+        self._drivers_per_topo: list[list[str]] = []
         for entry in self.entries:
             graph = entry.to_graph()
             n_edges = len(graph.edges)
             self._edges_per_topo.append(n_edges)
+            self._drivers_per_topo.append(
+                [n.id for n in graph.driver_nodes()]
+            )
 
         self.max_edges = max(self._edges_per_topo)
+        self.max_drivers = max(
+            (len(d) for d in self._drivers_per_topo), default=1,
+        )
 
     def n_edges(self, topo_idx: int) -> int:
         """Number of continuous variables for a topology."""
         return self._edges_per_topo[topo_idx]
+
+    def driver_ids(self, topo_idx: int) -> list[str]:
+        """DRIVER node IDs (in catalog order) for a topology."""
+        topo_idx = max(0, min(topo_idx, self.n_topologies - 1))
+        return list(self._drivers_per_topo[topo_idx])
 
     def build_walker(
         self,
@@ -442,12 +500,19 @@ class _TopologyWalkingProblem:
         off_1, ..., off_M]`` when
         :attr:`TopologyCoOptConfig.evolve_offsets` is also set, with
         ``M = max(leg_bounds) - 1`` (length ``... + M``)
+      * ``[..., motor_1, ..., motor_K]`` when
+        :attr:`TopologyCoOptConfig.evolve_motor_rates` is also set,
+        with ``K = ctx.max_drivers`` (length ``... + K``). Motor
+        genes follow the offset region; topologies with fewer than
+        ``max_drivers`` driver nodes consume the leading slots and the
+        rest are ignored (same padding scheme as dims and offsets).
 
     Integer genes (topology index and, when present, leg count) are
     rounded and clamped. Dimension genes for topologies with fewer
-    than ``max_edges`` links are ignored, and offset genes beyond
-    ``current_n_legs - 1`` are likewise ignored — the same
-    fixed-length-padded encoding scheme on both ends of the
+    than ``max_edges`` links are ignored, offset genes beyond
+    ``current_n_legs - 1`` are ignored, and motor genes beyond
+    ``current_n_drivers`` are ignored — the same fixed-length-padded
+    encoding scheme across all variable-length regions of the
     chromosome.
     """
 
@@ -472,7 +537,10 @@ class _TopologyWalkingProblem:
         leg_active = config.leg_gene_active
         n_leg_genes = 1 if leg_active else 0
         n_offset_genes = config.n_offset_genes
-        n_var = 1 + n_leg_genes + ctx.max_edges + n_offset_genes
+        n_motor_genes = ctx.max_drivers if config.evolve_motor_rates else 0
+        n_var = (
+            1 + n_leg_genes + ctx.max_edges + n_offset_genes + n_motor_genes
+        )
         xl = np.zeros(n_var, dtype=float)
         xu = np.ones(n_var, dtype=float)
         xl[0] = 0.0
@@ -485,9 +553,13 @@ class _TopologyWalkingProblem:
         dim_end = dim_start + ctx.max_edges
         xl[dim_start:dim_end] = config.dimension_lower
         xu[dim_start:dim_end] = config.dimension_upper
+        offset_end = dim_end + n_offset_genes
         if n_offset_genes > 0:
-            xl[dim_end:] = 0.0
-            xu[dim_end:] = float(tau)
+            xl[dim_end:offset_end] = 0.0
+            xu[dim_end:offset_end] = float(tau)
+        if n_motor_genes > 0:
+            xl[offset_end:] = float(config.motor_rate_lower)
+            xu[offset_end:] = float(config.motor_rate_upper)
 
         outer = self
 
@@ -561,12 +633,17 @@ class _TopologyWalkingProblem:
 
     def _evaluate_candidate(self, x: np.ndarray) -> list[float]:
         """Evaluate a single mixed chromosome."""
-        topo_idx, n_legs, dims, offsets = _decode_chromosome(
-            x, self._config, max_edges=self.ctx.max_edges,
+        topo_idx, n_legs, dims, offsets, raw_motors = _decode_chromosome(
+            x, self._config,
+            max_edges=self.ctx.max_edges,
+            max_drivers=self.ctx.max_drivers,
+        )
+        effective_motor_rates = _resolve_evolved_motor_rates(
+            self.ctx, topo_idx, raw_motors, self._config.motor_rates,
         )
 
         walker = self.ctx.build_walker(
-            topo_idx, dims, self._config.motor_rates,
+            topo_idx, dims, effective_motor_rates,
         )
         if walker is None:
             return [0.0] * self._n_obj
@@ -577,7 +654,8 @@ class _TopologyWalkingProblem:
         scores: list[float] = []
         for objective in self.objectives:
             try:
-                result = objective(
+                tuned = _with_motor_rates(objective, raw_motors, effective_motor_rates)
+                result = tuned(
                     deepcopy(walker.topology),
                     deepcopy(walker.dimensions),
                     self.world_config,
@@ -598,36 +676,48 @@ def _decode_chromosome(
     x: np.ndarray,
     config: TopologyCoOptConfig,
     max_edges: int | None = None,
-) -> tuple[int, int, list[float], list[float] | None]:
-    """Extract ``(topo_idx, n_legs, dimensions, offsets)`` from a chromosome.
+    max_drivers: int | None = None,
+) -> tuple[int, int, list[float], list[float] | None, list[float] | None]:
+    """Extract ``(topo_idx, n_legs, dimensions, offsets, motor_rates)``.
 
     Mirrors the bounds and layout set up in
     :class:`_TopologyWalkingProblem`. Works for the fixed-leg default
     layout, the leg-gene layout, and either with the optional
-    ``evolve_offsets`` tail.
+    ``evolve_offsets`` and/or ``evolve_motor_rates`` tails.
 
     Parameters
     ----------
     x : np.ndarray
         Encoded chromosome from pymoo.
     config : TopologyCoOptConfig
-        Provides leg-bound and offset-region sizing.
+        Provides leg-bound, offset-region, and motor-region sizing.
     max_edges : int, optional
         Number of dimension genes. Required when
-        ``config.evolve_offsets`` is True so the decoder can split the
-        dimension region from the offset region. When ``None`` and
-        ``evolve_offsets`` is False, the entire post-leg suffix is
-        treated as dimensions (preserves the historical signature).
+        ``config.evolve_offsets`` or ``config.evolve_motor_rates`` is
+        True so the decoder can split the dimension region from the
+        downstream regions. When ``None`` and both flags are False,
+        the entire post-leg suffix is treated as dimensions (preserves
+        the historical signature).
+    max_drivers : int, optional
+        Width of the motor-rate region. Required when
+        ``config.evolve_motor_rates`` is True. Always supplied by
+        :class:`_TopologyContext.max_drivers`.
 
     Returns
     -------
     tuple
-        ``(topology_index, n_legs, dimensions, offsets)``. ``offsets``
-        is ``None`` when ``evolve_offsets`` is False — callers fall
-        back to ``Walker.add_legs(n_legs - 1)`` for the classical
-        evenly-spaced rotating-stack gait. Otherwise it is the first
-        ``n_legs - 1`` offsets read from the chromosome's offset
-        region (any surplus genes are dropped).
+        ``(topology_index, n_legs, dimensions, offsets, motor_rates)``.
+
+        * ``offsets`` is ``None`` when ``evolve_offsets`` is False —
+          callers fall back to ``Walker.add_legs(n_legs - 1)`` for the
+          classical evenly-spaced rotating-stack gait. Otherwise it is
+          the first ``n_legs - 1`` offsets from the chromosome's
+          offset region (surplus genes are dropped).
+        * ``motor_rates`` is ``None`` when ``evolve_motor_rates`` is
+          False — callers fall back to ``config.motor_rates``.
+          Otherwise it is the raw ``max_drivers``-wide gene block;
+          callers map the leading ``n_drivers`` entries to the
+          topology's DRIVER node IDs.
     """
     topo_idx = int(round(float(x[0])))
     leg_offset = 1
@@ -641,23 +731,96 @@ def _decode_chromosome(
         # fall back to the scalar ``n_legs`` field.
         n_legs = config.leg_bounds[0]
 
-    if config.evolve_offsets:
+    needs_split = config.evolve_offsets or config.evolve_motor_rates
+    if needs_split:
         if max_edges is None:
             raise ValueError(
                 "_decode_chromosome requires max_edges when "
-                "config.evolve_offsets is True — needed to split the "
-                "dimension region from the offset region."
+                "config.evolve_offsets or config.evolve_motor_rates is "
+                "True — needed to split the dimension region from the "
+                "downstream regions."
             )
         dim_end = leg_offset + max_edges
         dims = x[leg_offset:dim_end].tolist()
+    else:
+        dims = x[leg_offset:].tolist()
+        return topo_idx, n_legs, dims, None, None
+
+    if config.evolve_offsets:
         # Read only as many offsets as the candidate's leg count
         # actually needs; surplus genes are padding.
         n_used = max(0, n_legs - 1)
-        offsets: list[float] | None = x[dim_end:dim_end + n_used].tolist()
+        offset_region_size = config.n_offset_genes
+        offsets: list[float] | None = (
+            x[dim_end:dim_end + n_used].tolist()
+        )
+        offset_end = dim_end + offset_region_size
     else:
-        dims = x[leg_offset:].tolist()
         offsets = None
-    return topo_idx, n_legs, dims, offsets
+        offset_end = dim_end
+
+    if config.evolve_motor_rates:
+        if max_drivers is None:
+            raise ValueError(
+                "_decode_chromosome requires max_drivers when "
+                "config.evolve_motor_rates is True — needed to split "
+                "the motor region from the chromosome tail."
+            )
+        motor_rates: list[float] | None = (
+            x[offset_end:offset_end + max_drivers].tolist()
+        )
+    else:
+        motor_rates = None
+
+    return topo_idx, n_legs, dims, offsets, motor_rates
+
+
+def _resolve_evolved_motor_rates(
+    ctx: _TopologyContext,
+    topo_idx: int,
+    raw_motors: list[float] | None,
+    fallback: float | dict[str, float],
+) -> float | dict[str, float]:
+    """Map padded motor genes to per-DRIVER rates for a topology.
+
+    The chromosome carries ``ctx.max_drivers`` motor genes per
+    candidate; topologies with fewer drivers consume the leading
+    slots and the rest are ignored. Falls back to ``config.motor_rates``
+    when no motor genes are present (``evolve_motor_rates=False``).
+    """
+    if raw_motors is None:
+        return fallback
+    driver_ids = ctx.driver_ids(topo_idx)
+    return {
+        did: float(raw_motors[i])
+        for i, did in enumerate(driver_ids)
+        if i < len(raw_motors)
+    }
+
+
+def _with_motor_rates(
+    objective: DynamicFitness,
+    raw_motors: list[float] | None,
+    motor_rates: float | dict[str, float],
+) -> DynamicFitness:
+    """Return a copy of ``objective`` with evolved motor_rates applied.
+
+    No-op when motor evolution is disabled (``raw_motors is None``).
+    Cloning is shallow — the fitness's other attributes share
+    references with the original. Custom :class:`DynamicFitness`
+    implementations without a settable ``motor_rates`` attribute are
+    returned unchanged; the evolved rate then only takes effect on the
+    physics layer through ``Walker.motor_rates`` (built into the
+    walker by ``ctx.build_walker``), not through the fitness's own
+    physics-simulation call.
+    """
+    if raw_motors is None:
+        return objective
+    if not hasattr(objective, "motor_rates"):
+        return objective
+    tuned = copy.copy(objective)
+    tuned.motor_rates = motor_rates
+    return tuned
 
 
 def _apply_legs(
@@ -692,11 +855,16 @@ def _topology_evaluate_worker(
     x: np.ndarray,
 ) -> list[float]:
     """Evaluate a single topology chromosome in a worker process."""
-    topo_idx, n_legs, dims, offsets = _decode_chromosome(
-        x, config, max_edges=ctx.max_edges,
+    topo_idx, n_legs, dims, offsets, raw_motors = _decode_chromosome(
+        x, config,
+        max_edges=ctx.max_edges,
+        max_drivers=ctx.max_drivers,
+    )
+    effective_motor_rates = _resolve_evolved_motor_rates(
+        ctx, topo_idx, raw_motors, config.motor_rates,
     )
 
-    walker = ctx.build_walker(topo_idx, dims, config.motor_rates)
+    walker = ctx.build_walker(topo_idx, dims, effective_motor_rates)
     if walker is None:
         return [0.0] * len(objectives)
 
@@ -706,7 +874,8 @@ def _topology_evaluate_worker(
     scores: list[float] = []
     for objective in objectives:
         try:
-            result = objective(
+            tuned = _with_motor_rates(objective, raw_motors, effective_motor_rates)
+            result = tuned(
                 deepcopy(walker.topology),
                 deepcopy(walker.dimensions),
                 world_config,
@@ -850,11 +1019,22 @@ def topology_walking_optimization(
     X = np.asarray(res.X).reshape(F.shape[0], -1)
     for i in range(F.shape[0]):
         scores = tuple(-float(v) for v in F[i])
-        topo_idx, n_legs, _, offsets = _decode_chromosome(
-            X[i], cfg, max_edges=ctx.max_edges,
+        topo_idx, n_legs, _, offsets, raw_motors = _decode_chromosome(
+            X[i], cfg,
+            max_edges=ctx.max_edges,
+            max_drivers=ctx.max_drivers,
         )
         topo_idx = max(0, min(topo_idx, ctx.n_topologies - 1))
         entry = ctx.entries[topo_idx]
+        evolved_motors = _resolve_evolved_motor_rates(
+            ctx, topo_idx, raw_motors, cfg.motor_rates,
+        )
+        # Surface as dict[str, float] when motors evolved, else None.
+        motors_meta: dict[str, float] | None = (
+            evolved_motors if isinstance(evolved_motors, dict)
+            and raw_motors is not None
+            else None
+        )
 
         solutions.append(ParetoSolution(
             scores=scores,
@@ -868,6 +1048,7 @@ def topology_walking_optimization(
             num_links=entry.num_links,
             n_legs=n_legs,
             phase_offsets=offsets,
+            motor_rates=motors_meta,
         )
 
     pareto = ParetoFront(solutions, tuple(objective_names))
@@ -881,10 +1062,15 @@ def topology_walking_optimization(
         stability_map = {} if include_stability else None
 
         for idx, sol in enumerate(solutions):
-            topo_idx, n_legs, dims, offsets = _decode_chromosome(
-                sol.dimensions, cfg, max_edges=ctx.max_edges,
+            topo_idx, n_legs, dims, offsets, raw_motors = _decode_chromosome(
+                sol.dimensions, cfg,
+                max_edges=ctx.max_edges,
+                max_drivers=ctx.max_drivers,
             )
-            walker = ctx.build_walker(topo_idx, dims, cfg.motor_rates)
+            effective_motor_rates = _resolve_evolved_motor_rates(
+                ctx, topo_idx, raw_motors, cfg.motor_rates,
+            )
+            walker = ctx.build_walker(topo_idx, dims, effective_motor_rates)
             if walker is None:
                 continue
 
