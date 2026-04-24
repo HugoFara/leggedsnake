@@ -4,17 +4,26 @@
 Tests for the world_visualizer module.
 """
 
+import os
 import unittest
 from math import tau
 from unittest.mock import MagicMock
 
+import pytest
+
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
-from leggedsnake.world_visualizer import (
+if not os.environ.get("DISPLAY") and not os.environ.get("WAYLAND_DISPLAY"):
+    pytest.skip(
+        "world_visualizer requires a display (pyglet opens a shadow window on import)",
+        allow_module_level=True,
+    )
+
+from leggedsnake.world_visualizer import (  # noqa: E402
     smooth_transition, VisualWorld, CAMERA
 )
-from leggedsnake.walker import Walker
+from leggedsnake.walker import Walker  # noqa: E402
 
 
 def _make_fourbar_walker():
