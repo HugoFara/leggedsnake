@@ -836,7 +836,9 @@ class TestWalkerFromSimLinkage(unittest.TestCase):
         sim = self._make_sim_linkage()
         # Patch the *class* attribute so getattr() returns None and the
         # gate's ``callable(...)`` check falls through to the fallback.
-        with patch.object(type(sim), "to_hypergraph", None):
+        # ``create=True`` so the patch works on pylinkage versions that
+        # never defined ``to_hypergraph`` at all.
+        with patch.object(type(sim), "to_hypergraph", None, create=True):
             walker = _walker_from_sim_linkage(sim)
         self.assertIsInstance(walker, Walker)
         self.assertEqual(walker.name, "fourbar")
