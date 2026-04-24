@@ -220,6 +220,17 @@ class TopologyCoOptConfig:
         direction. Using ``0`` as a bound endpoint allows the optimizer
         to converge on a stationary driver — useful for prototyping
         wind- or slope-driven passive walkers.
+    wind_force : tuple[float, float]
+        Constant external force (Newtons, ``(fx, fy)``) applied to
+        each candidate's chassis every physics step during evaluation.
+        Convenience knob: when ``world_config`` is left at ``None``
+        in :func:`topology_walking_optimization`, a default
+        :class:`~leggedsnake.physicsengine.WorldConfig` is built with
+        this wind. Set both an explicit ``world_config`` *and* a
+        non-zero ``wind_force`` only if they agree;
+        :func:`topology_walking_optimization` raises ``ValueError``
+        otherwise. Default ``(0.0, 0.0)`` keeps the existing
+        windless behaviour.
     """
 
     max_links: int = 8
@@ -239,6 +250,7 @@ class TopologyCoOptConfig:
     evolve_motor_rates: bool = False
     motor_rate_lower: float = -8.0
     motor_rate_upper: float = 8.0
+    wind_force: tuple[float, float] = (0.0, 0.0)
     n_workers: int = 1
     """Number of parallel workers. 1 = sequential. >1 uses process pool."""
 
@@ -775,6 +787,50 @@ def _decode_chromosome(
     return topo_idx, n_legs, dims, offsets, motor_rates
 
 
+def _resolve_world_config(
+    world_config: Any | None,
+    config: TopologyCoOptConfig,
+) -> Any | None:
+    """Apply ``config.wind_force`` to a default ``WorldConfig``.
+
+    Three cases:
+
+    * Caller passed an explicit ``world_config`` and ``config.wind_force``
+      is the default ``(0.0, 0.0)`` — pass through unchanged.
+    * Caller passed an explicit ``world_config`` and ``config.wind_force``
+      is non-zero — only allowed when the two agree, otherwise raise
+      ``ValueError`` (the caller has set wind in two contradictory
+      places and we'd silently drop one).
+    * Caller passed ``None`` and ``config.wind_force`` is non-zero —
+      build a default ``WorldConfig`` carrying it through.
+    """
+    wind: tuple[float, float] = (
+        float(config.wind_force[0]), float(config.wind_force[1]),
+    )
+    if wind == (0.0, 0.0):
+        return world_config
+    if world_config is None:
+        from .physicsengine import WorldConfig
+        return WorldConfig(wind_force=wind)
+    raw_existing = getattr(world_config, "wind_force", (0.0, 0.0))
+    existing: tuple[float, float] = (
+        float(raw_existing[0]), float(raw_existing[1]),
+    )
+    if existing not in ((0.0, 0.0), wind):
+        raise ValueError(
+            "wind_force is set on both TopologyCoOptConfig "
+            f"({wind!r}) and the explicit world_config ({existing!r}); "
+            "they disagree. Set on only one."
+        )
+    if existing == (0.0, 0.0):
+        # Explicit world_config carries no wind — graft on the convenience
+        # value via dataclasses.replace so we don't mutate the caller's
+        # instance.
+        from dataclasses import replace
+        return replace(world_config, wind_force=wind)
+    return world_config
+
+
 def _resolve_evolved_motor_rates(
     ctx: _TopologyContext,
     topo_idx: int,
@@ -951,6 +1007,8 @@ def topology_walking_optimization(
 
     if objective_names is None:
         objective_names = [f"objective_{i}" for i in range(n_obj)]
+
+    world_config = _resolve_world_config(world_config, cfg)
 
     # Build topology context
     ctx = _TopologyContext(max_links=cfg.max_links, catalog=catalog)

@@ -552,5 +552,79 @@ class TestMotorRateChromosome(unittest.TestCase):
                 self.assertLessEqual(rate, 6.0)
 
 
+class TestWindForceConfig(unittest.TestCase):
+    """``wind_force`` convenience knob on ``TopologyCoOptConfig``."""
+
+    def test_default_is_zero(self):
+        cfg = TopologyCoOptConfig()
+        self.assertEqual(cfg.wind_force, (0.0, 0.0))
+
+    def test_passthrough_when_default(self):
+        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.topology_optimization import _resolve_world_config
+
+        cfg = TopologyCoOptConfig()  # default wind_force
+        world_cfg = WorldConfig(gravity=(0.0, -9.81))
+        out = _resolve_world_config(world_cfg, cfg)
+        # No conflict to resolve; pass through untouched.
+        self.assertIs(out, world_cfg)
+
+    def test_builds_default_world_config_when_none(self):
+        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.topology_optimization import _resolve_world_config
+
+        cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))
+        out = _resolve_world_config(None, cfg)
+        self.assertIsInstance(out, WorldConfig)
+        self.assertEqual(out.wind_force, (2.5, 0.0))
+
+    def test_grafts_onto_explicit_world_config(self):
+        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.topology_optimization import _resolve_world_config
+
+        cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))
+        world_cfg = WorldConfig(gravity=(0.0, -5.0))  # no wind set
+        out = _resolve_world_config(world_cfg, cfg)
+        # Grafted, not mutated in place.
+        self.assertEqual(out.wind_force, (2.5, 0.0))
+        self.assertEqual(out.gravity, (0.0, -5.0))
+        self.assertEqual(world_cfg.wind_force, (0.0, 0.0))
+
+    def test_passthrough_when_both_agree(self):
+        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.topology_optimization import _resolve_world_config
+
+        cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))
+        world_cfg = WorldConfig(wind_force=(2.5, 0.0))
+        out = _resolve_world_config(world_cfg, cfg)
+        self.assertIs(out, world_cfg)
+
+    def test_raises_when_both_disagree(self):
+        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.topology_optimization import _resolve_world_config
+
+        cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))
+        world_cfg = WorldConfig(wind_force=(-1.0, 0.0))
+        with self.assertRaises(ValueError):
+            _resolve_world_config(world_cfg, cfg)
+
+    def test_optimization_runs_with_wind(self):
+        """Smoke test: pipeline accepts wind_force on the config."""
+        result = topology_walking_optimization(
+            objectives=[DistanceFitness(duration=2, n_legs=1)],
+            objective_names=["distance"],
+            config=TopologyCoOptConfig(
+                max_links=4,
+                n_generations=2,
+                pop_size=4,
+                seed=42,
+                verbose=False,
+                n_legs=1,
+                wind_force=(1.0, 0.0),
+            ),
+        )
+        self.assertIsInstance(result, TopologyWalkingResult)
+
+
 if __name__ == "__main__":
     unittest.main()
