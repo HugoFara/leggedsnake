@@ -560,7 +560,7 @@ class TestWindForceConfig(unittest.TestCase):
         self.assertEqual(cfg.wind_force, (0.0, 0.0))
 
     def test_passthrough_when_default(self):
-        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.physics_engine import WorldConfig
         from leggedsnake.topology_optimization import _resolve_world_config
 
         cfg = TopologyCoOptConfig()  # default wind_force
@@ -570,7 +570,7 @@ class TestWindForceConfig(unittest.TestCase):
         self.assertIs(out, world_cfg)
 
     def test_builds_default_world_config_when_none(self):
-        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.physics_engine import WorldConfig
         from leggedsnake.topology_optimization import _resolve_world_config
 
         cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))
@@ -579,7 +579,7 @@ class TestWindForceConfig(unittest.TestCase):
         self.assertEqual(out.wind_force, (2.5, 0.0))
 
     def test_grafts_onto_explicit_world_config(self):
-        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.physics_engine import WorldConfig
         from leggedsnake.topology_optimization import _resolve_world_config
 
         cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))
@@ -591,7 +591,7 @@ class TestWindForceConfig(unittest.TestCase):
         self.assertEqual(world_cfg.wind_force, (0.0, 0.0))
 
     def test_passthrough_when_both_agree(self):
-        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.physics_engine import WorldConfig
         from leggedsnake.topology_optimization import _resolve_world_config
 
         cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))
@@ -600,7 +600,7 @@ class TestWindForceConfig(unittest.TestCase):
         self.assertIs(out, world_cfg)
 
     def test_raises_when_both_disagree(self):
-        from leggedsnake.physicsengine import WorldConfig
+        from leggedsnake.physics_engine import WorldConfig
         from leggedsnake.topology_optimization import _resolve_world_config
 
         cfg = TopologyCoOptConfig(wind_force=(2.5, 0.0))

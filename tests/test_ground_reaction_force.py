@@ -15,9 +15,9 @@ import pymunk as pm
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
-from leggedsnake.dynamiclinkage import DynamicLinkage
+from leggedsnake.dynamic_linkage import DynamicLinkage
 from leggedsnake.fitness import CompositeFitness, StabilityFitness
-from leggedsnake.physicsengine import World, WorldConfig, TerrainConfig
+from leggedsnake.physics_engine import World, WorldConfig, TerrainConfig
 from leggedsnake.stability import (
     StabilitySnapshot,
     StabilityTimeSeries,

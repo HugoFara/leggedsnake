@@ -31,10 +31,10 @@ Welcome to LeggedSnake's documentation!
    :maxdepth: 1
    :caption: Physics
 
-   api/physicsengine
-   api/dynamiclinkage
+   api/physics_engine
+   api/dynamic_linkage
    api/hypergraph_physics
-   api/worldvisualizer
+   api/world_visualizer
 
 .. toctree::
    :maxdepth: 1
@@ -49,7 +49,7 @@ Welcome to LeggedSnake's documentation!
    :caption: Optimization
 
    api/walking_objectives
-   api/geneticoptimizer
+   api/genetic_optimizer
    api/nsga_optimizer
    api/topology_optimization
    api/co_design

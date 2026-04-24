@@ -40,12 +40,12 @@ Key surface:
 - `get_num_constraints()` / `set_num_constraints()` and `get_coords()` / `set_coords()` are the (de)serialization hooks used by optimizers.
 - `get_foots()` returns terminal joints (feet).
 
-### 2. Physics — `physicsengine.py`, `dynamiclinkage.py`, `hypergraph_physics.py`
+### 2. Physics — `physics_engine.py`, `dynamic_linkage.py`, `hypergraph_physics.py`
 
 - `World` owns a pymunk space, road generation, and stepping. `World.add_linkage(walker)` auto-converts kinematic → dynamic.
 - `WorldConfig` / `TerrainConfig` / `SlopeProfile` / `TerrainPreset` are the structured config types; `SLOPE_PROFILES` and `DEFAULT_CONFIG` are prebuilt presets.
 - Legacy global `params` dict still works for quick tuning (`params["simul"]["physics_period"]`, `params["linkage"]["torque"]`, `params["linkage"]["load"]`, `params["ground"]["friction"|"slope"|"noise"]`). New code should prefer the dataclass configs.
-- `dynamiclinkage.py`: `DynamicJoint` ABC → `Nail`, `PinUp`, `DynamicPivot`, `Motor`; `DynamicLinkage` + `convert_to_dynamic_linkage()`.
+- `dynamic_linkage.py`: `DynamicJoint` ABC → `Nail`, `PinUp`, `DynamicPivot`, `Motor`; `DynamicLinkage` + `convert_to_dynamic_linkage()`.
 - `hypergraph_physics.py`: builds pymunk bodies directly from the hypergraph, merging Fixed-triangle edges into rigid bodies. `PhysicsMapping` tracks edge→body and node→bodies.
 
 ### 3. Evaluation — `fitness.py`, `stability.py`, `gait_analysis.py`
@@ -62,7 +62,7 @@ Three layers, listed from general → walking-specific:
 
 | Module | Entry point | Purpose |
 |---|---|---|
-| `geneticoptimizer.py` | `GeneticOptimization(dna, fitness, max_pop).run(iters, processes)` or `genetic_algorithm_optimization()` | Built-in GA with multiprocessing + JSON checkpoint/resume (`startnstop=`). DNA = `[score, dimensions, coords]`. |
+| `genetic_optimizer.py` | `GeneticOptimization(dna, fitness, max_pop).run(iters, processes)` or `genetic_algorithm_optimization()` | Built-in GA with multiprocessing + JSON checkpoint/resume (`startnstop=`). DNA = `[score, dimensions, coords]`. |
 | `walking_objectives.py` | `stride_length_objective`, `energy_efficiency_objective`, `total_distance_objective`, `multi_objective_walking_optimization` | Walking-specific objective functions reusing pylinkage's optimizer infrastructure. |
 | `nsga_optimizer.py` | `nsga_walking_optimization(walker_factory, config: NsgaWalkingConfig)` | Multi-objective NSGA-II/III via pymoo. Returns `ParetoFront`. |
 | `topology_optimization.py` | `topology_walking_optimization(config: TopologyCoOptConfig)` | Joint topology + dimensions co-optimization over pylinkage's topology catalog (mixed chromosome `[topology_index, dim...]`). |
@@ -77,7 +77,7 @@ Three layers, listed from general → walking-specific:
 - `urdf_export.py`: `to_urdf`, `to_urdf_file`, `URDFConfig` — export to ROS URDF.
 - `plotting.py`: matplotlib/plotly figures — `plot_pareto_front`, `plot_gait_diagram`, `plot_stability_timeseries`, `plot_com_trajectory`, `plot_foot_trajectories`, `plot_optimization_dashboard`, `plot_walker_plotly`, `save_walker_svg`.
 - `show_evolution.py`: `show_genetic_optimization` replays a saved GA checkpoint.
-- `worldvisualizer.py`: `VisualWorld` + `video(walker, duration, save=...)`, `all_linkages_video(walkers)`, `video_debug()` (frame-stepping with force vectors). **These symbols are lazy-imported** in `__init__.py` via `__getattr__` because they pull in pyglet and need a display — referencing them on a headless box triggers the import only at access time.
+- `world_visualizer.py`: `VisualWorld` + `video(walker, duration, save=...)`, `all_linkages_video(walkers)`, `video_debug()` (frame-stepping with force vectors). **These symbols are lazy-imported** in `__init__.py` via `__getattr__` because they pull in pyglet and need a display — referencing them on a headless box triggers the import only at access time.
 - `utility.py`: `stride(locus, height)` and `step(locus, height, width)` — kinematic fitness helpers used by PSO-style optimizers.
 
 ## Key patterns and gotchas
@@ -86,7 +86,7 @@ Three layers, listed from general → walking-specific:
 - **Multi-DOF mechanisms** are expressed by supplying multiple DRIVER-role nodes in the topology and per-driver rates in `Dimensions.driver_angles` / `Walker.motor_rates`. No separate API.
 - **Kinematic vs dynamic optimization**: prefer kinematic (`stride`/`step` + PSO) for fast inner loops and fall back to dynamic GA/NSGA only for the final selection. The README advises exploiting mechanism symmetry (e.g. optimize a half-Strider kinematically).
 - **Checkpointing**: `GeneticOptimization(..., startnstop="path.json")` auto-resumes. Long runs should always use this.
-- **pymunk solver tuning**: `set_space_constraints()` in `physicsengine.py` auto-scales solver iterations to constraint count — don't hardcode iterations for large mechanisms.
+- **pymunk solver tuning**: `set_space_constraints()` in `physics_engine.py` auto-scales solver iterations to constraint count — don't hardcode iterations for large mechanisms.
 
 ## Tests
 

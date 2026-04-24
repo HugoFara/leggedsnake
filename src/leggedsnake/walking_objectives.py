@@ -33,7 +33,7 @@ from typing import Any, Callable
 
 from pylinkage.optimization.collections import ParetoFront
 
-from .physicsengine import World, WorldConfig
+from .physics_engine import World, WorldConfig
 from .utility import step as step_check, stride
 from .walker import Walker
 

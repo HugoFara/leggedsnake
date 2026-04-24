@@ -33,7 +33,7 @@ from .fitness import (
     FitnessResult,
     co_optimize_objective,
 )
-from .physicsengine import TerrainConfig, WorldConfig
+from .physics_engine import TerrainConfig, WorldConfig
 from .walker import Walker
 
 if TYPE_CHECKING:

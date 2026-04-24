@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - Unreleased
 
+### Changed
+
+- **Module filenames normalised to PEP 8 snake_case.** The four
+  flatcase modules ``dynamiclinkage``, ``geneticoptimizer``,
+  ``physicsengine``, ``worldvisualizer`` are now
+  ``dynamic_linkage``, ``genetic_optimizer``, ``physics_engine``,
+  ``world_visualizer``. The old names remain importable as thin
+  shims that forward every attribute lookup via module-level
+  ``__getattr__`` and emit a :class:`DeprecationWarning` at import
+  time. Update callers to the new names; the shims will be removed
+  in a future release.
+
 ### Added
 
 - **Passive (motor-less) drivers in topology co-optimization**.

@@ -44,7 +44,7 @@ import numpy as np
 from scipy.optimize import differential_evolution  # type: ignore[import-untyped]
 
 from .fitness import DynamicFitness
-from .physicsengine import WorldConfig
+from .physics_engine import WorldConfig
 from .walker import Walker
 
 

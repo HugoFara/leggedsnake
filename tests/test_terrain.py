@@ -5,7 +5,7 @@ import unittest
 
 import numpy as np
 
-from leggedsnake.physicsengine import (
+from leggedsnake.physics_engine import (
     SLOPE_PROFILES,
     SlopeProfile,
     TerrainConfig,

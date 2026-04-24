@@ -35,7 +35,7 @@ from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph import HypergraphLinkage
 
 from .gait_analysis import compute_cost_of_transport, compute_froude_number
-from .physicsengine import World, WorldConfig, linkage_bb
+from .physics_engine import World, WorldConfig, linkage_bb
 from .stability import StabilityTimeSeries, compute_stability_snapshot
 from .utility import step as step_check, stride, Point
 
@@ -1024,7 +1024,7 @@ def _run_simulation(
 
     # Place the road just beneath the walker's feet so it starts resting on
     # the ground instead of intersecting or free-falling onto it — matches
-    # worldvisualizer and the nb02 ``simulate`` helper.
+    # world_visualizer and the nb02 ``simulate`` helper.
     walker_bb = linkage_bb(walker)
     road_y = walker_bb[0] - 1
     # Vertical extent of the linkage in its initial pose — used as the

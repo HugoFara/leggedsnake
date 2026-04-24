@@ -11,7 +11,7 @@ from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 from pylinkage.optimization.collections import Agent
 from pylinkage.population import Ensemble, Member
 
-from leggedsnake.geneticoptimizer import genetic_algorithm_optimization
+from leggedsnake.genetic_optimizer import genetic_algorithm_optimization
 from leggedsnake.walker import Walker
 
 
@@ -135,7 +135,7 @@ class TestGeneticAlgorithmOptimization(unittest.TestCase):
 
 class TestGeneticOptimizationRunReturnsAgent(unittest.TestCase):
     def test_run_returns_agents(self):
-        from leggedsnake.geneticoptimizer import GeneticOptimization
+        from leggedsnake.genetic_optimizer import GeneticOptimization
 
         def fitness(dna):
             return -sum(d ** 2 for d in dna[1]), dna[2]

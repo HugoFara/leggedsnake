@@ -34,7 +34,7 @@ class Walker:
 
     Kinematic simulation is delegated to pylinkage's ``Mechanism`` class
     via ``to_mechanism()``. Physics simulation is handled by converting
-    to a ``DynamicLinkage`` (see ``physicsengine.World.add_linkage``).
+    to a ``DynamicLinkage`` (see ``physics_engine.World.add_linkage``).
 
     Attributes
     ----------

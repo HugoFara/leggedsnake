@@ -22,7 +22,7 @@ from leggedsnake.fitness import (
     as_eval_func,
     as_ga_fitness,
 )
-from leggedsnake.physicsengine import WorldConfig
+from leggedsnake.physics_engine import WorldConfig
 from leggedsnake.walker import Walker
 
 

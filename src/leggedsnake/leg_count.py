@@ -13,7 +13,7 @@ from collections.abc import Iterable
 from copy import deepcopy
 
 from .fitness import DynamicFitness, FitnessResult
-from .physicsengine import WorldConfig
+from .physics_engine import WorldConfig
 from .walker import Walker
 
 

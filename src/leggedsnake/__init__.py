@@ -44,7 +44,7 @@ from pylinkage.hypergraph import (
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.topology import MobilityInfo, compute_dof, compute_mobility
 
-from .dynamiclinkage import DynamicLinkage, convert_to_dynamic_linkage
+from .dynamic_linkage import DynamicLinkage, convert_to_dynamic_linkage
 from .co_design import (
     WalkingDesignResult,
     WalkingDesignSpec,
@@ -89,13 +89,13 @@ from .stability import (
     compute_tip_over_margin,
     sample_ground_reaction_force,
 )
-from .geneticoptimizer import (
+from .genetic_optimizer import (
     GeneticOptimization,
     agents_to_ensemble,
     genetic_algorithm_optimization,
 )
 from .leg_count import sweep_leg_counts
-from .physicsengine import (
+from .physics_engine import (
     DEFAULT_CONFIG,
     SLOPE_PROFILES,
     SlopeProfile,
@@ -153,7 +153,7 @@ _VISUALIZER_NAMES = frozenset({
 
 def __getattr__(name: str) -> object:
     if name in _VISUALIZER_NAMES:
-        from . import worldvisualizer as _wv
+        from . import world_visualizer as _wv
         # Populate module namespace so subsequent access is direct
         globals().update({n: getattr(_wv, n) for n in _VISUALIZER_NAMES})
         return globals()[name]
@@ -201,7 +201,7 @@ __all__ = [
     "stride",
     # walker
     "Walker",
-    # dynamiclinkage
+    # dynamic_linkage
     "DynamicLinkage",
     "convert_to_dynamic_linkage",
     # fitness protocol
@@ -242,13 +242,13 @@ __all__ = [
     "WalkingDesignSpec",
     "WalkingDesignResult",
     "optimize_walking_mechanism",
-    # geneticoptimizer
+    # genetic_optimizer
     "GeneticOptimization",
     "agents_to_ensemble",
     "genetic_algorithm_optimization",
     # leg-count sweep
     "sweep_leg_counts",
-    # physicsengine
+    # physics_engine
     "DEFAULT_CONFIG",
     "SLOPE_PROFILES",
     "SlopeProfile",
@@ -258,7 +258,7 @@ __all__ = [
     "World",
     "WorldConfig",
     "linkage_bb",
-    # worldvisualizer
+    # world_visualizer
     "all_linkages_video",
     "video",
     "video_debug",

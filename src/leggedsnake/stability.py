@@ -31,7 +31,7 @@ import numpy as np
 import pymunk as pm
 
 if TYPE_CHECKING:
-    from .dynamiclinkage import DynamicLinkage
+    from .dynamic_linkage import DynamicLinkage
 
 
 # ---------------------------------------------------------------------------

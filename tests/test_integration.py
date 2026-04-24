@@ -14,7 +14,7 @@ from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
 import leggedsnake as ls
 from leggedsnake.walker import Walker
-from leggedsnake.physicsengine import World, WorldConfig, TerrainConfig, DEFAULT_CONFIG
+from leggedsnake.physics_engine import World, WorldConfig, TerrainConfig, DEFAULT_CONFIG
 
 
 def _make_simple_walker() -> Walker:

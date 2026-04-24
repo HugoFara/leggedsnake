@@ -6,7 +6,7 @@ from math import tau
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, Node, Edge, NodeRole
 
-from leggedsnake.physicsengine import World, WorldConfig
+from leggedsnake.physics_engine import World, WorldConfig
 from leggedsnake.walker import Walker
 
 

@@ -237,7 +237,7 @@ class TopologyCoOptConfig:
         each candidate's chassis every physics step during evaluation.
         Convenience knob: when ``world_config`` is left at ``None``
         in :func:`topology_walking_optimization`, a default
-        :class:`~leggedsnake.physicsengine.WorldConfig` is built with
+        :class:`~leggedsnake.physics_engine.WorldConfig` is built with
         this wind. Set both an explicit ``world_config`` *and* a
         non-zero ``wind_force`` only if they agree;
         :func:`topology_walking_optimization` raises ``ValueError``
@@ -838,7 +838,7 @@ def _resolve_world_config(
     if wind == (0.0, 0.0):
         return world_config
     if world_config is None:
-        from .physicsengine import WorldConfig
+        from .physics_engine import WorldConfig
         return WorldConfig(wind_force=wind)
     raw_existing = getattr(world_config, "wind_force", (0.0, 0.0))
     existing: tuple[float, float] = (
