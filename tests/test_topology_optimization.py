@@ -626,5 +626,104 @@ class TestWindForceConfig(unittest.TestCase):
         self.assertIsInstance(result, TopologyWalkingResult)
 
 
+class TestAllowPassive(unittest.TestCase):
+    """``allow_passive`` snaps near-zero evolved rates to exactly 0.0."""
+
+    def test_default_off(self):
+        cfg = TopologyCoOptConfig()
+        self.assertFalse(cfg.allow_passive)
+
+    def test_requires_evolve_motor_rates(self):
+        with self.assertRaises(ValueError):
+            TopologyCoOptConfig(allow_passive=True)
+
+    def test_requires_bounds_spanning_zero_positive_only(self):
+        with self.assertRaises(ValueError):
+            TopologyCoOptConfig(
+                evolve_motor_rates=True,
+                motor_rate_lower=1.0,
+                motor_rate_upper=8.0,
+                allow_passive=True,
+            )
+
+    def test_requires_bounds_spanning_zero_negative_only(self):
+        with self.assertRaises(ValueError):
+            TopologyCoOptConfig(
+                evolve_motor_rates=True,
+                motor_rate_lower=-8.0,
+                motor_rate_upper=-1.0,
+                allow_passive=True,
+            )
+
+    def test_accepts_bounds_with_zero_endpoint(self):
+        # Zero as an endpoint is allowed (the optimizer can land exactly on it).
+        cfg = TopologyCoOptConfig(
+            evolve_motor_rates=True,
+            motor_rate_lower=0.0,
+            motor_rate_upper=8.0,
+            allow_passive=True,
+        )
+        self.assertTrue(cfg.allow_passive)
+
+    def test_snaps_near_zero_to_zero(self):
+        from leggedsnake.topology_optimization import (
+            _resolve_evolved_motor_rates,
+        )
+        ctx = _TopologyContext(max_links=4)
+        result = _resolve_evolved_motor_rates(
+            ctx, topo_idx=0, raw_motors=[1e-9], fallback=-4.0,
+            allow_passive=True,
+        )
+        self.assertIsInstance(result, dict)
+        self.assertEqual(list(result.values())[0], 0.0)
+
+    def test_does_not_snap_when_disabled(self):
+        from leggedsnake.topology_optimization import (
+            _resolve_evolved_motor_rates,
+        )
+        ctx = _TopologyContext(max_links=4)
+        result = _resolve_evolved_motor_rates(
+            ctx, topo_idx=0, raw_motors=[1e-9], fallback=-4.0,
+            allow_passive=False,
+        )
+        # Without allow_passive the raw value passes through verbatim.
+        self.assertIsInstance(result, dict)
+        self.assertEqual(list(result.values())[0], 1e-9)
+
+    def test_does_not_snap_outside_eps(self):
+        from leggedsnake.topology_optimization import (
+            _resolve_evolved_motor_rates,
+        )
+        ctx = _TopologyContext(max_links=4)
+        result = _resolve_evolved_motor_rates(
+            ctx, topo_idx=0, raw_motors=[1e-3], fallback=-4.0,
+            allow_passive=True,
+        )
+        self.assertIsInstance(result, dict)
+        # 1e-3 is far above the snap epsilon — preserved as-is.
+        self.assertEqual(list(result.values())[0], 1e-3)
+
+    def test_optimization_runs_with_allow_passive(self):
+        """Smoke test: pipeline accepts allow_passive end-to-end."""
+        result = topology_walking_optimization(
+            objectives=[DistanceFitness(duration=2, n_legs=1)],
+            objective_names=["distance"],
+            config=TopologyCoOptConfig(
+                max_links=4,
+                n_generations=2,
+                pop_size=4,
+                seed=42,
+                verbose=False,
+                n_legs=1,
+                evolve_motor_rates=True,
+                motor_rate_lower=-6.0,
+                motor_rate_upper=6.0,
+                allow_passive=True,
+                wind_force=(1.0, 0.0),
+            ),
+        )
+        self.assertIsInstance(result, TopologyWalkingResult)
+
+
 if __name__ == "__main__":
     unittest.main()

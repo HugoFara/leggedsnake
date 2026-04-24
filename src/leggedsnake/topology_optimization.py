@@ -220,6 +220,18 @@ class TopologyCoOptConfig:
         direction. Using ``0`` as a bound endpoint allows the optimizer
         to converge on a stationary driver — useful for prototyping
         wind- or slope-driven passive walkers.
+    allow_passive : bool
+        If True, drivers whose evolved rate is within ``1e-6 rad/s`` of
+        zero are snapped to exactly ``0.0``, which the physics layer
+        treats as passive: no ``SimpleMotor`` constraint is created and
+        the crank stays a free-pivoting rigid body driven only by
+        gravity, wind, inertia, and ground contact. Requires
+        ``evolve_motor_rates=True`` and bounds spanning zero
+        (``motor_rate_lower <= 0 <= motor_rate_upper``); the optimizer
+        otherwise has no way to reach the passive region. Default
+        ``False`` keeps every driver powered. Pair with a non-zero
+        ``wind_force`` (or a sloped ``world_config`` terrain) when
+        looking for purely passive walkers.
     wind_force : tuple[float, float]
         Constant external force (Newtons, ``(fx, fy)``) applied to
         each candidate's chassis every physics step during evaluation.
@@ -250,6 +262,7 @@ class TopologyCoOptConfig:
     evolve_motor_rates: bool = False
     motor_rate_lower: float = -8.0
     motor_rate_upper: float = 8.0
+    allow_passive: bool = False
     wind_force: tuple[float, float] = (0.0, 0.0)
     n_workers: int = 1
     """Number of parallel workers. 1 = sequential. >1 uses process pool."""
@@ -267,6 +280,20 @@ class TopologyCoOptConfig:
             raise ValueError(
                 "evolve_motor_rates=True requires "
                 "motor_rate_lower < motor_rate_upper, got "
+                f"[{self.motor_rate_lower}, {self.motor_rate_upper}]."
+            )
+        if self.allow_passive and not self.evolve_motor_rates:
+            raise ValueError(
+                "allow_passive=True requires evolve_motor_rates=True — "
+                "the optimizer needs a motor-rate gene to reach the "
+                "passive region."
+            )
+        if self.allow_passive and not (
+            self.motor_rate_lower <= 0.0 <= self.motor_rate_upper
+        ):
+            raise ValueError(
+                "allow_passive=True requires bounds spanning zero "
+                "(motor_rate_lower <= 0 <= motor_rate_upper), got "
                 f"[{self.motor_rate_lower}, {self.motor_rate_upper}]."
             )
 
@@ -652,6 +679,7 @@ class _TopologyWalkingProblem:
         )
         effective_motor_rates = _resolve_evolved_motor_rates(
             self.ctx, topo_idx, raw_motors, self._config.motor_rates,
+            allow_passive=self._config.allow_passive,
         )
 
         walker = self.ctx.build_walker(
@@ -831,11 +859,15 @@ def _resolve_world_config(
     return world_config
 
 
+_PASSIVE_SNAP_EPS = 1e-6
+
+
 def _resolve_evolved_motor_rates(
     ctx: _TopologyContext,
     topo_idx: int,
     raw_motors: list[float] | None,
     fallback: float | dict[str, float],
+    allow_passive: bool = False,
 ) -> float | dict[str, float]:
     """Map padded motor genes to per-DRIVER rates for a topology.
 
@@ -843,15 +875,24 @@ def _resolve_evolved_motor_rates(
     candidate; topologies with fewer drivers consume the leading
     slots and the rest are ignored. Falls back to ``config.motor_rates``
     when no motor genes are present (``evolve_motor_rates=False``).
+
+    When ``allow_passive`` is set, rates within ``_PASSIVE_SNAP_EPS``
+    of zero are snapped to exactly ``0.0`` so downstream consumers
+    (the physics layer's passive-driver short-circuit, the SolutionInfo
+    record) see a clean zero rather than a near-zero float.
     """
     if raw_motors is None:
         return fallback
     driver_ids = ctx.driver_ids(topo_idx)
-    return {
-        did: float(raw_motors[i])
-        for i, did in enumerate(driver_ids)
-        if i < len(raw_motors)
-    }
+    rates: dict[str, float] = {}
+    for i, did in enumerate(driver_ids):
+        if i >= len(raw_motors):
+            break
+        value = float(raw_motors[i])
+        if allow_passive and abs(value) < _PASSIVE_SNAP_EPS:
+            value = 0.0
+        rates[did] = value
+    return rates
 
 
 def _with_motor_rates(
@@ -918,6 +959,7 @@ def _topology_evaluate_worker(
     )
     effective_motor_rates = _resolve_evolved_motor_rates(
         ctx, topo_idx, raw_motors, config.motor_rates,
+        allow_passive=config.allow_passive,
     )
 
     walker = ctx.build_walker(topo_idx, dims, effective_motor_rates)
@@ -1086,6 +1128,7 @@ def topology_walking_optimization(
         entry = ctx.entries[topo_idx]
         evolved_motors = _resolve_evolved_motor_rates(
             ctx, topo_idx, raw_motors, cfg.motor_rates,
+            allow_passive=cfg.allow_passive,
         )
         # Surface as dict[str, float] when motors evolved, else None.
         motors_meta: dict[str, float] | None = (
@@ -1127,6 +1170,7 @@ def topology_walking_optimization(
             )
             effective_motor_rates = _resolve_evolved_motor_rates(
                 ctx, topo_idx, raw_motors, cfg.motor_rates,
+                allow_passive=cfg.allow_passive,
             )
             walker = ctx.build_walker(topo_idx, dims, effective_motor_rates)
             if walker is None:

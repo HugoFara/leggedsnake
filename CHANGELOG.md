@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Passive (motor-less) drivers in topology co-optimization**.
+  Two coordinated changes:
+  - ``hypergraph_physics._create_motor_constraints`` now treats a
+    resolved rate of ``|rate| < 1e-9 rad/s`` as passive: no
+    ``SimpleMotor`` constraint is created and the crank stays a
+    free-pivoting rigid body driven only by gravity, wind, inertia,
+    and ground contact. Previously a zero-rate ``SimpleMotor`` acted
+    as a velocity-lock, freezing the crank — the new behaviour is
+    what callers passing ``motor_rates=0.0`` actually want.
+  - ``TopologyCoOptConfig.allow_passive: bool = False``. When set
+    (alongside ``evolve_motor_rates=True`` and bounds spanning zero),
+    evolved motor rates within ``1e-6 rad/s`` of zero snap to exactly
+    ``0.0``, letting NSGA discover wind- or slope-driven mechanisms
+    in the same sweep that searches powered ones. Pair with a
+    non-zero ``wind_force`` (or sloped terrain) to make the passive
+    region competitive.
 - **Phase-offset genes folded into the topology co-optimization
   chromosome** (Phase 8.3). ``TopologyCoOptConfig`` gains an
   ``evolve_offsets: bool`` flag and a derived ``n_offset_genes``
