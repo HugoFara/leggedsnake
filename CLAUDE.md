@@ -18,7 +18,7 @@ uv run pytest -k "strider"                    # tests matching pattern
 uv run pytest --cov=leggedsnake               # coverage
 uv run ruff check src/                        # lint
 uv run mypy                                   # type-check (strict)
-uv run jupyter lab examples/                  # numbered tutorial notebooks 01–04 + discover_walker
+uv run jupyter lab examples/                  # numbered tutorial notebooks 01–06
 uv run python examples/tools/verify_mechanisms.py  # smoke-test classical builders
 ```
 
@@ -100,5 +100,6 @@ Notebook-first. The tutorial surface is the numbered notebooks plus `discover_wa
 - `examples/02_physics_and_fitness.ipynb` — `World`, `WorldConfig` / `TerrainConfig` / `SLOPE_PROFILES`, and the `DynamicFitness` protocol.
 - `examples/03_genetic_optimization.ipynb` — single-objective GA with checkpointing.
 - `examples/04_multi_objective_and_gait.ipynb` — NSGA-II Pareto fronts, gait analysis, stability time series.
-- `examples/discover_walker.ipynb` — topology + dimensions co-optimization (`optimize_walking_mechanism`).
+- `examples/05_topology_co_optimization.ipynb` — topology + dimensions co-optimization plus Phase 8.3 `evolve_offsets` (chromosome co-evolves topology, dimensions, and per-leg phase offsets in one NSGA sweep).
+- `examples/06_export_and_share.ipynb` — JSON (``save_walker``/``load_walker``), URDF (``to_urdf``, ``URDFConfig``), SVG (``save_walker_svg``), interactive plotly (``plot_walker_plotly``).
 - `examples/tools/` — maintenance scripts, not tutorials. `verify_mechanisms.py` smoke-tests the classical builders; `generate_readme_gifs.py` regenerates the README animations.

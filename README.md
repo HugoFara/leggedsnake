@@ -142,9 +142,13 @@ to end:
    — evolve a walker with the genetic algorithm.
 4. [`examples/04_multi_objective_and_gait.ipynb`](examples/04_multi_objective_and_gait.ipynb)
    — NSGA Pareto fronts plus gait / stability analysis.
-5. [`examples/discover_walker.ipynb`](examples/discover_walker.ipynb)
-   — topology + dimensions co-optimization (the `optimize_walking_mechanism`
-   pipeline).
+5. [`examples/05_topology_co_optimization.ipynb`](examples/05_topology_co_optimization.ipynb)
+   — topology + dimensions co-optimization, plus the Phase 8.3
+   `evolve_offsets` chromosome that co-evolves gait pattern alongside
+   structure and geometry.
+6. [`examples/06_export_and_share.ipynb`](examples/06_export_and_share.ipynb)
+   — JSON serialization, URDF export for ROS / Gazebo, SVG snapshots,
+   and interactive plotly visualization.
 
 The [`examples/tools/`](examples/tools/) directory holds maintenance
 scripts, not tutorials: [`verify_mechanisms.py`](examples/tools/verify_mechanisms.py)
