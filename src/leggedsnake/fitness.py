@@ -905,15 +905,15 @@ def co_optimize_objective(
     """
 
     # Bridges a ``simulation.Linkage`` (SimLinkage) — what pylinkage's
-    # ``co_optimize`` hands in — to a Walker through the temporary
-    # ``_walker_from_sim_linkage`` shim. Swap to a pylinkage-native
-    # bridge once one ships (targeted for 1.0).
+    # ``co_optimize`` hands in — to a Walker through
+    # ``Walker.from_synthesis``, which wraps pylinkage's native
+    # ``Linkage.to_hypergraph()``.
 
     def _objective(linkage: Any) -> float:
-        from .walker import _walker_from_sim_linkage
+        from .walker import Walker
 
         try:
-            walker = _walker_from_sim_linkage(linkage, motor_rates=motor_rates)
+            walker = Walker.from_synthesis(linkage, motor_rates=motor_rates)
         except Exception:
             return float("inf")
 
