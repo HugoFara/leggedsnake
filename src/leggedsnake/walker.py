@@ -762,23 +762,16 @@ class Walker:
         mechanism at physical rates instead.
 
         .. note::
-           pylinkage 1.0.0 solves a joint's velocity from its two
-           constant-distance constraints, a system that goes singular
-           when the joint is collinear with both anchors. A ternary
-           link carrying its foot on the coupler line is exactly that
-           case, so such a joint can have a well-defined position and
-           no analytic derivative — it yields ``(None, None)`` on an
-           otherwise buildable frame. Among the shipped factories this
-           affects ``from_chebyshev`` (foot ``P``) and ``from_trotbot``
-           (``j4`` / ``j6`` / ``j9``); the other classical builders
-           resolve every joint. Difference :meth:`step`'s positions if
-           you need a velocity for those.
-
-           Upstream also reads a missing anchor velocity as zero rather
-           than as unknown, so a joint downstream of an unresolved one
-           comes back wrong instead of ``None``. In the shipped set only
-           ``from_trotbot`` is affected (``j5``, ``j7``); treat its
-           velocities as unreliable.
+           A joint can still come back ``(None, None)`` on an otherwise
+           buildable frame — prismatic joints, and genuine dead centres
+           where the mechanism is at a toggle. Those are honest
+           reports of an indeterminate derivative, and they propagate:
+           a joint solved from an undefined anchor is undefined too,
+           rather than being solved against an anchor assumed
+           stationary. Requires pylinkage > 1.0.0; on 1.0.0 exactly,
+           joints collinear with their anchors (``from_chebyshev``'s
+           foot, several of ``from_trotbot``'s) report no derivative,
+           and the joints downstream of those report wrong ones.
 
         Parameters
         ----------

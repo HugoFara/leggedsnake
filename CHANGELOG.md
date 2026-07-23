@@ -57,32 +57,25 @@ opens the synthesis hand-off as public API.
   advancing, and the stream length still equals ``iterations``.
   Positions are identical to ``step()``'s, frame for frame.
 
-  One capability is lost. pylinkage solves a joint's velocity from its
-  two constant-distance constraints, and that system is singular when
-  the joint is collinear with both anchors — a ternary link carrying
-  its foot on the coupler line, which is a standard walking-linkage
-  arrangement rather than a degenerate one. Such a joint yields
-  ``(None, None)`` on an otherwise buildable frame, where finite
-  differences produced a value. Among the shipped factories this
-  affects ``from_chebyshev`` (foot ``P``) and ``from_trotbot``
-  (``j4`` / ``j6`` / ``j9``); ``from_jansen``, ``from_klann``,
-  ``from_strider``, ``from_watt`` and ``from_ghassaei`` resolve every
-  joint. Difference ``step()``'s positions if you need a velocity for
-  those. The fix belongs upstream: propagating velocity through the
-  rigid body instead of intersecting two constraint directions is
-  exact and well-conditioned in precisely this case.
+  Auditing the switch — every joint of every shipped factory against
+  finite differences of the position stream, rather than only checking
+  for ``None`` — turned up two defects in pylinkage 1.0.0, both since
+  fixed upstream. A joint collinear with its two anchors (a ternary
+  link carrying its foot on the coupler line, which is a standard
+  walking-linkage arrangement) was mistaken for a dead centre and
+  reported no derivative; and an unresolved anchor was read as a
+  stationary one, so joints downstream of it reported plausible but
+  wrong values rather than ``None``. **This release therefore wants a
+  pylinkage newer than 1.0.0.** Against 1.0.0 exactly,
+  ``from_chebyshev``'s foot and several of ``from_trotbot``'s report
+  no velocity, and ``from_trotbot``'s ``j5`` / ``j7`` report wrong
+  ones. With the upstream fix every joint of every factory agrees with
+  finite differences to the reference's own truncation error.
 
-  Worse, an undefined velocity does not stay undefined. Upstream reads
-  an anchor's velocity as ``anchor.velocity or (0.0, 0.0)``, so a
-  joint downstream of an unresolved one is solved against an anchor
-  assumed stationary and comes back **wrong rather than ``None``**.
-  Checked against finite differences of the position stream, this hits
-  ``from_trotbot`` only: ``j5`` reports roughly 5x its true speed and
-  ``j7`` roughly 0.3x. Every joint of ``from_jansen``, ``from_klann``,
-  ``from_strider``, ``from_watt`` and ``from_ghassaei`` agrees with
-  finite differences to ~1e-9, and ``from_chebyshev`` is correct
-  everywhere except the ``None`` at ``P``. Treat ``from_trotbot``
-  velocities as unreliable until upstream propagates the unknown.
+  A joint may still legitimately yield ``(None, None)``: prismatic
+  joints, and genuine dead centres where the mechanism is at a toggle.
+  Those propagate, so an undefined derivative stays visibly undefined
+  instead of turning into a number downstream.
 
 - **``Walker.set_constraints`` accepts nested input.** It flattens a
   nested sequence (what a ``param_expander`` such as

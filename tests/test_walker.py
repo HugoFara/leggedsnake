@@ -330,30 +330,72 @@ class TestWalkerStepWithDerivatives(unittest.TestCase):
         frames = list(walker.step_with_derivatives())
         self.assertEqual(len(frames), walker.get_rotation_period())
 
-    def test_collinear_anchors_report_none_pair(self):
-        """pylinkage 1.0.0 solves a joint's velocity from its two
-        constant-distance constraints, which is singular when the joint
-        is collinear with both anchors.
+    def test_collinear_foot_resolves(self):
+        """Chebyshev's foot P sits on the line through its two anchors,
+        which makes the constraint-intersection velocity solve singular.
 
-        Chebyshev's foot P sits on the A-B coupler line, so the pair of
-        constraint directions is parallel and upstream returns a bare
-        ``None``. We normalise it so the frame still unpacks per joint.
-        The position is unaffected — only the derivative is lost.
+        pylinkage resolves it by propagating the coupler body's motion
+        (fixed after 1.0.0). Feet are the joints that matter most for
+        gait and stability work, so this is worth pinning.
         """
         walker = Walker.from_chebyshev()
         joint_ids = [j.id for j in walker.to_mechanism().joints]
         foot = joint_ids.index("P")
-        crank = joint_ids.index("A")
         for pos, vel, acc in walker.step_with_derivatives(iterations=6):
             # P really is on the line through its anchors.
             a, b, p = pos[joint_ids.index("A")], pos[joint_ids.index("B")], pos[foot]
             cross = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
             self.assertAlmostEqual(cross, 0.0, places=9)
 
-            self.assertIsNotNone(pos[foot][0])       # position is defined
-            self.assertEqual(vel[foot], (None, None))
-            self.assertEqual(acc[foot], (None, None))
-            self.assertIsNotNone(vel[crank][0])      # non-collinear joints fine
+            self.assertIsNotNone(vel[foot][0])
+            self.assertIsNotNone(acc[foot][0])
+
+    def test_every_classical_foot_matches_finite_differences(self):
+        """Guards the whole shipped set against derivatives that are
+        merely present rather than correct."""
+        h = 1e-3
+        factories = [
+            ("chebyshev", Walker.from_chebyshev),
+            ("jansen", lambda: Walker.from_jansen(scale=0.04)),
+            ("klann", Walker.from_klann),
+            ("strider", Walker.from_strider),
+            ("trotbot", Walker.from_trotbot),
+        ]
+        for name, make in factories:
+            with self.subTest(walker=name):
+                walker = make()
+                joint_ids = [j.id for j in walker.to_mechanism().joints]
+                feet = [joint_ids.index(f) for f in walker.get_feet()]
+                frames = list(walker.step_with_derivatives(
+                    iterations=16, dt=h, skip_unbuildable=True,
+                ))
+                compared = 0
+                for i in range(1, len(frames) - 1):
+                    window = (frames[i - 1], frames[i], frames[i + 1])
+                    if any(f[0][0][0] is None for f in window):
+                        continue
+                    for k in feet:
+                        before, after = frames[i - 1][0][k], frames[i + 1][0][k]
+                        vx, vy = frames[i][1][k]
+                        self.assertIsNotNone(vx, f"{name}: foot {joint_ids[k]}")
+                        self.assertAlmostEqual(
+                            vx, (after[0] - before[0]) / (2 * h), delta=1e-3,
+                        )
+                        self.assertAlmostEqual(
+                            vy, (after[1] - before[1]) / (2 * h), delta=1e-3,
+                        )
+                        compared += 1
+                self.assertGreater(compared, 0)
+
+    def test_undefined_derivatives_normalise_to_pairs(self):
+        """Upstream reports an undefined derivative as a bare ``None``,
+        which would not unpack. Every frame reads the same way."""
+        from leggedsnake.walker import _derivative_pairs
+
+        self.assertEqual(
+            _derivative_pairs([(1.0, 2.0), None, (3.0, 4.0)]),
+            ((1.0, 2.0), (None, None), (3.0, 4.0)),
+        )
 
 
 class TestStepWithDerivativesInputRates(unittest.TestCase):
