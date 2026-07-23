@@ -35,6 +35,7 @@ The library composes into four layers. The public API is re-exported from `legge
 Key surface:
 - `Walker(topology, dimensions, name=..., motor_rates=...)` — `motor_rates` is `float` (all drivers) or `dict[str, float]` (per-driver, enables multi-DOF).
 - `Walker.from_catalog`, `from_hierarchy`, `from_watt`, `from_jansen`, etc. — factory builders for classical mechanisms.
+- `Walker.from_synthesis(solution, index=0, ...)` — the public synthesis hand-off. Accepts every container `pylinkage.synthesis` emits (`SynthesisResult`, `TopologySolution`, `NBarSolution`, `FourBarSolution`, `Ensemble`, a `Linkage`, or a sequence of those) and resolves it to one Walker. Dispatch lives in `walker._sim_linkage_from_synthesis`; note `FourBarSolution` is a `NamedTuple`, so it must be matched before the generic sequence branch.
 - `add_legs(n)` phase-offsets copies along the axis; `add_opposite_leg(axis_x)` mirrors across the frame.
 - `to_mechanism()` hands off to pylinkage's `Mechanism` for kinematic stepping.
 - `get_constraints()` / `set_constraints()` and `get_coords()` / `set_coords()` are the (de)serialization hooks used by optimizers. `set_constraints()` flattens nested input (what a `param_expander` returns). The `get_num_constraints` / `set_num_constraints` spelling is deprecated since 0.6.0 and removed in 0.7.0; internal callers should go through `utility._get_constraints` / `_set_constraints`, which tolerate both on third-party objects.

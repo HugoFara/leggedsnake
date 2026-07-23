@@ -11,7 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Requires **pylinkage >= 1.0.0**. This release drops the compatibility
 shims that carried leggedsnake across the 0.9.x → 1.0.0 transition,
-handing the work back to upstream now that it is supported there.
+handing the work back to upstream now that it is supported there, and
+opens the synthesis hand-off as public API.
+
+### Added
+
+- **``Walker.from_synthesis``.** Dimensional synthesis answers "which
+  mechanism traces this foot path?"; this factory turns that answer
+  into a physics-ready walker in one call, where the route previously
+  ran through the private ``_walker_from_sim_linkage``. It accepts
+  every container ``pylinkage.synthesis`` emits — ``SynthesisResult``
+  (``path_generation``, ``function_generation``,
+  ``motion_generation_3_poses``, ``six_bar_path_generation``,
+  ``path_generation_with_timing``), ``TopologySolution`` from
+  ``multi_topology_synthesize``, ``NBarSolution`` from
+  ``generalized_synthesis``, a raw ``FourBarSolution``, an
+  ``Ensemble``, a ``Linkage``, or a sequence of any of those —
+  selecting among candidates with ``index``. ``Ensemble`` members are
+  materialised onto a private copy of the shared linkage, so
+  converting one never disturbs the ensemble. pylinkage's 1.0.0
+  changelog referred to this factory before it existed; it exists now.
 
 ### Removed
 

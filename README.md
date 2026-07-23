@@ -59,6 +59,20 @@ Other classical mechanisms ship as one-line factories too:
 `Walker.from_watt`, and `Walker.from_catalog` (pylinkage's topology
 catalog).
 
+If you know the foot path you want rather than the mechanism, let
+pylinkage synthesize one and hand the result straight to
+`Walker.from_synthesis`:
+
+```python
+from pylinkage.synthesis import path_generation
+
+result = path_generation(
+    precision_points=[(0, -3), (2, -3), (1, -1)],   # flat stance, arched swing
+    max_solutions=10,
+)
+walker = ls.Walker.from_synthesis(result)           # index= picks a candidate
+```
+
 To build a custom mechanism, declare its topology (nodes + edges) and
 dimensions separately:
 

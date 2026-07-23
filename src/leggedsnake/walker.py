@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import warnings
 from collections.abc import Generator, Sequence
+from copy import deepcopy
 from math import tau
 from typing import TYPE_CHECKING, Any
 
@@ -143,7 +144,7 @@ class Walker:
         """Build a Walker from a Watt six-bar specification.
 
         Wraps :func:`pylinkage.synthesis.watt_from_lengths` and feeds its
-        result through the SimLinkage shim (``_walker_from_sim_linkage``).
+        result through pylinkage's ``to_hypergraph`` bridge.
         A Watt six-bar has two four-bar loops sharing the crank output,
         yielding two coupled rocker trajectories that can serve as foot
         paths.
@@ -205,7 +206,7 @@ class Walker:
         """Build a Walker from a Stephenson six-bar specification.
 
         Wraps :func:`pylinkage.synthesis.stephenson_from_lengths` and
-        feeds its result through the SimLinkage shim.
+        feeds its result through pylinkage's ``to_hypergraph`` bridge.
 
         Stephenson differs from Watt in where the second loop attaches:
         on a Stephenson the second chain branches from the coupler
@@ -515,6 +516,99 @@ class Walker:
         )
         return cls(hg, dims, name=name, motor_rates=motor_rates)
 
+    @classmethod
+    def from_synthesis(
+        cls,
+        solution: Any,
+        index: int = 0,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "",
+        iterations: int = 360,
+    ) -> Walker:
+        """Build a Walker from any :mod:`pylinkage.synthesis` output.
+
+        Dimensional synthesis (Burmester path/motion/function generation,
+        topology-aware N-bar synthesis) answers "which mechanism traces
+        this foot path?". This factory is the hand-off from that answer to
+        a physics-ready walker, collapsing the
+        ``solution -> SimLinkage -> Walker`` chain into one call.
+
+        Every solution container pylinkage emits is accepted:
+
+        =================================== ====================================
+        Input                               Produced by
+        =================================== ====================================
+        ``SynthesisResult``                 ``path_generation``,
+                                            ``function_generation``,
+                                            ``motion_generation_3_poses``,
+                                            ``six_bar_path_generation``,
+                                            ``path_generation_with_timing``
+        ``list[TopologySolution]``          ``multi_topology_synthesize``
+        ``list[NBarSolution]``              ``generalized_synthesis``
+        ``FourBarSolution``                 ``SynthesisResult.raw_solutions``
+        ``Ensemble``                        ``SynthesisResult.ensemble``
+        ``Linkage`` (SimLinkage)            ``solution_to_linkage``, and
+                                            ``co_optimize``
+        =================================== ====================================
+
+        Containers are indexed with *index*; scalars ignore it. Synthesis
+        routines return candidates best-first, so the default ``index=0``
+        picks the top-ranked solution.
+
+        Parameters
+        ----------
+        solution : Any
+            A synthesis result, a single solution, an ``Ensemble``, a
+            SimLinkage, or a sequence of any of those.
+        index : int
+            Which candidate to convert when *solution* is a container.
+            Negative indices count from the end.
+        motor_rates : float | dict[str, float]
+            Motor angular velocities (rad/s) for physics simulation.
+        name : str
+            Name for the resulting Walker. Empty keeps the name pylinkage
+            gave the solution.
+        iterations : int
+            Simulation steps per rotation, forwarded to pylinkage when a
+            raw solution still has to be converted to a linkage. Ignored
+            for inputs that already carry a linkage.
+
+        Returns
+        -------
+        Walker
+            Hypergraph-native walker ready for ``add_legs()`` and
+            ``World.add_linkage()``.
+
+        Raises
+        ------
+        TypeError
+            If *solution* is not a recognised synthesis output.
+        ValueError
+            If *solution* is an empty container.
+        IndexError
+            If *index* is out of range for *solution*.
+        NotImplementedError
+            Propagated from ``to_hypergraph`` when the solution contains a
+            component type pylinkage cannot convert.
+
+        Examples
+        --------
+        >>> from pylinkage.synthesis import path_generation
+        >>> result = path_generation(  # doctest: +SKIP
+        ...     precision_points=[(0, -3), (2, -3), (1, -1)],
+        ...     max_solutions=10,
+        ... )
+        >>> walker = Walker.from_synthesis(result)  # doctest: +SKIP
+        >>> walker.add_legs(1)  # doctest: +SKIP
+        """
+        sim = _sim_linkage_from_synthesis(
+            solution, index=index, name=name, iterations=iterations,
+        )
+        walker = _walker_from_sim_linkage(sim, motor_rates=motor_rates)
+        if name:
+            walker.name = name
+        return walker
+
     def _invalidate_cache(self) -> None:
         """Invalidate cached Mechanism after topology/dimension changes."""
         self._mechanism = None
@@ -604,26 +698,13 @@ class Walker:
         """
         return list(self.to_mechanism()._solve_order)
 
-    # --- SimLinkage bridge (temporary compat shim) ---
+    # --- Kinematic derivatives ---
     #
-    # Until pylinkage 1.0 ships a stable SimLinkage → HypergraphLinkage path,
-    # this module provides its own minimal conversion covering the component
-    # types emitted by pylinkage's N-bar synthesis and catalog-based
-    # co_optimize (Ground, Crank/ArcCrank, RRRDyad, FixedDyad). See
-    # :func:`_walker_from_sim_linkage` below.
-
-    # --- Kinematic derivatives (temporary compat shim) ---
-    #
-    # pylinkage's ``Mechanism.step_with_derivatives`` / ``set_input_velocity`` /
-    # ``get_velocities`` / ``get_accelerations`` are committed upstream but not
-    # yet released (expected in pylinkage 1.0). Until the first release carries
-    # them, we provide a finite-difference implementation here. Consumers should
-    # depend on ``Walker.step_with_derivatives`` (this module), not on the raw
-    # pylinkage surface.
-    #
-    # DEPRECATION PLAN: once a pylinkage release pins the upstream API, drop
-    # this finite-difference path and delegate to ``Mechanism.step_with_derivatives``
-    # directly. Keep the Walker method signature stable across the switch.
+    # pylinkage 1.0.0 ships ``Mechanism.step_with_derivatives`` computing
+    # analytic derivatives. We keep a finite-difference implementation here
+    # because it honours ``skip_unbuildable``, which the upstream generator
+    # does not. Consumers should depend on ``Walker.step_with_derivatives``
+    # (this module), not on the raw pylinkage surface.
 
     def step_with_derivatives(
         self,
@@ -1225,8 +1306,97 @@ class Walker:
 
 
 # ---------------------------------------------------------------------------
-# SimLinkage -> Walker
+# Synthesis output -> SimLinkage -> Walker
 # ---------------------------------------------------------------------------
+
+
+def _pick_solution(candidates: Any, index: int, origin: str) -> Any:
+    """Index into a synthesis container, reporting its size on failure."""
+    items = list(candidates)
+    if not items:
+        raise ValueError(f"{origin} holds no candidates to convert.")
+    if not -len(items) <= index < len(items):
+        raise IndexError(
+            f"{origin} holds {len(items)} candidate(s); "
+            f"index {index} is out of range."
+        )
+    return items[index]
+
+
+def _sim_linkage_from_ensemble(ensemble: Any, index: int) -> Any:
+    """Materialise one Ensemble member as a standalone SimLinkage.
+
+    An ``Ensemble`` stores a single shared linkage plus one row of
+    constraints and initial positions per member, so a member only becomes
+    an independent mechanism once those are applied to a private copy.
+    """
+    member = _pick_solution(range(len(ensemble.dimensions)), index, "Ensemble")
+    linkage = deepcopy(ensemble.linkage)
+    linkage.set_completely(
+        [float(value) for value in ensemble.dimensions[member]],
+        [(float(x), float(y)) for x, y in ensemble.initial_positions[member]],
+    )
+    linkage.rebuild()
+    return linkage
+
+
+def _sim_linkage_from_synthesis(
+    solution: Any,
+    index: int = 0,
+    name: str = "",
+    iterations: int = 360,
+) -> Any:
+    """Resolve any pylinkage synthesis output down to a single SimLinkage.
+
+    See :meth:`Walker.from_synthesis` for the accepted input types.
+    """
+    from pylinkage.population import Ensemble
+    from pylinkage.simulation import Linkage as SimLinkage
+    from pylinkage.synthesis import (
+        FourBarSolution,
+        NBarSolution,
+        SynthesisResult,
+        TopologySolution,
+        nbar_solution_to_linkage,
+        solution_to_linkage,
+    )
+
+    def recurse(picked: Any) -> Any:
+        return _sim_linkage_from_synthesis(
+            picked, index=0, name=name, iterations=iterations,
+        )
+
+    if isinstance(solution, SimLinkage):
+        return solution
+    if isinstance(solution, SynthesisResult):
+        return recurse(
+            _pick_solution(solution.solutions, index, "SynthesisResult")
+        )
+    if isinstance(solution, TopologySolution):
+        return recurse(solution.linkage)
+    if isinstance(solution, Ensemble):
+        return _sim_linkage_from_ensemble(solution, index)
+    # FourBarSolution is a NamedTuple, so it has to be matched before the
+    # generic sequence branch below claims it.
+    if isinstance(solution, FourBarSolution):
+        return solution_to_linkage(
+            solution, name=name or "synthesized", iterations=iterations,
+        )
+    if isinstance(solution, NBarSolution):
+        return nbar_solution_to_linkage(
+            solution, name=name or "synthesized", iterations=iterations,
+        )
+    if isinstance(solution, (list, tuple)):
+        return recurse(
+            _pick_solution(solution, index, type(solution).__name__)
+        )
+    if callable(getattr(solution, "to_hypergraph", None)):
+        return solution
+    raise TypeError(
+        f"Cannot build a Walker from {type(solution).__name__}. Expected a "
+        f"pylinkage SynthesisResult, TopologySolution, NBarSolution, "
+        f"FourBarSolution, Ensemble, SimLinkage, or a sequence of those."
+    )
 
 
 def _walker_from_sim_linkage(

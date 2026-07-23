@@ -854,5 +854,146 @@ class TestWalkerFromSimLinkage(unittest.TestCase):
             _walker_from_sim_linkage(FakeSim())
 
 
+class TestWalkerFromSynthesis(unittest.TestCase):
+    """Test Walker.from_synthesis across every synthesis output shape."""
+
+    PRECISION_POINTS = [(0.0, -3.0), (2.0, -3.0), (1.0, -1.0)]
+
+    @classmethod
+    def setUpClass(cls):
+        from pylinkage.synthesis import path_generation
+
+        cls.result = path_generation(
+            precision_points=cls.PRECISION_POINTS,
+            max_solutions=5,
+        )
+        if len(cls.result.solutions) < 2:
+            raise unittest.SkipTest(
+                "path_generation returned too few solutions to test indexing"
+            )
+
+    def test_from_synthesis_result(self):
+        walker = Walker.from_synthesis(self.result)
+        self.assertIsInstance(walker, Walker)
+        # Four-bar + coupler point: A, D (ground), B (driver), C, P.
+        self.assertEqual(len(walker.topology.nodes), 5)
+        self.assertEqual(walker.name, self.result.solutions[0].name)
+
+    def test_synthesized_walker_is_steppable(self):
+        walker = Walker.from_synthesis(self.result)
+        positions = list(walker.step(iterations=12, skip_unbuildable=True))
+        self.assertEqual(len(positions), 12)
+
+    def test_index_selects_candidate(self):
+        first = Walker.from_synthesis(self.result, index=0)
+        second = Walker.from_synthesis(self.result, index=1)
+        self.assertNotEqual(first.name, second.name)
+        self.assertNotEqual(
+            first.dimensions.edge_distances, second.dimensions.edge_distances,
+        )
+
+    def test_negative_index_counts_from_end(self):
+        last = Walker.from_synthesis(self.result, index=-1)
+        expected = Walker.from_synthesis(
+            self.result, index=len(self.result.solutions) - 1,
+        )
+        self.assertEqual(last.name, expected.name)
+
+    def test_from_raw_fourbar_solution(self):
+        """FourBarSolution is a NamedTuple — it must not be mistaken for a
+        sequence of candidates."""
+        walker = Walker.from_synthesis(self.result.raw_solutions[0])
+        self.assertEqual(len(walker.topology.nodes), 5)
+
+    def test_from_sequence_of_raw_solutions(self):
+        walker = Walker.from_synthesis(self.result.raw_solutions, index=1)
+        direct = Walker.from_synthesis(self.result.raw_solutions[1])
+        self.assertEqual(
+            walker.dimensions.edge_distances, direct.dimensions.edge_distances,
+        )
+
+    def test_from_sim_linkage(self):
+        walker = Walker.from_synthesis(self.result.solutions[2])
+        self.assertEqual(walker.name, self.result.solutions[2].name)
+
+    def test_from_ensemble_matches_solution_geometry(self):
+        """Ensemble members share one linkage, so each has to be
+        materialised with its own constraints before conversion."""
+        for index in range(len(self.result.solutions)):
+            from_ensemble = Walker.from_synthesis(self.result.ensemble, index=index)
+            from_solution = Walker.from_synthesis(self.result, index=index)
+            for edge_id, distance in from_solution.dimensions.edge_distances.items():
+                self.assertAlmostEqual(
+                    from_ensemble.dimensions.edge_distances[edge_id], distance,
+                )
+
+    def test_from_ensemble_does_not_mutate_shared_linkage(self):
+        before = list(self.result.ensemble.linkage.get_constraints())
+        Walker.from_synthesis(self.result.ensemble, index=1)
+        self.assertEqual(list(self.result.ensemble.linkage.get_constraints()), before)
+
+    def test_from_topology_solution(self):
+        from pylinkage.synthesis import multi_topology_synthesize
+
+        solutions = multi_topology_synthesize(
+            precision_points=self.PRECISION_POINTS,
+            max_links=6,
+            max_total_solutions=3,
+        )
+        if not solutions:
+            self.skipTest("multi_topology_synthesize returned no solutions")
+        walker = Walker.from_synthesis(solutions[0])
+        self.assertIsInstance(walker, Walker)
+        # The same run also has to be reachable as a bare list.
+        from_list = Walker.from_synthesis(solutions)
+        self.assertEqual(
+            walker.dimensions.edge_distances, from_list.dimensions.edge_distances,
+        )
+
+    def test_from_nbar_solution(self):
+        from pylinkage.synthesis import multi_topology_synthesize
+
+        solutions = multi_topology_synthesize(
+            precision_points=self.PRECISION_POINTS,
+            max_links=6,
+            max_total_solutions=3,
+        )
+        if not solutions:
+            self.skipTest("multi_topology_synthesize returned no solutions")
+        walker = Walker.from_synthesis(solutions[0].solution)
+        self.assertIsInstance(walker, Walker)
+
+    def test_name_override(self):
+        walker = Walker.from_synthesis(self.result, name="foot_path_A")
+        self.assertEqual(walker.name, "foot_path_A")
+
+    def test_motor_rates_forwarded(self):
+        walker = Walker.from_synthesis(self.result, motor_rates=-1.5)
+        self.assertEqual(walker.motor_rates, -1.5)
+        walker = Walker.from_synthesis(self.result, motor_rates={"B": -2.0})
+        self.assertEqual(walker.motor_rates, {"B": -2.0})
+
+    def test_pairs_with_add_legs(self):
+        walker = Walker.from_synthesis(self.result)
+        walker.add_legs(1)
+        self.assertEqual(len(walker.topology.driver_nodes()), 2)
+
+    def test_rejects_unknown_type(self):
+        with self.assertRaises(TypeError):
+            Walker.from_synthesis(42)
+        with self.assertRaises(TypeError):
+            Walker.from_synthesis("fourbar")
+
+    def test_empty_container_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            Walker.from_synthesis([])
+
+    def test_index_out_of_range_raises(self):
+        with self.assertRaises(IndexError):
+            Walker.from_synthesis(self.result, index=999)
+        with self.assertRaises(IndexError):
+            Walker.from_synthesis(self.result.ensemble, index=999)
+
+
 if __name__ == "__main__":
     unittest.main()
