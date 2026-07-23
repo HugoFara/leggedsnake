@@ -5,6 +5,26 @@ All notable changes to the LeggedSnake will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [0.5.1] - 2026-07-23
+
+### Changed
+
+- **Widened the pylinkage requirement to ``>=0.9.0,<2.0.0``.** 0.5.0
+  shipped with ``<0.10.0``, which excludes the now-published
+  pylinkage 1.0.0 and forces a resolver conflict on anyone wanting
+  both packages. The pin was stricter than reality: the 0.5.0 code
+  is compatible with both series and the full test suite passes
+  unchanged against pylinkage 0.9.0 and 1.0.0. This is a
+  packaging-only release — no source changes.
+
+  The compatibility shims that 1.0.0 makes redundant
+  (``_walker_from_sim_linkage``'s in-tree component walker, the
+  manual ``Dimensions`` dict converters in ``serialization``) are
+  still present and will be removed in 0.6.0, which will raise the
+  floor to ``>=1.0.0``.
+
 ## [0.5.0] - 2026-04-24
 
 ### Changed

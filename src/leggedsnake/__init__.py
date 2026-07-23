@@ -143,7 +143,7 @@ from .topology_optimization import (
 from .urdf_export import URDFConfig, to_urdf, to_urdf_file
 from .walker import Walker
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 # Lazy imports for modules that require a display (pyglet)
 _VISUALIZER_NAMES = frozenset({
