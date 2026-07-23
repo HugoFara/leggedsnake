@@ -646,8 +646,13 @@ class Walker:
         Frames where a joint is unbuildable yield ``(None, None)`` for
         that joint in all three tuples — no derivative across a dead zone.
 
-        This is a **temporary shim** awaiting pylinkage 1.0's
-        ``Mechanism.step_with_derivatives`` becoming generally available.
+        pylinkage 1.0.0 ships its own ``Mechanism.step_with_derivatives``
+        computing analytic derivatives via ``solver.velocity`` /
+        ``solver.acceleration``. This implementation is kept because it
+        honours ``skip_unbuildable``, which the upstream generator does
+        not — switching would change numeric output (finite-difference
+        vs analytic) as well as dead-zone handling, so it is a
+        deliberate choice rather than a leftover shim.
 
         Parameters
         ----------

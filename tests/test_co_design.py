@@ -3,7 +3,7 @@
 """
 Tests for Phase 6: Dynamic Co-Design.
 
-Covers Walker factory methods (from_catalog, from_hierarchy, from_synthesis),
+Covers Walker factory methods (from_catalog, from_hierarchy),
 co_optimize_objective adapter, and end-to-end pipeline smoke tests.
 """
 import unittest
