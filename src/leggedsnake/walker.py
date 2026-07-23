@@ -1198,164 +1198,52 @@ class Walker:
             self.dimensions.edge_distances[edge.id] = distance
 
 
+
 # ---------------------------------------------------------------------------
-# Temporary SimLinkage → Walker shim
+# SimLinkage -> Walker
 # ---------------------------------------------------------------------------
-#
-# Pylinkage's ``simulation.Linkage`` (SimLinkage) is the new joint-free
-# component/actuator/dyad API. It is what ``pylinkage.synthesis`` and
-# ``pylinkage.optimization.co_optimize`` produce. Leggedsnake's Walker is
-# hypergraph-native — until pylinkage 1.0 ships a supported bridge, we
-# convert here. Only the component types the upstream co-optimization
-# actually emits are handled: ``Ground``, ``Crank``, ``ArcCrank``,
-# ``RRRDyad``, ``FixedDyad``. Anything else raises ``NotImplementedError``
-# so we fail loudly when pylinkage adds a new component type.
 
 
 def _walker_from_sim_linkage(
     sim_linkage: object,
     motor_rates: float | dict[str, float] = -4.0,
 ) -> Walker:
-    """Convert a pylinkage SimLinkage to a Walker (TEMPORARY SHIM).
+    """Convert a pylinkage SimLinkage to a Walker.
 
-    Handles component types emitted by pylinkage's N-bar synthesis and
-    catalog-backed co-optimization.
+    Thin wrapper over pylinkage's native
+    :meth:`pylinkage.simulation.Linkage.to_hypergraph` bridge (available
+    since pylinkage 1.0.0), which handles every component type upstream
+    emits and raises ``NotImplementedError`` for any it does not.
 
     Parameters
     ----------
     sim_linkage : pylinkage.simulation.Linkage
-        A SimLinkage built from ``Ground`` / ``Crank`` / ``RRRDyad`` /
-        ``FixedDyad`` components (what ``co_optimize`` produces).
+        A SimLinkage, as produced by ``pylinkage.synthesis`` or
+        ``pylinkage.optimization.co_optimize``.
     motor_rates : float | dict[str, float]
         Forwarded to the resulting Walker.
 
+    Returns
+    -------
+    Walker
+        Hypergraph-native walker wrapping the converted topology and
+        dimensions.
+
     Raises
     ------
+    TypeError
+        If ``sim_linkage`` is not a SimLinkage.
     NotImplementedError
-        If ``sim_linkage`` contains a component type this shim doesn't
-        yet handle. Fix the upstream feature gap or extend the shim.
+        Propagated from ``to_hypergraph`` when the linkage contains a
+        component type pylinkage cannot yet convert.
     """
-    # Prefer pylinkage's native bridge when available (pylinkage > 0.9.0).
-    # The in-tree fallback below stays until the floor in pyproject.toml
-    # is bumped past the release that ships ``SimLinkage.to_hypergraph``.
     to_hypergraph = getattr(sim_linkage, "to_hypergraph", None)
-    if callable(to_hypergraph):
-        hg, dims = to_hypergraph()
-        return Walker(
-            topology=hg,
-            dimensions=dims,
-            name=getattr(sim_linkage, "name", "") or "",
-            motor_rates=motor_rates,
-        )
-
-    components = getattr(sim_linkage, "components", None)
-    if components is None:
+    if not callable(to_hypergraph):
         raise TypeError(
-            f"Expected SimLinkage, got {type(sim_linkage).__name__}"
+            f"Expected a pylinkage SimLinkage with a to_hypergraph() "
+            f"bridge, got {type(sim_linkage).__name__}"
         )
-
-    hg = HypergraphLinkage(name=getattr(sim_linkage, "name", "") or "")
-    node_positions: dict[str, tuple[float, float]] = {}
-    edge_distances: dict[str, float] = {}
-    driver_angles: dict[str, DriverAngle] = {}
-    component_to_node: dict[int, str] = {}
-
-    # Pass 1: create a Node per Component.
-    for i, comp in enumerate(components):
-        cls_name = type(comp).__name__
-        if cls_name == "Ground":
-            role = NodeRole.GROUND
-        elif cls_name in ("Crank", "ArcCrank"):
-            role = NodeRole.DRIVER
-        else:
-            role = NodeRole.DRIVEN
-        node_id = getattr(comp, "name", None) or f"n{i}"
-        hg.add_node(Node(node_id, role=role))
-        component_to_node[id(comp)] = node_id
-        node_positions[node_id] = (float(comp.x), float(comp.y))
-
-    def _anchor_node_id(anchor: object) -> str:
-        # Handle _AnchorProxy: delegate to its parent component.
-        parent = getattr(anchor, "_parent", anchor)
-        key = id(parent)
-        if key not in component_to_node:
-            raise NotImplementedError(
-                f"Anchor {anchor!r} not found in component index"
-            )
-        return component_to_node[key]
-
-    # Pass 2: edges / hyperedges + driver angles.
-    edge_counter = 0
-    for comp in components:
-        cls_name = type(comp).__name__
-        this_id = component_to_node[id(comp)]
-
-        if cls_name == "Ground":
-            continue  # ground nodes have no outgoing edge
-
-        if cls_name in ("Crank", "ArcCrank"):
-            anchor_id = _anchor_node_id(comp.anchor)
-            eid = f"e{edge_counter}"
-            edge_counter += 1
-            hg.add_edge(Edge(eid, anchor_id, this_id))
-            # Crank uses ``radius``; ArcCrank / older variants may use
-            # ``distance``.
-            raw_len: Any = getattr(comp, "radius", None)
-            if raw_len is None:
-                raw_len = getattr(comp, "distance", 1.0)
-            edge_distances[eid] = float(raw_len)
-            omega = float(getattr(comp, "angular_velocity", -tau / 12))
-            driver_angles[this_id] = DriverAngle(angular_velocity=omega)
-            continue
-
-        if cls_name == "RRRDyad":
-            a1 = _anchor_node_id(comp.anchor1)
-            a2 = _anchor_node_id(comp.anchor2)
-            e1, e2 = f"e{edge_counter}", f"e{edge_counter + 1}"
-            edge_counter += 2
-            hg.add_edge(Edge(e1, a1, this_id))
-            hg.add_edge(Edge(e2, a2, this_id))
-            edge_distances[e1] = float(comp.distance1)
-            edge_distances[e2] = float(comp.distance2)
-            continue
-
-        if cls_name == "FixedDyad":
-            # Rigid triangle — the coupler point rides a fixed triangle
-            # with anchor1 and anchor2.
-            a1 = _anchor_node_id(comp.anchor1)
-            a2 = _anchor_node_id(comp.anchor2)
-            he_id = f"he{edge_counter}"
-            edge_counter += 1
-            hg.add_hyperedge(Hyperedge(he_id, (a1, a2, this_id)))
-            # Record the anchor-to-point distances as auxiliary edges for
-            # simulators that want binary edges. The hyperedge itself
-            # carries the rigidity; the edge distances give a usable
-            # numeric fallback.
-            e1, e2 = f"e{edge_counter}", f"e{edge_counter + 1}"
-            edge_counter += 2
-            hg.add_edge(Edge(e1, a1, this_id))
-            hg.add_edge(Edge(e2, a2, this_id))
-            edge_distances[e1] = float(getattr(comp, "distance", 1.0))
-            # Distance from a2 to this: approximate from current positions.
-            from math import hypot
-            a2_pos = node_positions[a2]
-            this_pos = node_positions[this_id]
-            edge_distances[e2] = hypot(
-                this_pos[0] - a2_pos[0], this_pos[1] - a2_pos[1]
-            )
-            continue
-
-        raise NotImplementedError(
-            f"SimLinkage component {cls_name!r} is not yet handled by the "
-            "leggedsnake shim. Extend _walker_from_sim_linkage or wait "
-            "for pylinkage 1.0's hypergraph-native bridge."
-        )
-
-    dims = Dimensions(
-        node_positions=node_positions,
-        driver_angles=driver_angles,
-        edge_distances=edge_distances,
-    )
+    hg, dims = to_hypergraph()
     return Walker(
         topology=hg,
         dimensions=dims,

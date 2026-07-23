@@ -812,40 +812,17 @@ class TestWalkerFromSimLinkage(unittest.TestCase):
         positions = list(walker.step(iterations=6, skip_unbuildable=True))
         self.assertEqual(len(positions), 6)
 
-    def test_unknown_component_raises(self):
+    def test_non_sim_linkage_raises_type_error(self):
+        """Objects without pylinkage's ``to_hypergraph`` bridge are
+        rejected up front rather than half-converted."""
         from leggedsnake.walker import _walker_from_sim_linkage
-
-        class Foo:
-            x, y, name = 0, 0, "foo"
 
         class FakeSim:
-            components = (Foo(),)
+            components = ()
             name = "fake"
 
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(TypeError):
             _walker_from_sim_linkage(FakeSim())
-
-    def test_fallback_path_when_native_bridge_missing(self):
-        """Pylinkage 0.9.0 has no ``SimLinkage.to_hypergraph``. Force the
-        fallback by hiding the native bridge and check the in-tree shim
-        still produces an equivalent Walker."""
-        from unittest.mock import patch
-
-        from leggedsnake.walker import _walker_from_sim_linkage
-
-        sim = self._make_sim_linkage()
-        # Patch the *class* attribute so getattr() returns None and the
-        # gate's ``callable(...)`` check falls through to the fallback.
-        # ``create=True`` so the patch works on pylinkage versions that
-        # never defined ``to_hypergraph`` at all.
-        with patch.object(type(sim), "to_hypergraph", None, create=True):
-            walker = _walker_from_sim_linkage(sim)
-        self.assertIsInstance(walker, Walker)
-        self.assertEqual(walker.name, "fourbar")
-        self.assertEqual(len(walker.topology.nodes), 4)
-        roles = {nid: n.role for nid, n in walker.topology.nodes.items()}
-        self.assertEqual(roles["A"], NodeRole.GROUND)
-        self.assertEqual(roles["B"], NodeRole.DRIVER)
 
 
 if __name__ == "__main__":
