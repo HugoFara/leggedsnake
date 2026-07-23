@@ -41,6 +41,7 @@ from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 from .fitness import CompositeFitness, DynamicFitness, as_eval_func
 from .gait_analysis import GaitAnalysisResult, analyze_gait
 from .stability import StabilityTimeSeries
+from .utility import _set_constraints
 
 
 def _check_pymoo() -> None:
@@ -560,7 +561,7 @@ def nsga_walking_optimization(
 
         for idx, sol in enumerate(solutions):
             walker = walker_factory()
-            walker.set_num_constraints(sol.dimensions.tolist())
+            _set_constraints(walker, sol.dimensions.tolist())
 
             # Use CompositeFitness for a single efficient simulation
             composite = CompositeFitness(

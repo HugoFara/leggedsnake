@@ -450,36 +450,65 @@ class TestAddOppositeLeg(unittest.TestCase):
 
 
 class TestOptimizationInterface(unittest.TestCase):
-    """Test get/set_num_constraints and get/set_coords."""
+    """Test get/set_constraints and get/set_coords."""
 
-    def test_get_num_constraints_returns_list(self):
-        """get_num_constraints() returns a list of floats."""
+    def test_get_constraints_returns_list(self):
+        """get_constraints() returns a list of floats."""
         walker = _make_fourbar_walker()
-        constraints = walker.get_num_constraints()
+        constraints = walker.get_constraints()
         self.assertIsInstance(constraints, list)
         self.assertGreater(len(constraints), 0)
         for c in constraints:
             self.assertIsInstance(c, float)
 
-    def test_set_num_constraints_roundtrip(self):
-        """set_num_constraints(get_num_constraints()) preserves values."""
+    def test_set_constraints_roundtrip(self):
+        """set_constraints(get_constraints()) preserves values."""
         walker = _make_fourbar_walker()
-        original = walker.get_num_constraints()
-        walker.set_num_constraints(original)
-        after = walker.get_num_constraints()
+        original = walker.get_constraints()
+        walker.set_constraints(original)
+        after = walker.get_constraints()
         for a, b in zip(original, after):
             self.assertAlmostEqual(a, b)
 
-    def test_set_num_constraints_accepts_list(self):
-        """set_num_constraints accepts a list without raising."""
+    def test_set_constraints_accepts_list(self):
+        """set_constraints accepts a list without raising."""
         walker = _make_fourbar_walker()
-        original = walker.get_num_constraints()
+        original = walker.get_constraints()
         # Modify and set — should not raise
         modified = [c * 1.1 for c in original]
-        walker.set_num_constraints(modified)
+        walker.set_constraints(modified)
         # At minimum the constraint count should be unchanged
-        after = walker.get_num_constraints()
+        after = walker.get_constraints()
         self.assertEqual(len(after), len(original))
+
+    def test_set_constraints_flattens_nested_input(self):
+        """Nested input (as from a param_expander) is flattened in order.
+
+        This absorbs what the deprecated ``set_num_constraints(...,
+        flat=False)`` used to do.
+        """
+        walker = _make_fourbar_walker()
+        original = walker.get_constraints()
+        # Re-shape the flat vector into pairs, then feed it back nested.
+        nested = [
+            list(original[i:i + 2]) for i in range(0, len(original), 2)
+        ]
+        walker.set_constraints(nested)
+        after = walker.get_constraints()
+        for a, b in zip(original, after):
+            self.assertAlmostEqual(a, b)
+
+    def test_num_constraints_aliases_warn_but_work(self):
+        """The 0.5.x spelling still works, with a DeprecationWarning."""
+        walker = _make_fourbar_walker()
+        with self.assertWarns(DeprecationWarning):
+            original = walker.get_num_constraints()
+        with self.assertWarns(DeprecationWarning):
+            walker.set_num_constraints(original)
+        with self.assertWarns(DeprecationWarning):
+            after = walker.get_num_constraints()
+        for a, b in zip(original, after):
+            self.assertAlmostEqual(a, b)
 
     def test_get_coords_returns_positions(self):
         """get_coords() returns a list of (x, y) tuples."""

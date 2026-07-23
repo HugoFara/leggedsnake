@@ -26,6 +26,8 @@ import tqdm
 from pylinkage.optimization.collections import Agent
 from pylinkage.population import Ensemble, Member
 
+from .utility import _get_constraints, _set_constraints
+
 # Type aliases for DNA structure
 # DNA format: [fitness_score, dimensions_list, coordinates_list]
 DNA: TypeAlias = list[Any]  # [float, list[float], list[tuple[float, float]]]
@@ -56,7 +58,10 @@ def agents_to_ensemble(agents: Sequence[Agent], linkage: Any) -> Ensemble:
     template = linkage.to_mechanism() if hasattr(linkage, "to_mechanism") else linkage
 
     if not agents:
-        n_constraints = len(linkage.get_num_constraints()) if hasattr(linkage, "get_num_constraints") else 0
+        try:
+            n_constraints = len(_get_constraints(linkage))
+        except AttributeError:
+            n_constraints = 0
         n_joints = len(template.joints) if hasattr(template, "joints") else 0
         return Ensemble(
             template,
@@ -472,8 +477,8 @@ def genetic_algorithm_optimization(
         Evaluation function with signature
         ``(linkage, dimensions, init_positions) -> float``.
     linkage : Walker or Linkage
-        The mechanism to optimize. Must provide ``get_num_constraints()``,
-        ``set_num_constraints()``, ``get_coords()``, ``set_coords()``.
+        The mechanism to optimize. Must provide ``get_constraints()``,
+        ``set_constraints()``, ``get_coords()``, ``set_coords()``.
     center : sequence of float, optional
         Initial dimensions. If *None*, read from ``linkage``.
         ``chain_optimizers`` injects the previous stage's best here.
@@ -509,13 +514,13 @@ def genetic_algorithm_optimization(
         ``ensemble[i].to_agent()`` for the legacy tuple shape.
     """
     minimize = order_relation is min
-    dims = list(center) if center is not None else linkage.get_num_constraints()
+    dims = list(center) if center is not None else _get_constraints(linkage)
     init_pos = list(linkage.get_coords())
 
     # Bridge eval_func from pylinkage's (linkage, dims, pos) -> float
     # to GeneticOptimization's (dna, linkage) -> (score, positions) contract.
     def _ga_fitness(dna: DNA, lk: Any) -> tuple[float, list[Any]]:
-        lk.set_num_constraints(dna[1])
+        _set_constraints(lk, dna[1])
         lk.set_coords(dna[2])
         raw_score = eval_func(lk, dna[1], dna[2])
         score = -raw_score if minimize else raw_score

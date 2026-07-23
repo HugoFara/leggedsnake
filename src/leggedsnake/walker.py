@@ -10,6 +10,7 @@ multiple DRIVER nodes with independent angular velocities.
 """
 from __future__ import annotations
 
+import warnings
 from collections.abc import Generator, Sequence
 from math import tau
 from typing import TYPE_CHECKING, Any
@@ -17,6 +18,8 @@ from typing import TYPE_CHECKING, Any
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole, to_mechanism
 from pylinkage.hypergraph.core import Edge, Hyperedge, Node
+
+from .utility import _flatten_constraints
 
 if TYPE_CHECKING:
     from pylinkage.hypergraph import HierarchicalLinkage
@@ -271,7 +274,7 @@ class Walker:
             :data:`leggedsnake._classical.JANSEN_HOLY_NUMBERS` for the
             canonical values). Partial dicts are allowed. Use this to
             optimize link lengths directly rather than round-tripping
-            through ``set_num_constraints``, which on hypergraph walkers
+            through ``set_constraints``, which on hypergraph walkers
             can't propagate through rigid triangles.
         """
         from ._classical import build_jansen
@@ -1106,21 +1109,37 @@ class Walker:
         """
         return list(self.to_mechanism().get_constraints())
 
-    def set_constraints(self, values: list[float]) -> None:
-        """Set constraints from a flat list of floats.
+    def set_constraints(
+        self, values: list[float] | list[list[float]],
+    ) -> None:
+        """Set constraints from a list of floats.
 
-        Updates the Mechanism, then syncs edge distances back to Dimensions.
+        Nested input (as returned by a ``param_expander`` such as
+        ``param2dimensions``) is flattened in order; flat input is used
+        as-is. Updates the Mechanism, then syncs edge distances back to
+        Dimensions.
         """
         mechanism = self.to_mechanism()
-        mechanism.set_constraints(list(values))
+        mechanism.set_constraints(_flatten_constraints(values))
         self._sync_dimensions_from_mechanism(mechanism)
 
-    # Back-compat aliases (will be deprecated with pylinkage 0.10 which
-    # does the same rename). The ``num_`` prefix meant "numeric"
-    # historically but reads as "number of", so upstream dropped it.
+    # Deprecated aliases. The ``num_`` prefix meant "numeric"
+    # historically but reads as "number of", so pylinkage dropped it in
+    # 1.0.0 (removing its own wrappers outright). We keep ours one more
+    # cycle with a warning; they go in 0.7.0.
 
     def get_num_constraints(self, flat: bool = True) -> list[float]:
-        """Alias for :meth:`get_constraints` (back-compat)."""
+        """Deprecated alias for :meth:`get_constraints`.
+
+        .. deprecated:: 0.6.0
+            Use :meth:`get_constraints`. Removed in 0.7.0.
+        """
+        warnings.warn(
+            "Walker.get_num_constraints() is deprecated and will be "
+            "removed in 0.7.0; use Walker.get_constraints() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.get_constraints()
 
     def set_num_constraints(
@@ -1128,22 +1147,23 @@ class Walker:
         constraints: list[float] | list[list[float]],
         flat: bool = True,
     ) -> None:
-        """Alias for :meth:`set_constraints` (back-compat).
+        """Deprecated alias for :meth:`set_constraints`.
 
-        Accepts a flat list of floats or (with ``flat=False``) a nested
-        list that will be flattened in order.
+        Accepts a flat list of floats or a nested list that will be
+        flattened in order.
+
+        .. deprecated:: 0.6.0
+            Use :meth:`set_constraints`, which now flattens nested input
+            itself. Removed in 0.7.0.
         """
-        flat_constraints: list[float]
-        if (
-            not flat
-            and constraints
-            and isinstance(constraints[0], list)
-        ):
-            nested: list[list[float]] = constraints  # type: ignore[assignment]
-            flat_constraints = [v for sub in nested for v in sub]
-        else:
-            flat_constraints = [float(v) for v in constraints]  # type: ignore[arg-type]
-        self.set_constraints(flat_constraints)
+        warnings.warn(
+            "Walker.set_num_constraints() is deprecated and will be "
+            "removed in 0.7.0; use Walker.set_constraints() instead, "
+            "which accepts nested input directly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.set_constraints(constraints)
 
     def get_coords(self) -> list[tuple[float, float]]:
         """Get current joint positions as a list of (x, y) tuples."""

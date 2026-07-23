@@ -12,7 +12,7 @@ Created on Sat Nov 17 2018 20:35:39.
 """
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import Any, TypeAlias
 
 from pylinkage import bounding_box
 
@@ -28,6 +28,61 @@ except ModuleNotFoundError as err:
 Point: TypeAlias = tuple[float, float]
 # Type alias for a list of points (locus)
 Locus: TypeAlias = list[Point]
+
+
+# ---------------------------------------------------------------------------
+# Constraint plumbing (internal)
+# ---------------------------------------------------------------------------
+#
+# Optimizers here accept any object honouring the pylinkage optimizer
+# contract, not just :class:`~leggedsnake.walker.Walker`. pylinkage 1.0.0
+# renamed ``get_num_constraints`` / ``set_num_constraints`` to
+# ``get_constraints`` / ``set_constraints`` and removed the old spelling,
+# so these helpers prefer the new names and fall back to the old ones for
+# third-party objects that have not migrated yet.
+
+
+def _flatten_constraints(constraints: Any) -> list[float]:
+    """Flatten a possibly-nested constraint sequence to a list of floats.
+
+    Nested input (as produced by a ``param_expander`` such as
+    ``param2dimensions``) is flattened in order; flat input passes
+    through unchanged.
+    """
+    seq = list(constraints)
+    if seq and isinstance(seq[0], (list, tuple)):
+        return [float(v) for sub in seq for v in sub]
+    return [float(v) for v in seq]
+
+
+def _get_constraints(linkage: Any) -> list[float]:
+    """Read constraints off a linkage, new API first."""
+    getter = getattr(linkage, "get_constraints", None)
+    if getter is None:
+        getter = getattr(linkage, "get_num_constraints", None)
+    if getter is None:
+        raise AttributeError(
+            f"{type(linkage).__name__} exposes neither get_constraints() "
+            "nor get_num_constraints()"
+        )
+    return list(getter())
+
+
+def _set_constraints(linkage: Any, constraints: Any) -> None:
+    """Write constraints to a linkage, new API first.
+
+    Accepts flat or nested ``constraints``; nested input is flattened.
+    """
+    values = _flatten_constraints(constraints)
+    setter = getattr(linkage, "set_constraints", None)
+    if setter is None:
+        setter = getattr(linkage, "set_num_constraints", None)
+    if setter is None:
+        raise AttributeError(
+            f"{type(linkage).__name__} exposes neither set_constraints() "
+            "nor set_num_constraints()"
+        )
+    setter(values)
 
 
 def ggb_extractor(file_path: str) -> dict[str, dict[str, float | Point]]:

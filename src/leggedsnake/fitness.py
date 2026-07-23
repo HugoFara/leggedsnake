@@ -37,7 +37,7 @@ from pylinkage.hypergraph import HypergraphLinkage
 from .gait_analysis import compute_cost_of_transport, compute_froude_number
 from .physics_engine import World, WorldConfig, linkage_bb
 from .stability import StabilityTimeSeries, compute_stability_snapshot
-from .utility import step as step_check, stride, Point
+from .utility import _set_constraints, step as step_check, stride, Point
 
 if TYPE_CHECKING:
     from .walker import Walker
@@ -737,7 +737,7 @@ def as_eval_func(
         if walker_factory is not None:
             walker = walker_factory()
             try:
-                walker.set_num_constraints(list(dims))
+                _set_constraints(walker, dims)
                 result = fitness(
                     deepcopy(walker.topology),
                     deepcopy(walker.dimensions),
@@ -747,7 +747,7 @@ def as_eval_func(
             except Exception:
                 score = 0.0
         else:
-            linkage.set_num_constraints(dims)
+            _set_constraints(linkage, dims)
             linkage.set_coords(pos)
             result = fitness(linkage.topology, linkage.dimensions, config)
             score = result.score
@@ -787,7 +787,7 @@ def as_ga_fitness(
 
     def _ga(dna: list[Any]) -> tuple[float, list[Any]]:
         walker = walker_factory()
-        walker.set_num_constraints(dna[1])
+        _set_constraints(walker, dna[1])
         walker.set_coords(dna[2])
         result = fitness(walker.topology, walker.dimensions, config)
         score = -result.score if minimize else result.score
@@ -817,7 +817,7 @@ def chain_walking_optimizers(
     fitness : DynamicFitness
         Walking fitness evaluator (e.g., ``DistanceFitness``).
     linkage : Walker
-        Mechanism to optimize. Must implement ``set_num_constraints``
+        Mechanism to optimize. Must implement ``set_constraints``
         / ``set_coords`` / ``get_coords`` (Walker does).
     stages : sequence of (optimizer, kwargs)
         Each optimizer is one of pylinkage's
