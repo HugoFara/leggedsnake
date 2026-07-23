@@ -774,6 +774,12 @@ class Walker:
            resolve every joint. Difference :meth:`step`'s positions if
            you need a velocity for those.
 
+           Upstream also reads a missing anchor velocity as zero rather
+           than as unknown, so a joint downstream of an unresolved one
+           comes back wrong instead of ``None``. In the shipped set only
+           ``from_trotbot`` is affected (``j5``, ``j7``); treat its
+           velocities as unreliable.
+
         Parameters
         ----------
         iterations : int | None

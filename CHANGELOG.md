@@ -72,6 +72,18 @@ opens the synthesis hand-off as public API.
   rigid body instead of intersecting two constraint directions is
   exact and well-conditioned in precisely this case.
 
+  Worse, an undefined velocity does not stay undefined. Upstream reads
+  an anchor's velocity as ``anchor.velocity or (0.0, 0.0)``, so a
+  joint downstream of an unresolved one is solved against an anchor
+  assumed stationary and comes back **wrong rather than ``None``**.
+  Checked against finite differences of the position stream, this hits
+  ``from_trotbot`` only: ``j5`` reports roughly 5x its true speed and
+  ``j7`` roughly 0.3x. Every joint of ``from_jansen``, ``from_klann``,
+  ``from_strider``, ``from_watt`` and ``from_ghassaei`` agrees with
+  finite differences to ~1e-9, and ``from_chebyshev`` is correct
+  everywhere except the ``None`` at ``P``. Treat ``from_trotbot``
+  velocities as unreliable until upstream propagates the unknown.
+
 - **``Walker.set_constraints`` accepts nested input.** It flattens a
   nested sequence (what a ``param_expander`` such as
   ``param2dimensions`` returns) in order, and passes flat input
