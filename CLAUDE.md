@@ -37,7 +37,7 @@ Key surface:
 - `Walker.from_catalog`, `from_hierarchy`, `from_watt`, `from_jansen`, etc. — factory builders for classical mechanisms.
 - `add_legs(n)` phase-offsets copies along the axis; `add_opposite_leg(axis_x)` mirrors across the frame.
 - `to_mechanism()` hands off to pylinkage's `Mechanism` for kinematic stepping.
-- `get_num_constraints()` / `set_num_constraints()` and `get_coords()` / `set_coords()` are the (de)serialization hooks used by optimizers.
+- `get_constraints()` / `set_constraints()` and `get_coords()` / `set_coords()` are the (de)serialization hooks used by optimizers. `set_constraints()` flattens nested input (what a `param_expander` returns). The `get_num_constraints` / `set_num_constraints` spelling is deprecated since 0.6.0 and removed in 0.7.0; internal callers should go through `utility._get_constraints` / `_set_constraints`, which tolerate both on third-party objects.
 - `get_foots()` returns terminal joints (feet).
 
 ### 2. Physics — `physics_engine.py`, `dynamic_linkage.py`, `hypergraph_physics.py`

@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-23
+
+Requires **pylinkage >= 1.0.0**. This release drops the compatibility
+shims that carried leggedsnake across the 0.9.x → 1.0.0 transition,
+handing the work back to upstream now that it is supported there.
+
+### Removed
+
+- **``_walker_from_sim_linkage``'s in-tree component walker.** The
+  function had a hand-written converter covering ``Ground`` /
+  ``Crank`` / ``ArcCrank`` / ``RRRDyad`` / ``FixedDyad``, gated behind
+  a ``getattr`` probe so it could run on pylinkage 0.9.x. pylinkage
+  1.0.0 ships :meth:`pylinkage.simulation.Linkage.to_hypergraph`,
+  which covers those types plus ``LinearActuator``, ``RRPDyad`` and
+  ``PPDyad``. The function is now a thin wrapper over the native
+  bridge, and non-SimLinkage input raises ``TypeError`` up front
+  rather than part-way through conversion. The ``FixedDyad`` branch
+  is the one behaviour change worth noting: it approximated the
+  second anchor distance from current joint positions, where
+  upstream derives it from the dyad itself.
+
+- **``serialization._dimensions_to_dict`` / ``_dimensions_from_dict``.**
+  Replaced by pylinkage's native ``Dimensions.to_dict`` /
+  ``Dimensions.from_dict``. Files written by leggedsnake < 0.6.0 still
+  load: upstream's ``from_dict`` accepts both the current
+  ``[node_a, node_b, distance]`` triples and the older
+  stringified-tuple hyperedge keys. Newly written files use triples.
+  The old in-tree parser stripped punctuation and split on commas,
+  which quietly corrupted any node id containing a comma or a quote;
+  the upstream format has no such failure mode.
+
+### Deprecated
+
+- **``Walker.get_num_constraints`` / ``Walker.set_num_constraints``.**
+  Use ``get_constraints`` / ``set_constraints``. The old pair now
+  emits a ``DeprecationWarning`` and will be removed in **0.7.0**.
+  pylinkage made the same rename in 1.0.0 and removed its own
+  wrappers outright; ours survive one further cycle.
+
+### Changed
+
+- **``Walker.set_constraints`` accepts nested input.** It flattens a
+  nested sequence (what a ``param_expander`` such as
+  ``param2dimensions`` returns) in order, and passes flat input
+  through unchanged. This absorbs the ``flat=False`` keyword that
+  only existed on the deprecated ``set_num_constraints``, so callers
+  no longer need a keyword to declare which shape they are holding.
+
+- **Internal constraint plumbing.** ``utility`` gains three private
+  helpers — ``_flatten_constraints``, ``_get_constraints``,
+  ``_set_constraints`` — used by ``fitness``, ``genetic_optimizer``,
+  ``nsga_optimizer`` and ``walking_objectives``. The optimizers accept
+  any object honouring the pylinkage optimizer contract rather than
+  only a ``Walker``, so these prefer the new method names and fall
+  back to the old ones, keeping unmigrated third-party linkages
+  working. As a side effect ``agents_to_ensemble`` now distinguishes
+  "linkage reports zero constraints" from "linkage has no such
+  method" instead of silently treating both as zero.
+
 ## [0.5.1] - 2026-07-23
 
 ### Changed

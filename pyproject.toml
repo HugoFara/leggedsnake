@@ -97,7 +97,7 @@ dev = [
 ]
 
 [tool.bumpversion]
-current_version = "0.5.1"
+current_version = "0.6.0"
 commit = false
 tag = false
 
