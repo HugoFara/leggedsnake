@@ -32,6 +32,64 @@ opens the synthesis hand-off as public API.
   converting one never disturbs the ensemble. pylinkage's 1.0.0
   changelog referred to this factory before it existed; it exists now.
 
+- **``omega`` / ``alpha`` on ``Walker.step_with_derivatives``.** Both
+  take a float (all drivers) or a ``dict`` keyed by driver node id,
+  mirroring ``motor_rates``. ``alpha`` is the only way to express a
+  driver that is spinning up or down; the previous implementation
+  could not represent one at all.
+
+### Changed
+
+- **``Walker.step_with_derivatives`` now solves derivatives
+  analytically.** It delegates to pylinkage 1.0.0's
+  ``Mechanism.step_with_derivatives`` (``solver.velocity`` /
+  ``solver.acceleration``) instead of central-differencing its own
+  position stream. **Velocity and acceleration values change**: they
+  are now exact rather than O(dt²)-accurate, including at the first
+  and last frame, where the finite-difference stencil had to degrade
+  to one-sided. A unit crank at ``omega`` now reports exactly
+  ``|omega| * r`` on every frame. The method also streams instead of
+  materialising the whole run before yielding.
+
+  ``skip_unbuildable`` is preserved. Upstream's generator dies on the
+  first ``UnbuildableError``, so dead zones are stepped one frame at a
+  time: blank frames yield ``(None, None)`` per joint, drivers keep
+  advancing, and the stream length still equals ``iterations``.
+  Positions are identical to ``step()``'s, frame for frame.
+
+  One capability is lost. pylinkage solves a joint's velocity from its
+  two constant-distance constraints, and that system is singular when
+  the joint is collinear with both anchors — a ternary link carrying
+  its foot on the coupler line, which is a standard walking-linkage
+  arrangement rather than a degenerate one. Such a joint yields
+  ``(None, None)`` on an otherwise buildable frame, where finite
+  differences produced a value. Among the shipped factories this
+  affects ``from_chebyshev`` (foot ``P``) and ``from_trotbot``
+  (``j4`` / ``j6`` / ``j9``); ``from_jansen``, ``from_klann``,
+  ``from_strider``, ``from_watt`` and ``from_ghassaei`` resolve every
+  joint. Difference ``step()``'s positions if you need a velocity for
+  those. The fix belongs upstream: propagating velocity through the
+  rigid body instead of intersecting two constraint directions is
+  exact and well-conditioned in precisely this case.
+
+- **``Walker.set_constraints`` accepts nested input.** It flattens a
+  nested sequence (what a ``param_expander`` such as
+  ``param2dimensions`` returns) in order, and passes flat input
+  through unchanged. This absorbs the ``flat=False`` keyword that
+  only existed on the deprecated ``set_num_constraints``, so callers
+  no longer need a keyword to declare which shape they are holding.
+
+- **Internal constraint plumbing.** ``utility`` gains three private
+  helpers — ``_flatten_constraints``, ``_get_constraints``,
+  ``_set_constraints`` — used by ``fitness``, ``genetic_optimizer``,
+  ``nsga_optimizer`` and ``walking_objectives``. The optimizers accept
+  any object honouring the pylinkage optimizer contract rather than
+  only a ``Walker``, so these prefer the new method names and fall
+  back to the old ones, keeping unmigrated third-party linkages
+  working. As a side effect ``agents_to_ensemble`` now distinguishes
+  "linkage reports zero constraints" from "linkage has no such
+  method" instead of silently treating both as zero.
+
 ### Removed
 
 - **``_walker_from_sim_linkage``'s in-tree component walker.** The
@@ -64,26 +122,6 @@ opens the synthesis hand-off as public API.
   emits a ``DeprecationWarning`` and will be removed in **0.7.0**.
   pylinkage made the same rename in 1.0.0 and removed its own
   wrappers outright; ours survive one further cycle.
-
-### Changed
-
-- **``Walker.set_constraints`` accepts nested input.** It flattens a
-  nested sequence (what a ``param_expander`` such as
-  ``param2dimensions`` returns) in order, and passes flat input
-  through unchanged. This absorbs the ``flat=False`` keyword that
-  only existed on the deprecated ``set_num_constraints``, so callers
-  no longer need a keyword to declare which shape they are holding.
-
-- **Internal constraint plumbing.** ``utility`` gains three private
-  helpers — ``_flatten_constraints``, ``_get_constraints``,
-  ``_set_constraints`` — used by ``fitness``, ``genetic_optimizer``,
-  ``nsga_optimizer`` and ``walking_objectives``. The optimizers accept
-  any object honouring the pylinkage optimizer contract rather than
-  only a ``Walker``, so these prefer the new method names and fall
-  back to the old ones, keeping unmigrated third-party linkages
-  working. As a side effect ``agents_to_ensemble`` now distinguishes
-  "linkage reports zero constraints" from "linkage has no such
-  method" instead of silently treating both as zero.
 
 ## [0.5.1] - 2026-07-23
 

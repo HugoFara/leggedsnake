@@ -700,17 +700,43 @@ class Walker:
 
     # --- Kinematic derivatives ---
     #
-    # pylinkage 1.0.0 ships ``Mechanism.step_with_derivatives`` computing
-    # analytic derivatives. We keep a finite-difference implementation here
-    # because it honours ``skip_unbuildable``, which the upstream generator
-    # does not. Consumers should depend on ``Walker.step_with_derivatives``
-    # (this module), not on the raw pylinkage surface.
+    # Delegates to pylinkage's analytic ``Mechanism.step_with_derivatives``.
+    # Consumers should depend on ``Walker.step_with_derivatives`` (this
+    # module) rather than the raw pylinkage surface: it adds
+    # ``skip_unbuildable``, seeds the per-driver input rates upstream
+    # requires, and normalises undefined derivatives to ``(None, None)``
+    # pairs so every frame unpacks the same way.
+
+    def _apply_input_velocities(
+        self,
+        mechanism: Mechanism,
+        omega: float | dict[str, float] | None,
+        alpha: float | dict[str, float] | None,
+    ) -> None:
+        """Seed each driver's angular velocity and acceleration.
+
+        pylinkage treats a driver with no explicit input as stationary, so
+        this has to run before every derivative sweep or the whole
+        mechanism reports zero velocity. The default rate is the driver's
+        own ``angular_velocity`` — the same value ``_step_once`` advances
+        the crank by, so positions and derivatives cannot disagree.
+        """
+        for driver in mechanism._driver_links:
+            output = driver.output_joint
+            node_id = None if output is None else output.id
+            mechanism.set_input_velocity(
+                driver,
+                _driver_rate(omega, node_id, driver.angular_velocity),
+                _driver_rate(alpha, node_id, 0.0),
+            )
 
     def step_with_derivatives(
         self,
         iterations: int | None = None,
         dt: float = 1.0,
         skip_unbuildable: bool = False,
+        omega: float | dict[str, float] | None = None,
+        alpha: float | dict[str, float] | None = None,
     ) -> Generator[
         tuple[
             tuple[tuple[float, float] | tuple[float | None, float | None], ...],
@@ -722,27 +748,53 @@ class Walker:
     ]:
         """Simulate one rotation, yielding per-frame positions, velocities, accelerations.
 
-        Velocities and accelerations are computed by three-point central
-        finite differences against ``dt`` (forward / backward at the ends).
-        Frames where a joint is unbuildable yield ``(None, None)`` for
-        that joint in all three tuples — no derivative across a dead zone.
+        Velocities and accelerations are solved analytically by pylinkage
+        (``solver.velocity`` / ``solver.acceleration``) rather than
+        differenced from the position stream, so they are exact at every
+        frame — including the first and last, where a finite-difference
+        estimate has to degrade to a one-sided stencil.
 
-        pylinkage 1.0.0 ships its own ``Mechanism.step_with_derivatives``
-        computing analytic derivatives via ``solver.velocity`` /
-        ``solver.acceleration``. This implementation is kept because it
-        honours ``skip_unbuildable``, which the upstream generator does
-        not — switching would change numeric output (finite-difference
-        vs analytic) as well as dead-zone handling, so it is a
-        deliberate choice rather than a leftover shim.
+        Rates default to each driver's own ``angular_velocity``, which is
+        expressed in radians per simulation step. One step spans ``dt``
+        time units and advances the crank by ``angular_velocity * dt``
+        radians, so the derivatives come out per unit time and are
+        independent of ``dt``. Pass *omega* / *alpha* to drive the
+        mechanism at physical rates instead.
+
+        .. note::
+           pylinkage 1.0.0 solves a joint's velocity from its two
+           constant-distance constraints, a system that goes singular
+           when the joint is collinear with both anchors. A ternary
+           link carrying its foot on the coupler line is exactly that
+           case, so such a joint can have a well-defined position and
+           no analytic derivative — it yields ``(None, None)`` on an
+           otherwise buildable frame. Among the shipped factories this
+           affects ``from_chebyshev`` (foot ``P``) and ``from_trotbot``
+           (``j4`` / ``j6`` / ``j9``); the other classical builders
+           resolve every joint. Difference :meth:`step`'s positions if
+           you need a velocity for those.
 
         Parameters
         ----------
         iterations : int | None
             Number of simulation steps. If *None*, one full rotation period.
         dt : float
-            Time step used for the finite-difference denominator.
+            Time step multiplier, as in :meth:`step`.
         skip_unbuildable : bool
-            Forwarded to :meth:`step`.
+            If True, frames where the mechanism cannot be assembled yield
+            ``(None, None)`` for every joint in all three tuples instead of
+            raising ``UnbuildableError``. Drivers keep advancing, so the
+            stream resumes on the far side of a dead zone and its length
+            always equals *iterations*.
+        omega : float | dict[str, float] | None
+            Driver angular velocity to differentiate against. A float
+            applies to every driver, a dict maps driver node id → rate.
+            *None* uses each driver's own ``angular_velocity``.
+        alpha : float | dict[str, float] | None
+            Driver angular acceleration, same shape as *omega*. Defaults
+            to 0 — a constant-speed crank. This is the only way to express
+            a driver that is spinning up or down; without it accelerations
+            describe centripetal terms alone.
 
         Yields
         ------
@@ -750,57 +802,42 @@ class Walker:
             Each is a tuple of per-joint ``(x, y)`` (or ``(None, None)``
             where undefined). The stream's length equals ``iterations``.
         """
-        positions = list(self.step(
-            iterations=iterations, dt=dt, skip_unbuildable=skip_unbuildable,
-        ))
-        n = len(positions)
-        if n == 0:
+        from pylinkage import UnbuildableError
+
+        mechanism = self.to_mechanism()
+        self._apply_input_velocities(mechanism, omega, alpha)
+        if iterations is None:
+            iterations = mechanism.get_rotation_period()
+
+        if not skip_unbuildable:
+            for positions, velocities, accelerations in (
+                mechanism.step_with_derivatives(iterations=iterations, dt=dt)
+            ):
+                yield (
+                    tuple(positions),
+                    _derivative_pairs(velocities),
+                    _derivative_pairs(accelerations),
+                )
             return
 
-        n_joints = len(positions[0])
-        none_pair = (None, None)
-
-        def _central(i: int, j: int) -> tuple[float, float] | tuple[None, None]:
-            # Three-point derivative of position j at frame i.
-            if i == 0:
-                prev_, next_ = positions[0], positions[1] if n > 1 else positions[0]
-                denom = dt if n > 1 else 1.0
-            elif i == n - 1:
-                prev_, next_ = positions[n - 2], positions[n - 1]
-                denom = dt
+        # Upstream's generator dies on the first UnbuildableError, so a
+        # dead zone has to be stepped one frame at a time: the mechanism
+        # keeps its state between calls, and drivers have already advanced
+        # by the time the solver gives up on a frame.
+        blank = tuple((None, None) for _ in mechanism.joints)
+        for _ in range(iterations):
+            try:
+                positions, velocities, accelerations = next(
+                    mechanism.step_with_derivatives(iterations=1, dt=dt)
+                )
+            except UnbuildableError:
+                yield blank, blank, blank
             else:
-                prev_, next_ = positions[i - 1], positions[i + 1]
-                denom = 2 * dt
-            p0, p1 = prev_[j], next_[j]
-            if p0[0] is None or p0[1] is None or p1[0] is None or p1[1] is None:
-                return none_pair
-            return ((p1[0] - p0[0]) / denom, (p1[1] - p0[1]) / denom)
-
-        # Pre-compute velocities so we can difference them for acceleration.
-        velocities: list[tuple[tuple[float, float] | tuple[None, None], ...]] = [
-            tuple(_central(i, j) for j in range(n_joints))
-            for i in range(n)
-        ]
-
-        def _accel_central(i: int, j: int) -> tuple[float, float] | tuple[None, None]:
-            if n < 2:
-                return none_pair
-            if i == 0:
-                v0, v1 = velocities[0][j], velocities[1][j]
-                denom = dt
-            elif i == n - 1:
-                v0, v1 = velocities[n - 2][j], velocities[n - 1][j]
-                denom = dt
-            else:
-                v0, v1 = velocities[i - 1][j], velocities[i + 1][j]
-                denom = 2 * dt
-            if v0[0] is None or v0[1] is None or v1[0] is None or v1[1] is None:
-                return none_pair
-            return ((v1[0] - v0[0]) / denom, (v1[1] - v0[1]) / denom)
-
-        for i in range(n):
-            accel = tuple(_accel_central(i, j) for j in range(n_joints))
-            yield positions[i], velocities[i], accel
+                yield (
+                    tuple(positions),
+                    _derivative_pairs(velocities),
+                    _derivative_pairs(accelerations),
+                )
 
     # --- Topological analysis (pylinkage 0.9 adoption) ---
 
@@ -1303,6 +1340,34 @@ class Walker:
         if edge is not None:
             self.dimensions.edge_distances[edge.id] = distance
 
+
+
+def _driver_rate(
+    spec: float | dict[str, float] | None,
+    node_id: str | None,
+    default: float,
+) -> float:
+    """Resolve a per-driver rate from a scalar, a per-node dict, or *None*."""
+    if spec is None:
+        return float(default)
+    if isinstance(spec, dict):
+        return float(spec.get(node_id, default)) if node_id else float(default)
+    return float(spec)
+
+
+def _derivative_pairs(
+    values: Sequence[tuple[float, float] | None],
+) -> tuple[tuple[float, float] | tuple[None, None], ...]:
+    """Normalise pylinkage's per-joint ``Coord | None`` to ``(x, y)`` pairs.
+
+    Upstream reports an undefined derivative as a bare ``None``, which
+    would make callers special-case those entries before unpacking. Every
+    frame this module yields unpacks as two values.
+    """
+    return tuple(
+        (None, None) if value is None else (value[0], value[1])
+        for value in values
+    )
 
 
 # ---------------------------------------------------------------------------
