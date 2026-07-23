@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "leggedsnake: Leg mechanisms optimization using Python and genetic algorithms"
+authors:
+  - family-names: Farajallah
+    given-names: Hugo
+    orcid: "https://orcid.org/0009-0001-0769-4434"
+    affiliation: "Independent Researcher, France"
+version: 0.5.0
+date-released: "2026-04-24"
+license: MIT
+repository-code: "https://github.com/HugoFara/leggedsnake"
+repository-artifact: "https://pypi.org/project/leggedsnake/"
+url: "https://hugofara.github.io/leggedsnake/"
+abstract: >-
+  leggedsnake simulates and optimizes planar leg mechanisms using
+  physics-based simulation, particle swarm optimization, and genetic
+  algorithms. It builds on pylinkage's kinematic model to evolve
+  walking linkages such as Jansen and Klann mechanisms.
+keywords:
+  - linkage
+  - leg mechanism
+  - optimization
+  - walking linkage
+  - genetic algorithms
+  - particle swarm optimization
