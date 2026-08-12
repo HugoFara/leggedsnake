@@ -8,7 +8,7 @@ authors:
     orcid: "https://orcid.org/0009-0001-0769-4434"
     affiliation: "Independent Researcher, France"
 version: 0.6.0
-date-released: "2026-07-23"
+date-released: "2026-08-12"
 license: MIT
 repository-code: "https://github.com/HugoFara/leggedsnake"
 repository-artifact: "https://pypi.org/project/leggedsnake/"

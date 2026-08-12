@@ -768,7 +768,7 @@ class Walker:
            reports of an indeterminate derivative, and they propagate:
            a joint solved from an undefined anchor is undefined too,
            rather than being solved against an anchor assumed
-           stationary. Requires pylinkage > 1.0.0; on 1.0.0 exactly,
+           stationary. Requires pylinkage >= 1.1.0; on 1.0.0,
            joints collinear with their anchors (``from_chebyshev``'s
            foot, several of ``from_trotbot``'s) report no derivative,
            and the joints downstream of those report wrong ones.

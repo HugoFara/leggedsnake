@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-07-23
+## [0.6.0] - 2026-08-12
 
-Requires **pylinkage >= 1.0.0**. This release drops the compatibility
+Requires **pylinkage >= 1.1.0**. This release drops the compatibility
 shims that carried leggedsnake across the 0.9.x → 1.0.0 transition,
 handing the work back to upstream now that it is supported there, and
 opens the synthesis hand-off as public API.
@@ -59,14 +59,14 @@ opens the synthesis hand-off as public API.
 
   Auditing the switch — every joint of every shipped factory against
   finite differences of the position stream, rather than only checking
-  for ``None`` — turned up two defects in pylinkage 1.0.0, both since
-  fixed upstream. A joint collinear with its two anchors (a ternary
-  link carrying its foot on the coupler line, which is a standard
-  walking-linkage arrangement) was mistaken for a dead centre and
-  reported no derivative; and an unresolved anchor was read as a
-  stationary one, so joints downstream of it reported plausible but
-  wrong values rather than ``None``. **This release therefore wants a
-  pylinkage newer than 1.0.0.** Against 1.0.0 exactly,
+  for ``None`` — turned up two defects in pylinkage 1.0.0, both fixed
+  upstream and released in 1.1.0. A joint collinear with its two
+  anchors (a ternary link carrying its foot on the coupler line, which
+  is a standard walking-linkage arrangement) was mistaken for a dead
+  centre and reported no derivative; and an unresolved anchor was read
+  as a stationary one, so joints downstream of it reported plausible
+  but wrong values rather than ``None``. **This release therefore
+  requires pylinkage >= 1.1.0.** Against 1.0.0,
   ``from_chebyshev``'s foot and several of ``from_trotbot``'s report
   no velocity, and ``from_trotbot``'s ``j5`` / ``j7`` report wrong
   ones. With the upstream fix every joint of every factory agrees with
