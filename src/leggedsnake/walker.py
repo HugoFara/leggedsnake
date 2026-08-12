@@ -10,13 +10,17 @@ multiple DRIVER nodes with independent angular velocities.
 """
 from __future__ import annotations
 
+import warnings
 from collections.abc import Generator, Sequence
+from copy import deepcopy
 from math import tau
 from typing import TYPE_CHECKING, Any
 
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole, to_mechanism
 from pylinkage.hypergraph.core import Edge, Hyperedge, Node
+
+from .utility import _flatten_constraints
 
 if TYPE_CHECKING:
     from pylinkage.hypergraph import HierarchicalLinkage
@@ -140,7 +144,7 @@ class Walker:
         """Build a Walker from a Watt six-bar specification.
 
         Wraps :func:`pylinkage.synthesis.watt_from_lengths` and feeds its
-        result through the SimLinkage shim (``_walker_from_sim_linkage``).
+        result through pylinkage's ``to_hypergraph`` bridge.
         A Watt six-bar has two four-bar loops sharing the crank output,
         yielding two coupled rocker trajectories that can serve as foot
         paths.
@@ -202,7 +206,7 @@ class Walker:
         """Build a Walker from a Stephenson six-bar specification.
 
         Wraps :func:`pylinkage.synthesis.stephenson_from_lengths` and
-        feeds its result through the SimLinkage shim.
+        feeds its result through pylinkage's ``to_hypergraph`` bridge.
 
         Stephenson differs from Watt in where the second loop attaches:
         on a Stephenson the second chain branches from the coupler
@@ -271,7 +275,7 @@ class Walker:
             :data:`leggedsnake._classical.JANSEN_HOLY_NUMBERS` for the
             canonical values). Partial dicts are allowed. Use this to
             optimize link lengths directly rather than round-tripping
-            through ``set_num_constraints``, which on hypergraph walkers
+            through ``set_constraints``, which on hypergraph walkers
             can't propagate through rigid triangles.
         """
         from ._classical import build_jansen
@@ -512,6 +516,99 @@ class Walker:
         )
         return cls(hg, dims, name=name, motor_rates=motor_rates)
 
+    @classmethod
+    def from_synthesis(
+        cls,
+        solution: Any,
+        index: int = 0,
+        motor_rates: float | dict[str, float] = -4.0,
+        name: str = "",
+        iterations: int = 360,
+    ) -> Walker:
+        """Build a Walker from any :mod:`pylinkage.synthesis` output.
+
+        Dimensional synthesis (Burmester path/motion/function generation,
+        topology-aware N-bar synthesis) answers "which mechanism traces
+        this foot path?". This factory is the hand-off from that answer to
+        a physics-ready walker, collapsing the
+        ``solution -> SimLinkage -> Walker`` chain into one call.
+
+        Every solution container pylinkage emits is accepted:
+
+        =================================== ====================================
+        Input                               Produced by
+        =================================== ====================================
+        ``SynthesisResult``                 ``path_generation``,
+                                            ``function_generation``,
+                                            ``motion_generation_3_poses``,
+                                            ``six_bar_path_generation``,
+                                            ``path_generation_with_timing``
+        ``list[TopologySolution]``          ``multi_topology_synthesize``
+        ``list[NBarSolution]``              ``generalized_synthesis``
+        ``FourBarSolution``                 ``SynthesisResult.raw_solutions``
+        ``Ensemble``                        ``SynthesisResult.ensemble``
+        ``Linkage`` (SimLinkage)            ``solution_to_linkage``, and
+                                            ``co_optimize``
+        =================================== ====================================
+
+        Containers are indexed with *index*; scalars ignore it. Synthesis
+        routines return candidates best-first, so the default ``index=0``
+        picks the top-ranked solution.
+
+        Parameters
+        ----------
+        solution : Any
+            A synthesis result, a single solution, an ``Ensemble``, a
+            SimLinkage, or a sequence of any of those.
+        index : int
+            Which candidate to convert when *solution* is a container.
+            Negative indices count from the end.
+        motor_rates : float | dict[str, float]
+            Motor angular velocities (rad/s) for physics simulation.
+        name : str
+            Name for the resulting Walker. Empty keeps the name pylinkage
+            gave the solution.
+        iterations : int
+            Simulation steps per rotation, forwarded to pylinkage when a
+            raw solution still has to be converted to a linkage. Ignored
+            for inputs that already carry a linkage.
+
+        Returns
+        -------
+        Walker
+            Hypergraph-native walker ready for ``add_legs()`` and
+            ``World.add_linkage()``.
+
+        Raises
+        ------
+        TypeError
+            If *solution* is not a recognised synthesis output.
+        ValueError
+            If *solution* is an empty container.
+        IndexError
+            If *index* is out of range for *solution*.
+        NotImplementedError
+            Propagated from ``to_hypergraph`` when the solution contains a
+            component type pylinkage cannot convert.
+
+        Examples
+        --------
+        >>> from pylinkage.synthesis import path_generation
+        >>> result = path_generation(  # doctest: +SKIP
+        ...     precision_points=[(0, -3), (2, -3), (1, -1)],
+        ...     max_solutions=10,
+        ... )
+        >>> walker = Walker.from_synthesis(result)  # doctest: +SKIP
+        >>> walker.add_legs(1)  # doctest: +SKIP
+        """
+        sim = _sim_linkage_from_synthesis(
+            solution, index=index, name=name, iterations=iterations,
+        )
+        walker = _walker_from_sim_linkage(sim, motor_rates=motor_rates)
+        if name:
+            walker.name = name
+        return walker
+
     def _invalidate_cache(self) -> None:
         """Invalidate cached Mechanism after topology/dimension changes."""
         self._mechanism = None
@@ -601,32 +698,45 @@ class Walker:
         """
         return list(self.to_mechanism()._solve_order)
 
-    # --- SimLinkage bridge (temporary compat shim) ---
+    # --- Kinematic derivatives ---
     #
-    # Until pylinkage 1.0 ships a stable SimLinkage → HypergraphLinkage path,
-    # this module provides its own minimal conversion covering the component
-    # types emitted by pylinkage's N-bar synthesis and catalog-based
-    # co_optimize (Ground, Crank/ArcCrank, RRRDyad, FixedDyad). See
-    # :func:`_walker_from_sim_linkage` below.
+    # Delegates to pylinkage's analytic ``Mechanism.step_with_derivatives``.
+    # Consumers should depend on ``Walker.step_with_derivatives`` (this
+    # module) rather than the raw pylinkage surface: it adds
+    # ``skip_unbuildable``, seeds the per-driver input rates upstream
+    # requires, and normalises undefined derivatives to ``(None, None)``
+    # pairs so every frame unpacks the same way.
 
-    # --- Kinematic derivatives (temporary compat shim) ---
-    #
-    # pylinkage's ``Mechanism.step_with_derivatives`` / ``set_input_velocity`` /
-    # ``get_velocities`` / ``get_accelerations`` are committed upstream but not
-    # yet released (expected in pylinkage 1.0). Until the first release carries
-    # them, we provide a finite-difference implementation here. Consumers should
-    # depend on ``Walker.step_with_derivatives`` (this module), not on the raw
-    # pylinkage surface.
-    #
-    # DEPRECATION PLAN: once a pylinkage release pins the upstream API, drop
-    # this finite-difference path and delegate to ``Mechanism.step_with_derivatives``
-    # directly. Keep the Walker method signature stable across the switch.
+    def _apply_input_velocities(
+        self,
+        mechanism: Mechanism,
+        omega: float | dict[str, float] | None,
+        alpha: float | dict[str, float] | None,
+    ) -> None:
+        """Seed each driver's angular velocity and acceleration.
+
+        pylinkage treats a driver with no explicit input as stationary, so
+        this has to run before every derivative sweep or the whole
+        mechanism reports zero velocity. The default rate is the driver's
+        own ``angular_velocity`` — the same value ``_step_once`` advances
+        the crank by, so positions and derivatives cannot disagree.
+        """
+        for driver in mechanism._driver_links:
+            output = driver.output_joint
+            node_id = None if output is None else output.id
+            mechanism.set_input_velocity(
+                driver,
+                _driver_rate(omega, node_id, driver.angular_velocity),
+                _driver_rate(alpha, node_id, 0.0),
+            )
 
     def step_with_derivatives(
         self,
         iterations: int | None = None,
         dt: float = 1.0,
         skip_unbuildable: bool = False,
+        omega: float | dict[str, float] | None = None,
+        alpha: float | dict[str, float] | None = None,
     ) -> Generator[
         tuple[
             tuple[tuple[float, float] | tuple[float | None, float | None], ...],
@@ -638,22 +748,52 @@ class Walker:
     ]:
         """Simulate one rotation, yielding per-frame positions, velocities, accelerations.
 
-        Velocities and accelerations are computed by three-point central
-        finite differences against ``dt`` (forward / backward at the ends).
-        Frames where a joint is unbuildable yield ``(None, None)`` for
-        that joint in all three tuples — no derivative across a dead zone.
+        Velocities and accelerations are solved analytically by pylinkage
+        (``solver.velocity`` / ``solver.acceleration``) rather than
+        differenced from the position stream, so they are exact at every
+        frame — including the first and last, where a finite-difference
+        estimate has to degrade to a one-sided stencil.
 
-        This is a **temporary shim** awaiting pylinkage 1.0's
-        ``Mechanism.step_with_derivatives`` becoming generally available.
+        Rates default to each driver's own ``angular_velocity``, which is
+        expressed in radians per simulation step. One step spans ``dt``
+        time units and advances the crank by ``angular_velocity * dt``
+        radians, so the derivatives come out per unit time and are
+        independent of ``dt``. Pass *omega* / *alpha* to drive the
+        mechanism at physical rates instead.
+
+        .. note::
+           A joint can still come back ``(None, None)`` on an otherwise
+           buildable frame — prismatic joints, and genuine dead centres
+           where the mechanism is at a toggle. Those are honest
+           reports of an indeterminate derivative, and they propagate:
+           a joint solved from an undefined anchor is undefined too,
+           rather than being solved against an anchor assumed
+           stationary. Requires pylinkage >= 1.1.0; on 1.0.0,
+           joints collinear with their anchors (``from_chebyshev``'s
+           foot, several of ``from_trotbot``'s) report no derivative,
+           and the joints downstream of those report wrong ones.
 
         Parameters
         ----------
         iterations : int | None
             Number of simulation steps. If *None*, one full rotation period.
         dt : float
-            Time step used for the finite-difference denominator.
+            Time step multiplier, as in :meth:`step`.
         skip_unbuildable : bool
-            Forwarded to :meth:`step`.
+            If True, frames where the mechanism cannot be assembled yield
+            ``(None, None)`` for every joint in all three tuples instead of
+            raising ``UnbuildableError``. Drivers keep advancing, so the
+            stream resumes on the far side of a dead zone and its length
+            always equals *iterations*.
+        omega : float | dict[str, float] | None
+            Driver angular velocity to differentiate against. A float
+            applies to every driver, a dict maps driver node id → rate.
+            *None* uses each driver's own ``angular_velocity``.
+        alpha : float | dict[str, float] | None
+            Driver angular acceleration, same shape as *omega*. Defaults
+            to 0 — a constant-speed crank. This is the only way to express
+            a driver that is spinning up or down; without it accelerations
+            describe centripetal terms alone.
 
         Yields
         ------
@@ -661,57 +801,42 @@ class Walker:
             Each is a tuple of per-joint ``(x, y)`` (or ``(None, None)``
             where undefined). The stream's length equals ``iterations``.
         """
-        positions = list(self.step(
-            iterations=iterations, dt=dt, skip_unbuildable=skip_unbuildable,
-        ))
-        n = len(positions)
-        if n == 0:
+        from pylinkage import UnbuildableError
+
+        mechanism = self.to_mechanism()
+        self._apply_input_velocities(mechanism, omega, alpha)
+        if iterations is None:
+            iterations = mechanism.get_rotation_period()
+
+        if not skip_unbuildable:
+            for positions, velocities, accelerations in (
+                mechanism.step_with_derivatives(iterations=iterations, dt=dt)
+            ):
+                yield (
+                    tuple(positions),
+                    _derivative_pairs(velocities),
+                    _derivative_pairs(accelerations),
+                )
             return
 
-        n_joints = len(positions[0])
-        none_pair = (None, None)
-
-        def _central(i: int, j: int) -> tuple[float, float] | tuple[None, None]:
-            # Three-point derivative of position j at frame i.
-            if i == 0:
-                prev_, next_ = positions[0], positions[1] if n > 1 else positions[0]
-                denom = dt if n > 1 else 1.0
-            elif i == n - 1:
-                prev_, next_ = positions[n - 2], positions[n - 1]
-                denom = dt
+        # Upstream's generator dies on the first UnbuildableError, so a
+        # dead zone has to be stepped one frame at a time: the mechanism
+        # keeps its state between calls, and drivers have already advanced
+        # by the time the solver gives up on a frame.
+        blank = tuple((None, None) for _ in mechanism.joints)
+        for _ in range(iterations):
+            try:
+                positions, velocities, accelerations = next(
+                    mechanism.step_with_derivatives(iterations=1, dt=dt)
+                )
+            except UnbuildableError:
+                yield blank, blank, blank
             else:
-                prev_, next_ = positions[i - 1], positions[i + 1]
-                denom = 2 * dt
-            p0, p1 = prev_[j], next_[j]
-            if p0[0] is None or p0[1] is None or p1[0] is None or p1[1] is None:
-                return none_pair
-            return ((p1[0] - p0[0]) / denom, (p1[1] - p0[1]) / denom)
-
-        # Pre-compute velocities so we can difference them for acceleration.
-        velocities: list[tuple[tuple[float, float] | tuple[None, None], ...]] = [
-            tuple(_central(i, j) for j in range(n_joints))
-            for i in range(n)
-        ]
-
-        def _accel_central(i: int, j: int) -> tuple[float, float] | tuple[None, None]:
-            if n < 2:
-                return none_pair
-            if i == 0:
-                v0, v1 = velocities[0][j], velocities[1][j]
-                denom = dt
-            elif i == n - 1:
-                v0, v1 = velocities[n - 2][j], velocities[n - 1][j]
-                denom = dt
-            else:
-                v0, v1 = velocities[i - 1][j], velocities[i + 1][j]
-                denom = 2 * dt
-            if v0[0] is None or v0[1] is None or v1[0] is None or v1[1] is None:
-                return none_pair
-            return ((v1[0] - v0[0]) / denom, (v1[1] - v0[1]) / denom)
-
-        for i in range(n):
-            accel = tuple(_accel_central(i, j) for j in range(n_joints))
-            yield positions[i], velocities[i], accel
+                yield (
+                    tuple(positions),
+                    _derivative_pairs(velocities),
+                    _derivative_pairs(accelerations),
+                )
 
     # --- Topological analysis (pylinkage 0.9 adoption) ---
 
@@ -1106,21 +1231,37 @@ class Walker:
         """
         return list(self.to_mechanism().get_constraints())
 
-    def set_constraints(self, values: list[float]) -> None:
-        """Set constraints from a flat list of floats.
+    def set_constraints(
+        self, values: list[float] | list[list[float]],
+    ) -> None:
+        """Set constraints from a list of floats.
 
-        Updates the Mechanism, then syncs edge distances back to Dimensions.
+        Nested input (as returned by a ``param_expander`` such as
+        ``param2dimensions``) is flattened in order; flat input is used
+        as-is. Updates the Mechanism, then syncs edge distances back to
+        Dimensions.
         """
         mechanism = self.to_mechanism()
-        mechanism.set_constraints(list(values))
+        mechanism.set_constraints(_flatten_constraints(values))
         self._sync_dimensions_from_mechanism(mechanism)
 
-    # Back-compat aliases (will be deprecated with pylinkage 0.10 which
-    # does the same rename). The ``num_`` prefix meant "numeric"
-    # historically but reads as "number of", so upstream dropped it.
+    # Deprecated aliases. The ``num_`` prefix meant "numeric"
+    # historically but reads as "number of", so pylinkage dropped it in
+    # 1.0.0 (removing its own wrappers outright). We keep ours one more
+    # cycle with a warning; they go in 0.7.0.
 
     def get_num_constraints(self, flat: bool = True) -> list[float]:
-        """Alias for :meth:`get_constraints` (back-compat)."""
+        """Deprecated alias for :meth:`get_constraints`.
+
+        .. deprecated:: 0.6.0
+            Use :meth:`get_constraints`. Removed in 0.7.0.
+        """
+        warnings.warn(
+            "Walker.get_num_constraints() is deprecated and will be "
+            "removed in 0.7.0; use Walker.get_constraints() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.get_constraints()
 
     def set_num_constraints(
@@ -1128,22 +1269,23 @@ class Walker:
         constraints: list[float] | list[list[float]],
         flat: bool = True,
     ) -> None:
-        """Alias for :meth:`set_constraints` (back-compat).
+        """Deprecated alias for :meth:`set_constraints`.
 
-        Accepts a flat list of floats or (with ``flat=False``) a nested
-        list that will be flattened in order.
+        Accepts a flat list of floats or a nested list that will be
+        flattened in order.
+
+        .. deprecated:: 0.6.0
+            Use :meth:`set_constraints`, which now flattens nested input
+            itself. Removed in 0.7.0.
         """
-        flat_constraints: list[float]
-        if (
-            not flat
-            and constraints
-            and isinstance(constraints[0], list)
-        ):
-            nested: list[list[float]] = constraints  # type: ignore[assignment]
-            flat_constraints = [v for sub in nested for v in sub]
-        else:
-            flat_constraints = [float(v) for v in constraints]  # type: ignore[arg-type]
-        self.set_constraints(flat_constraints)
+        warnings.warn(
+            "Walker.set_num_constraints() is deprecated and will be "
+            "removed in 0.7.0; use Walker.set_constraints() instead, "
+            "which accepts nested input directly.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.set_constraints(constraints)
 
     def get_coords(self) -> list[tuple[float, float]]:
         """Get current joint positions as a list of (x, y) tuples."""
@@ -1198,164 +1340,169 @@ class Walker:
             self.dimensions.edge_distances[edge.id] = distance
 
 
+
+def _driver_rate(
+    spec: float | dict[str, float] | None,
+    node_id: str | None,
+    default: float,
+) -> float:
+    """Resolve a per-driver rate from a scalar, a per-node dict, or *None*."""
+    if spec is None:
+        return float(default)
+    if isinstance(spec, dict):
+        return float(spec.get(node_id, default)) if node_id else float(default)
+    return float(spec)
+
+
+def _derivative_pairs(
+    values: Sequence[tuple[float, float] | None],
+) -> tuple[tuple[float, float] | tuple[None, None], ...]:
+    """Normalise pylinkage's per-joint ``Coord | None`` to ``(x, y)`` pairs.
+
+    Upstream reports an undefined derivative as a bare ``None``, which
+    would make callers special-case those entries before unpacking. Every
+    frame this module yields unpacks as two values.
+    """
+    return tuple(
+        (None, None) if value is None else (value[0], value[1])
+        for value in values
+    )
+
+
 # ---------------------------------------------------------------------------
-# Temporary SimLinkage → Walker shim
+# Synthesis output -> SimLinkage -> Walker
 # ---------------------------------------------------------------------------
-#
-# Pylinkage's ``simulation.Linkage`` (SimLinkage) is the new joint-free
-# component/actuator/dyad API. It is what ``pylinkage.synthesis`` and
-# ``pylinkage.optimization.co_optimize`` produce. Leggedsnake's Walker is
-# hypergraph-native — until pylinkage 1.0 ships a supported bridge, we
-# convert here. Only the component types the upstream co-optimization
-# actually emits are handled: ``Ground``, ``Crank``, ``ArcCrank``,
-# ``RRRDyad``, ``FixedDyad``. Anything else raises ``NotImplementedError``
-# so we fail loudly when pylinkage adds a new component type.
+
+
+def _pick_solution(candidates: Any, index: int, origin: str) -> Any:
+    """Index into a synthesis container, reporting its size on failure."""
+    items = list(candidates)
+    if not items:
+        raise ValueError(f"{origin} holds no candidates to convert.")
+    if not -len(items) <= index < len(items):
+        raise IndexError(
+            f"{origin} holds {len(items)} candidate(s); "
+            f"index {index} is out of range."
+        )
+    return items[index]
+
+
+def _sim_linkage_from_ensemble(ensemble: Any, index: int) -> Any:
+    """Materialise one Ensemble member as a standalone SimLinkage.
+
+    An ``Ensemble`` stores a single shared linkage plus one row of
+    constraints and initial positions per member, so a member only becomes
+    an independent mechanism once those are applied to a private copy.
+    """
+    member = _pick_solution(range(len(ensemble.dimensions)), index, "Ensemble")
+    linkage = deepcopy(ensemble.linkage)
+    linkage.set_completely(
+        [float(value) for value in ensemble.dimensions[member]],
+        [(float(x), float(y)) for x, y in ensemble.initial_positions[member]],
+    )
+    linkage.rebuild()
+    return linkage
+
+
+def _sim_linkage_from_synthesis(
+    solution: Any,
+    index: int = 0,
+    name: str = "",
+    iterations: int = 360,
+) -> Any:
+    """Resolve any pylinkage synthesis output down to a single SimLinkage.
+
+    See :meth:`Walker.from_synthesis` for the accepted input types.
+    """
+    from pylinkage.population import Ensemble
+    from pylinkage.simulation import Linkage as SimLinkage
+    from pylinkage.synthesis import (
+        FourBarSolution,
+        NBarSolution,
+        SynthesisResult,
+        TopologySolution,
+        nbar_solution_to_linkage,
+        solution_to_linkage,
+    )
+
+    def recurse(picked: Any) -> Any:
+        return _sim_linkage_from_synthesis(
+            picked, index=0, name=name, iterations=iterations,
+        )
+
+    if isinstance(solution, SimLinkage):
+        return solution
+    if isinstance(solution, SynthesisResult):
+        return recurse(
+            _pick_solution(solution.solutions, index, "SynthesisResult")
+        )
+    if isinstance(solution, TopologySolution):
+        return recurse(solution.linkage)
+    if isinstance(solution, Ensemble):
+        return _sim_linkage_from_ensemble(solution, index)
+    # FourBarSolution is a NamedTuple, so it has to be matched before the
+    # generic sequence branch below claims it.
+    if isinstance(solution, FourBarSolution):
+        return solution_to_linkage(
+            solution, name=name or "synthesized", iterations=iterations,
+        )
+    if isinstance(solution, NBarSolution):
+        return nbar_solution_to_linkage(
+            solution, name=name or "synthesized", iterations=iterations,
+        )
+    if isinstance(solution, (list, tuple)):
+        return recurse(
+            _pick_solution(solution, index, type(solution).__name__)
+        )
+    if callable(getattr(solution, "to_hypergraph", None)):
+        return solution
+    raise TypeError(
+        f"Cannot build a Walker from {type(solution).__name__}. Expected a "
+        f"pylinkage SynthesisResult, TopologySolution, NBarSolution, "
+        f"FourBarSolution, Ensemble, SimLinkage, or a sequence of those."
+    )
 
 
 def _walker_from_sim_linkage(
     sim_linkage: object,
     motor_rates: float | dict[str, float] = -4.0,
 ) -> Walker:
-    """Convert a pylinkage SimLinkage to a Walker (TEMPORARY SHIM).
+    """Convert a pylinkage SimLinkage to a Walker.
 
-    Handles component types emitted by pylinkage's N-bar synthesis and
-    catalog-backed co-optimization.
+    Thin wrapper over pylinkage's native
+    :meth:`pylinkage.simulation.Linkage.to_hypergraph` bridge (available
+    since pylinkage 1.0.0), which handles every component type upstream
+    emits and raises ``NotImplementedError`` for any it does not.
 
     Parameters
     ----------
     sim_linkage : pylinkage.simulation.Linkage
-        A SimLinkage built from ``Ground`` / ``Crank`` / ``RRRDyad`` /
-        ``FixedDyad`` components (what ``co_optimize`` produces).
+        A SimLinkage, as produced by ``pylinkage.synthesis`` or
+        ``pylinkage.optimization.co_optimize``.
     motor_rates : float | dict[str, float]
         Forwarded to the resulting Walker.
 
+    Returns
+    -------
+    Walker
+        Hypergraph-native walker wrapping the converted topology and
+        dimensions.
+
     Raises
     ------
+    TypeError
+        If ``sim_linkage`` is not a SimLinkage.
     NotImplementedError
-        If ``sim_linkage`` contains a component type this shim doesn't
-        yet handle. Fix the upstream feature gap or extend the shim.
+        Propagated from ``to_hypergraph`` when the linkage contains a
+        component type pylinkage cannot yet convert.
     """
-    # Prefer pylinkage's native bridge when available (pylinkage > 0.9.0).
-    # The in-tree fallback below stays until the floor in pyproject.toml
-    # is bumped past the release that ships ``SimLinkage.to_hypergraph``.
     to_hypergraph = getattr(sim_linkage, "to_hypergraph", None)
-    if callable(to_hypergraph):
-        hg, dims = to_hypergraph()
-        return Walker(
-            topology=hg,
-            dimensions=dims,
-            name=getattr(sim_linkage, "name", "") or "",
-            motor_rates=motor_rates,
-        )
-
-    components = getattr(sim_linkage, "components", None)
-    if components is None:
+    if not callable(to_hypergraph):
         raise TypeError(
-            f"Expected SimLinkage, got {type(sim_linkage).__name__}"
+            f"Expected a pylinkage SimLinkage with a to_hypergraph() "
+            f"bridge, got {type(sim_linkage).__name__}"
         )
-
-    hg = HypergraphLinkage(name=getattr(sim_linkage, "name", "") or "")
-    node_positions: dict[str, tuple[float, float]] = {}
-    edge_distances: dict[str, float] = {}
-    driver_angles: dict[str, DriverAngle] = {}
-    component_to_node: dict[int, str] = {}
-
-    # Pass 1: create a Node per Component.
-    for i, comp in enumerate(components):
-        cls_name = type(comp).__name__
-        if cls_name == "Ground":
-            role = NodeRole.GROUND
-        elif cls_name in ("Crank", "ArcCrank"):
-            role = NodeRole.DRIVER
-        else:
-            role = NodeRole.DRIVEN
-        node_id = getattr(comp, "name", None) or f"n{i}"
-        hg.add_node(Node(node_id, role=role))
-        component_to_node[id(comp)] = node_id
-        node_positions[node_id] = (float(comp.x), float(comp.y))
-
-    def _anchor_node_id(anchor: object) -> str:
-        # Handle _AnchorProxy: delegate to its parent component.
-        parent = getattr(anchor, "_parent", anchor)
-        key = id(parent)
-        if key not in component_to_node:
-            raise NotImplementedError(
-                f"Anchor {anchor!r} not found in component index"
-            )
-        return component_to_node[key]
-
-    # Pass 2: edges / hyperedges + driver angles.
-    edge_counter = 0
-    for comp in components:
-        cls_name = type(comp).__name__
-        this_id = component_to_node[id(comp)]
-
-        if cls_name == "Ground":
-            continue  # ground nodes have no outgoing edge
-
-        if cls_name in ("Crank", "ArcCrank"):
-            anchor_id = _anchor_node_id(comp.anchor)
-            eid = f"e{edge_counter}"
-            edge_counter += 1
-            hg.add_edge(Edge(eid, anchor_id, this_id))
-            # Crank uses ``radius``; ArcCrank / older variants may use
-            # ``distance``.
-            raw_len: Any = getattr(comp, "radius", None)
-            if raw_len is None:
-                raw_len = getattr(comp, "distance", 1.0)
-            edge_distances[eid] = float(raw_len)
-            omega = float(getattr(comp, "angular_velocity", -tau / 12))
-            driver_angles[this_id] = DriverAngle(angular_velocity=omega)
-            continue
-
-        if cls_name == "RRRDyad":
-            a1 = _anchor_node_id(comp.anchor1)
-            a2 = _anchor_node_id(comp.anchor2)
-            e1, e2 = f"e{edge_counter}", f"e{edge_counter + 1}"
-            edge_counter += 2
-            hg.add_edge(Edge(e1, a1, this_id))
-            hg.add_edge(Edge(e2, a2, this_id))
-            edge_distances[e1] = float(comp.distance1)
-            edge_distances[e2] = float(comp.distance2)
-            continue
-
-        if cls_name == "FixedDyad":
-            # Rigid triangle — the coupler point rides a fixed triangle
-            # with anchor1 and anchor2.
-            a1 = _anchor_node_id(comp.anchor1)
-            a2 = _anchor_node_id(comp.anchor2)
-            he_id = f"he{edge_counter}"
-            edge_counter += 1
-            hg.add_hyperedge(Hyperedge(he_id, (a1, a2, this_id)))
-            # Record the anchor-to-point distances as auxiliary edges for
-            # simulators that want binary edges. The hyperedge itself
-            # carries the rigidity; the edge distances give a usable
-            # numeric fallback.
-            e1, e2 = f"e{edge_counter}", f"e{edge_counter + 1}"
-            edge_counter += 2
-            hg.add_edge(Edge(e1, a1, this_id))
-            hg.add_edge(Edge(e2, a2, this_id))
-            edge_distances[e1] = float(getattr(comp, "distance", 1.0))
-            # Distance from a2 to this: approximate from current positions.
-            from math import hypot
-            a2_pos = node_positions[a2]
-            this_pos = node_positions[this_id]
-            edge_distances[e2] = hypot(
-                this_pos[0] - a2_pos[0], this_pos[1] - a2_pos[1]
-            )
-            continue
-
-        raise NotImplementedError(
-            f"SimLinkage component {cls_name!r} is not yet handled by the "
-            "leggedsnake shim. Extend _walker_from_sim_linkage or wait "
-            "for pylinkage 1.0's hypergraph-native bridge."
-        )
-
-    dims = Dimensions(
-        node_positions=node_positions,
-        driver_angles=driver_angles,
-        edge_distances=edge_distances,
-    )
+    hg, dims = to_hypergraph()
     return Walker(
         topology=hg,
         dimensions=dims,

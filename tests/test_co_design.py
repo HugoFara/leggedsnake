@@ -3,7 +3,7 @@
 """
 Tests for Phase 6: Dynamic Co-Design.
 
-Covers Walker factory methods (from_catalog, from_hierarchy, from_synthesis),
+Covers Walker factory methods (from_catalog, from_hierarchy),
 co_optimize_objective adapter, and end-to-end pipeline smoke tests.
 """
 import unittest
@@ -258,13 +258,13 @@ class TestOptimizeWalkingMechanismValidation(unittest.TestCase):
 
 
 class TestOptimizeWalkingMechanismEndToEnd(unittest.TestCase):
-    """End-to-end smoke test: SimLinkage shim → co_optimize → Walkers.
+    """End-to-end smoke test: co_optimize → SimLinkage → Walkers.
 
     Exercises the full co-design pipeline with a tiny budget. This is
     the only test that validates the SimLinkage → Walker bridge under
     real pylinkage optimizer traffic (all other tests hand-craft a
     SimLinkage). It is the canary for shape / type drift in
-    ``_walker_from_sim_linkage`` as pylinkage's ``co_optimize`` evolves.
+    ``Walker.from_synthesis`` as pylinkage's ``co_optimize`` evolves.
     """
 
     def test_pipeline_returns_walkers(self):

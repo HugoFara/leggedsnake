@@ -109,6 +109,32 @@ def _make_foot_topology_only() -> Walker:
     return Walker(hg, dims, name="foot_topo")
 
 
+def _make_dead_zone_walker() -> Walker:
+    """An RRR dyad that assembles for only part of the crank rotation.
+
+    The crank tip orbits A at radius 1, so its distance to the far
+    ground pivot B swings between 2 and 4 while the coupler and rocker
+    can span at most 3. Roughly a fifth of the rotation is buildable —
+    enough to exercise both sides of ``skip_unbuildable``.
+    """
+    hg = HypergraphLinkage(name="dead_zone")
+    hg.add_node(Node("A", role=NodeRole.GROUND))
+    hg.add_node(Node("B", role=NodeRole.GROUND))
+    hg.add_node(Node("crank", role=NodeRole.DRIVER))
+    hg.add_node(Node("C", role=NodeRole.DRIVEN))
+    hg.add_edge(Edge("A_crank", "A", "crank"))
+    hg.add_edge(Edge("crank_C", "crank", "C"))
+    hg.add_edge(Edge("B_C", "B", "C"))
+    dims = Dimensions(
+        node_positions={
+            "A": (0, 0), "B": (3, 0), "crank": (1, 0), "C": (1.5, 0.5),
+        },
+        driver_angles={"crank": DriverAngle(angular_velocity=-tau / 24)},
+        edge_distances={"A_crank": 1.0, "crank_C": 1.5, "B_C": 1.5},
+    )
+    return Walker(hg, dims, name="dead_zone")
+
+
 class TestWalkerCreation(unittest.TestCase):
     """Test basic Walker creation and attributes."""
 
@@ -199,7 +225,7 @@ class TestWalkerStep(unittest.TestCase):
 
 
 class TestWalkerStepWithDerivatives(unittest.TestCase):
-    """Test step_with_derivatives — temporary finite-difference shim."""
+    """Test step_with_derivatives — analytic velocity / acceleration."""
 
     def test_yields_triples(self):
         """Each yielded item is a (positions, velocities, accelerations) triple."""
@@ -213,31 +239,286 @@ class TestWalkerStepWithDerivatives(unittest.TestCase):
             self.assertEqual(len(acc), 3)
 
     def test_crank_tip_speed_matches_omega_radius(self):
-        """|v| at the crank joint should approximate |omega| * radius.
+        """|v| at the crank joint equals |omega| * radius, on every frame.
 
         Walker with unit-length crank spinning at tau/12 rad/step: the
-        crank tip moves on the unit circle, so |v| ≈ tau/12 per step
-        (central-difference estimate against dt=1).
+        crank tip moves on the unit circle, so |v| = tau/12 per unit
+        time. The analytic solver is exact, so this holds at the first
+        and last frame too — where a finite-difference estimate has to
+        fall back to a one-sided stencil.
         """
         from math import hypot
         walker = _make_fourbar_walker()
         # crank joint is index 1 in _make_fourbar_walker (frame=0, crank=1, follower=2)
         frames = list(walker.step_with_derivatives(iterations=24, dt=1.0))
-        # Skip the first and last frame (forward/backward diff, less accurate).
-        middle = frames[5:20]
-        speeds = [hypot(vel[1][0], vel[1][1]) for _, vel, _ in middle]
         expected = abs(-tau / 12) * 1.0  # |omega| * radius
-        for s in speeds:
-            self.assertAlmostEqual(s, expected, delta=expected * 0.1)
+        for _, vel, _ in frames:
+            self.assertAlmostEqual(hypot(vel[1][0], vel[1][1]), expected, places=9)
+
+    def test_crank_tip_acceleration_is_centripetal(self):
+        """A crank at constant speed has acceleration omega**2 * radius,
+        pointing at the motor joint."""
+        from math import hypot
+        walker = _make_fourbar_walker()
+        frames = list(walker.step_with_derivatives(iterations=24, dt=1.0))
+        expected = (tau / 12) ** 2 * 1.0
+        for pos, _, acc in frames:
+            self.assertAlmostEqual(hypot(acc[1][0], acc[1][1]), expected, places=9)
+            # Points from the crank tip back towards the frame at (0, 0).
+            self.assertAlmostEqual(acc[1][0], -expected * pos[1][0], places=9)
+            self.assertAlmostEqual(acc[1][1], -expected * pos[1][1], places=9)
+
+    def test_alpha_adds_tangential_acceleration(self):
+        """alpha is the only way to express a crank that is spinning up.
+
+        Adding it leaves the centripetal term alone and superposes a
+        tangential component of magnitude alpha * radius.
+        """
+        from math import hypot
+        steady = list(_make_fourbar_walker().step_with_derivatives(iterations=6))
+        spinup = list(
+            _make_fourbar_walker().step_with_derivatives(iterations=6, alpha=0.3)
+        )
+        for (_, _, acc0), (_, _, acc1) in zip(steady, spinup):
+            delta = (acc1[1][0] - acc0[1][0], acc1[1][1] - acc0[1][1])
+            self.assertAlmostEqual(hypot(*delta), 0.3 * 1.0, places=9)
+
+    def test_matches_finite_differences_of_positions(self):
+        """The analytic velocities agree with numerically differentiating
+        the position stream they are yielded alongside."""
+        h = 1e-4
+        frames = list(_make_fourbar_walker().step_with_derivatives(
+            iterations=60, dt=h,
+        ))
+        for joint in range(3):
+            for i in range(1, len(frames) - 1):
+                before = frames[i - 1][0][joint]
+                after = frames[i + 1][0][joint]
+                analytic = frames[i][1][joint]
+                self.assertAlmostEqual(
+                    (after[0] - before[0]) / (2 * h), analytic[0], places=5,
+                )
+                self.assertAlmostEqual(
+                    (after[1] - before[1]) / (2 * h), analytic[1], places=5,
+                )
+
+    def test_derivatives_are_independent_of_dt(self):
+        """dt scales how far each step advances *and* the time it spans,
+        so the resulting rates are unchanged."""
+        coarse = list(_make_fourbar_walker().step_with_derivatives(
+            iterations=4, dt=1.0,
+        ))
+        fine = list(_make_fourbar_walker().step_with_derivatives(
+            iterations=4, dt=0.5,
+        ))
+        from math import hypot
+        self.assertAlmostEqual(
+            hypot(*coarse[0][1][1]), hypot(*fine[0][1][1]), places=9,
+        )
 
     def test_accelerations_finite(self):
-        """Accelerations are computable from velocities (no Nones on buildable runs)."""
+        """No Nones anywhere on a fully buildable run."""
         walker = _make_fourbar_walker()
         frames = list(walker.step_with_derivatives(iterations=10))
-        for _, _, acc in frames[1:-1]:
-            for ax, ay in acc:
-                self.assertIsNotNone(ax)
-                self.assertIsNotNone(ay)
+        for _, vel, acc in frames:
+            for component in (*vel, *acc):
+                self.assertIsNotNone(component[0])
+                self.assertIsNotNone(component[1])
+
+    def test_iterations_defaults_to_one_rotation(self):
+        walker = _make_fourbar_walker()
+        frames = list(walker.step_with_derivatives())
+        self.assertEqual(len(frames), walker.get_rotation_period())
+
+    def test_collinear_foot_resolves(self):
+        """Chebyshev's foot P sits on the line through its two anchors,
+        which makes the constraint-intersection velocity solve singular.
+
+        pylinkage resolves it by propagating the coupler body's motion
+        (fixed after 1.0.0). Feet are the joints that matter most for
+        gait and stability work, so this is worth pinning.
+        """
+        walker = Walker.from_chebyshev()
+        joint_ids = [j.id for j in walker.to_mechanism().joints]
+        foot = joint_ids.index("P")
+        for pos, vel, acc in walker.step_with_derivatives(iterations=6):
+            # P really is on the line through its anchors.
+            a, b, p = pos[joint_ids.index("A")], pos[joint_ids.index("B")], pos[foot]
+            cross = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])
+            self.assertAlmostEqual(cross, 0.0, places=9)
+
+            self.assertIsNotNone(vel[foot][0])
+            self.assertIsNotNone(acc[foot][0])
+
+    def test_every_classical_foot_matches_finite_differences(self):
+        """Guards the whole shipped set against derivatives that are
+        merely present rather than correct."""
+        h = 1e-3
+        factories = [
+            ("chebyshev", Walker.from_chebyshev),
+            ("jansen", lambda: Walker.from_jansen(scale=0.04)),
+            ("klann", Walker.from_klann),
+            ("strider", Walker.from_strider),
+            ("trotbot", Walker.from_trotbot),
+        ]
+        for name, make in factories:
+            with self.subTest(walker=name):
+                walker = make()
+                joint_ids = [j.id for j in walker.to_mechanism().joints]
+                feet = [joint_ids.index(f) for f in walker.get_feet()]
+                frames = list(walker.step_with_derivatives(
+                    iterations=16, dt=h, skip_unbuildable=True,
+                ))
+                compared = 0
+                for i in range(1, len(frames) - 1):
+                    window = (frames[i - 1], frames[i], frames[i + 1])
+                    if any(f[0][0][0] is None for f in window):
+                        continue
+                    for k in feet:
+                        before, after = frames[i - 1][0][k], frames[i + 1][0][k]
+                        vx, vy = frames[i][1][k]
+                        self.assertIsNotNone(vx, f"{name}: foot {joint_ids[k]}")
+                        self.assertAlmostEqual(
+                            vx, (after[0] - before[0]) / (2 * h), delta=1e-3,
+                        )
+                        self.assertAlmostEqual(
+                            vy, (after[1] - before[1]) / (2 * h), delta=1e-3,
+                        )
+                        compared += 1
+                self.assertGreater(compared, 0)
+
+    def test_undefined_derivatives_normalise_to_pairs(self):
+        """Upstream reports an undefined derivative as a bare ``None``,
+        which would not unpack. Every frame reads the same way."""
+        from leggedsnake.walker import _derivative_pairs
+
+        self.assertEqual(
+            _derivative_pairs([(1.0, 2.0), None, (3.0, 4.0)]),
+            ((1.0, 2.0), (None, None), (3.0, 4.0)),
+        )
+
+
+class TestStepWithDerivativesInputRates(unittest.TestCase):
+    """omega / alpha overrides — pylinkage treats an unseeded driver as
+    stationary, so these have to reach every driver link."""
+
+    @staticmethod
+    def _crank_speeds(walker, **kwargs):
+        from math import hypot
+        joint_ids = [j.id for j in walker.to_mechanism().joints]
+        frames = list(walker.step_with_derivatives(
+            iterations=12, skip_unbuildable=True, **kwargs,
+        ))
+        return {
+            driver.id: sorted({
+                round(hypot(*vel[joint_ids.index(driver.id)]), 6)
+                for _, vel, _ in frames
+                if vel[joint_ids.index(driver.id)][0] is not None
+            })
+            for driver in walker.topology.driver_nodes()
+        }
+
+    def _multi_driver_walker(self):
+        walker = Walker.from_chebyshev()
+        walker.add_legs(2)
+        return walker
+
+    def test_defaults_to_each_drivers_own_rate(self):
+        walker = self._multi_driver_walker()
+        expected = round(abs(tau / 48) * 0.75, 6)  # |angular_velocity| * radius
+        for speeds in self._crank_speeds(walker).values():
+            self.assertEqual(speeds, [expected])
+
+    def test_scalar_omega_applies_to_every_driver(self):
+        walker = self._multi_driver_walker()
+        for speeds in self._crank_speeds(walker, omega=2.0).values():
+            self.assertEqual(speeds, [round(2.0 * 0.75, 6)])
+
+    def test_dict_omega_is_per_driver(self):
+        walker = self._multi_driver_walker()
+        drivers = [n.id for n in walker.topology.driver_nodes()]
+        speeds = self._crank_speeds(
+            walker, omega={drivers[0]: -1.0, drivers[1]: -4.0},
+        )
+        self.assertEqual(speeds[drivers[0]], [round(1.0 * 0.75, 6)])
+        self.assertEqual(speeds[drivers[1]], [round(4.0 * 0.75, 6)])
+
+    def test_dict_omega_leaves_unlisted_drivers_at_their_own_rate(self):
+        walker = self._multi_driver_walker()
+        drivers = [n.id for n in walker.topology.driver_nodes()]
+        speeds = self._crank_speeds(walker, omega={drivers[0]: -1.0})
+        self.assertEqual(
+            speeds[drivers[2]], [round(abs(tau / 48) * 0.75, 6)],
+        )
+
+
+class TestStepWithDerivativesDeadZones(unittest.TestCase):
+    """skip_unbuildable across a dead zone — upstream's generator dies on
+    the first UnbuildableError, so the frames have to be driven one at a
+    time."""
+
+    ITERATIONS = 24
+
+    def test_yields_requested_count(self):
+        frames = list(_make_dead_zone_walker().step_with_derivatives(
+            iterations=self.ITERATIONS, skip_unbuildable=True,
+        ))
+        self.assertEqual(len(frames), self.ITERATIONS)
+
+    def test_fixture_actually_has_a_dead_zone(self):
+        """Guard against the geometry silently becoming buildable."""
+        frames = list(_make_dead_zone_walker().step_with_derivatives(
+            iterations=self.ITERATIONS, skip_unbuildable=True,
+        ))
+        dead = [i for i, (pos, _, _) in enumerate(frames) if pos[3][0] is None]
+        self.assertGreater(len(dead), 0)
+        self.assertLess(len(dead), self.ITERATIONS)
+
+    def test_dead_zone_matches_step(self):
+        """Same frames blank out, and buildable positions are identical —
+        adding derivatives must not perturb the trajectory."""
+        with_derivatives = list(_make_dead_zone_walker().step_with_derivatives(
+            iterations=self.ITERATIONS, skip_unbuildable=True,
+        ))
+        positions_only = list(_make_dead_zone_walker().step(
+            iterations=self.ITERATIONS, skip_unbuildable=True,
+        ))
+        self.assertEqual(
+            [pos for pos, _, _ in with_derivatives], positions_only,
+        )
+
+    def test_blank_frames_are_none_pairs_throughout(self):
+        """Callers unpack every entry as two values, so a dead frame has
+        to be ``(None, None)`` rather than a bare ``None``."""
+        frames = list(_make_dead_zone_walker().step_with_derivatives(
+            iterations=self.ITERATIONS, skip_unbuildable=True,
+        ))
+        for pos, vel, acc in frames:
+            if pos[3][0] is not None:
+                continue
+            for entry in (*pos, *vel, *acc):
+                self.assertEqual(entry, (None, None))
+
+    def test_buildable_frames_keep_exact_derivatives(self):
+        """Drivers keep advancing through the dead zone, so the frames on
+        the far side are still exact."""
+        from math import hypot
+        frames = list(_make_dead_zone_walker().step_with_derivatives(
+            iterations=self.ITERATIONS, skip_unbuildable=True,
+        ))
+        expected = abs(tau / 24) * 1.0
+        live = [vel for pos, vel, _ in frames if pos[3][0] is not None]
+        self.assertGreater(len(live), 0)
+        for vel in live:
+            self.assertAlmostEqual(hypot(*vel[2]), expected, places=9)
+
+    def test_raises_without_skip_unbuildable(self):
+        from pylinkage import UnbuildableError
+
+        with self.assertRaises(UnbuildableError):
+            list(_make_dead_zone_walker().step_with_derivatives(
+                iterations=self.ITERATIONS,
+            ))
 
 
 class TestWalkerMobility(unittest.TestCase):
@@ -450,36 +731,65 @@ class TestAddOppositeLeg(unittest.TestCase):
 
 
 class TestOptimizationInterface(unittest.TestCase):
-    """Test get/set_num_constraints and get/set_coords."""
+    """Test get/set_constraints and get/set_coords."""
 
-    def test_get_num_constraints_returns_list(self):
-        """get_num_constraints() returns a list of floats."""
+    def test_get_constraints_returns_list(self):
+        """get_constraints() returns a list of floats."""
         walker = _make_fourbar_walker()
-        constraints = walker.get_num_constraints()
+        constraints = walker.get_constraints()
         self.assertIsInstance(constraints, list)
         self.assertGreater(len(constraints), 0)
         for c in constraints:
             self.assertIsInstance(c, float)
 
-    def test_set_num_constraints_roundtrip(self):
-        """set_num_constraints(get_num_constraints()) preserves values."""
+    def test_set_constraints_roundtrip(self):
+        """set_constraints(get_constraints()) preserves values."""
         walker = _make_fourbar_walker()
-        original = walker.get_num_constraints()
-        walker.set_num_constraints(original)
-        after = walker.get_num_constraints()
+        original = walker.get_constraints()
+        walker.set_constraints(original)
+        after = walker.get_constraints()
         for a, b in zip(original, after):
             self.assertAlmostEqual(a, b)
 
-    def test_set_num_constraints_accepts_list(self):
-        """set_num_constraints accepts a list without raising."""
+    def test_set_constraints_accepts_list(self):
+        """set_constraints accepts a list without raising."""
         walker = _make_fourbar_walker()
-        original = walker.get_num_constraints()
+        original = walker.get_constraints()
         # Modify and set — should not raise
         modified = [c * 1.1 for c in original]
-        walker.set_num_constraints(modified)
+        walker.set_constraints(modified)
         # At minimum the constraint count should be unchanged
-        after = walker.get_num_constraints()
+        after = walker.get_constraints()
         self.assertEqual(len(after), len(original))
+
+    def test_set_constraints_flattens_nested_input(self):
+        """Nested input (as from a param_expander) is flattened in order.
+
+        This absorbs what the deprecated ``set_num_constraints(...,
+        flat=False)`` used to do.
+        """
+        walker = _make_fourbar_walker()
+        original = walker.get_constraints()
+        # Re-shape the flat vector into pairs, then feed it back nested.
+        nested = [
+            list(original[i:i + 2]) for i in range(0, len(original), 2)
+        ]
+        walker.set_constraints(nested)
+        after = walker.get_constraints()
+        for a, b in zip(original, after):
+            self.assertAlmostEqual(a, b)
+
+    def test_num_constraints_aliases_warn_but_work(self):
+        """The 0.5.x spelling still works, with a DeprecationWarning."""
+        walker = _make_fourbar_walker()
+        with self.assertWarns(DeprecationWarning):
+            original = walker.get_num_constraints()
+        with self.assertWarns(DeprecationWarning):
+            walker.set_num_constraints(original)
+        with self.assertWarns(DeprecationWarning):
+            after = walker.get_num_constraints()
+        for a, b in zip(original, after):
+            self.assertAlmostEqual(a, b)
 
     def test_get_coords_returns_positions(self):
         """get_coords() returns a list of (x, y) tuples."""
@@ -812,40 +1122,158 @@ class TestWalkerFromSimLinkage(unittest.TestCase):
         positions = list(walker.step(iterations=6, skip_unbuildable=True))
         self.assertEqual(len(positions), 6)
 
-    def test_unknown_component_raises(self):
+    def test_non_sim_linkage_raises_type_error(self):
+        """Objects without pylinkage's ``to_hypergraph`` bridge are
+        rejected up front rather than half-converted."""
         from leggedsnake.walker import _walker_from_sim_linkage
-
-        class Foo:
-            x, y, name = 0, 0, "foo"
 
         class FakeSim:
-            components = (Foo(),)
+            components = ()
             name = "fake"
 
-        with self.assertRaises(NotImplementedError):
+        with self.assertRaises(TypeError):
             _walker_from_sim_linkage(FakeSim())
 
-    def test_fallback_path_when_native_bridge_missing(self):
-        """Pylinkage 0.9.0 has no ``SimLinkage.to_hypergraph``. Force the
-        fallback by hiding the native bridge and check the in-tree shim
-        still produces an equivalent Walker."""
-        from unittest.mock import patch
 
-        from leggedsnake.walker import _walker_from_sim_linkage
+class TestWalkerFromSynthesis(unittest.TestCase):
+    """Test Walker.from_synthesis across every synthesis output shape."""
 
-        sim = self._make_sim_linkage()
-        # Patch the *class* attribute so getattr() returns None and the
-        # gate's ``callable(...)`` check falls through to the fallback.
-        # ``create=True`` so the patch works on pylinkage versions that
-        # never defined ``to_hypergraph`` at all.
-        with patch.object(type(sim), "to_hypergraph", None, create=True):
-            walker = _walker_from_sim_linkage(sim)
+    PRECISION_POINTS = [(0.0, -3.0), (2.0, -3.0), (1.0, -1.0)]
+
+    @classmethod
+    def setUpClass(cls):
+        from pylinkage.synthesis import path_generation
+
+        cls.result = path_generation(
+            precision_points=cls.PRECISION_POINTS,
+            max_solutions=5,
+        )
+        if len(cls.result.solutions) < 2:
+            raise unittest.SkipTest(
+                "path_generation returned too few solutions to test indexing"
+            )
+
+    def test_from_synthesis_result(self):
+        walker = Walker.from_synthesis(self.result)
         self.assertIsInstance(walker, Walker)
-        self.assertEqual(walker.name, "fourbar")
-        self.assertEqual(len(walker.topology.nodes), 4)
-        roles = {nid: n.role for nid, n in walker.topology.nodes.items()}
-        self.assertEqual(roles["A"], NodeRole.GROUND)
-        self.assertEqual(roles["B"], NodeRole.DRIVER)
+        # Four-bar + coupler point: A, D (ground), B (driver), C, P.
+        self.assertEqual(len(walker.topology.nodes), 5)
+        self.assertEqual(walker.name, self.result.solutions[0].name)
+
+    def test_synthesized_walker_is_steppable(self):
+        walker = Walker.from_synthesis(self.result)
+        positions = list(walker.step(iterations=12, skip_unbuildable=True))
+        self.assertEqual(len(positions), 12)
+
+    def test_index_selects_candidate(self):
+        first = Walker.from_synthesis(self.result, index=0)
+        second = Walker.from_synthesis(self.result, index=1)
+        self.assertNotEqual(first.name, second.name)
+        self.assertNotEqual(
+            first.dimensions.edge_distances, second.dimensions.edge_distances,
+        )
+
+    def test_negative_index_counts_from_end(self):
+        last = Walker.from_synthesis(self.result, index=-1)
+        expected = Walker.from_synthesis(
+            self.result, index=len(self.result.solutions) - 1,
+        )
+        self.assertEqual(last.name, expected.name)
+
+    def test_from_raw_fourbar_solution(self):
+        """FourBarSolution is a NamedTuple — it must not be mistaken for a
+        sequence of candidates."""
+        walker = Walker.from_synthesis(self.result.raw_solutions[0])
+        self.assertEqual(len(walker.topology.nodes), 5)
+
+    def test_from_sequence_of_raw_solutions(self):
+        walker = Walker.from_synthesis(self.result.raw_solutions, index=1)
+        direct = Walker.from_synthesis(self.result.raw_solutions[1])
+        self.assertEqual(
+            walker.dimensions.edge_distances, direct.dimensions.edge_distances,
+        )
+
+    def test_from_sim_linkage(self):
+        walker = Walker.from_synthesis(self.result.solutions[2])
+        self.assertEqual(walker.name, self.result.solutions[2].name)
+
+    def test_from_ensemble_matches_solution_geometry(self):
+        """Ensemble members share one linkage, so each has to be
+        materialised with its own constraints before conversion."""
+        for index in range(len(self.result.solutions)):
+            from_ensemble = Walker.from_synthesis(self.result.ensemble, index=index)
+            from_solution = Walker.from_synthesis(self.result, index=index)
+            for edge_id, distance in from_solution.dimensions.edge_distances.items():
+                self.assertAlmostEqual(
+                    from_ensemble.dimensions.edge_distances[edge_id], distance,
+                )
+
+    def test_from_ensemble_does_not_mutate_shared_linkage(self):
+        before = list(self.result.ensemble.linkage.get_constraints())
+        Walker.from_synthesis(self.result.ensemble, index=1)
+        self.assertEqual(list(self.result.ensemble.linkage.get_constraints()), before)
+
+    def test_from_topology_solution(self):
+        from pylinkage.synthesis import multi_topology_synthesize
+
+        solutions = multi_topology_synthesize(
+            precision_points=self.PRECISION_POINTS,
+            max_links=6,
+            max_total_solutions=3,
+        )
+        if not solutions:
+            self.skipTest("multi_topology_synthesize returned no solutions")
+        walker = Walker.from_synthesis(solutions[0])
+        self.assertIsInstance(walker, Walker)
+        # The same run also has to be reachable as a bare list.
+        from_list = Walker.from_synthesis(solutions)
+        self.assertEqual(
+            walker.dimensions.edge_distances, from_list.dimensions.edge_distances,
+        )
+
+    def test_from_nbar_solution(self):
+        from pylinkage.synthesis import multi_topology_synthesize
+
+        solutions = multi_topology_synthesize(
+            precision_points=self.PRECISION_POINTS,
+            max_links=6,
+            max_total_solutions=3,
+        )
+        if not solutions:
+            self.skipTest("multi_topology_synthesize returned no solutions")
+        walker = Walker.from_synthesis(solutions[0].solution)
+        self.assertIsInstance(walker, Walker)
+
+    def test_name_override(self):
+        walker = Walker.from_synthesis(self.result, name="foot_path_A")
+        self.assertEqual(walker.name, "foot_path_A")
+
+    def test_motor_rates_forwarded(self):
+        walker = Walker.from_synthesis(self.result, motor_rates=-1.5)
+        self.assertEqual(walker.motor_rates, -1.5)
+        walker = Walker.from_synthesis(self.result, motor_rates={"B": -2.0})
+        self.assertEqual(walker.motor_rates, {"B": -2.0})
+
+    def test_pairs_with_add_legs(self):
+        walker = Walker.from_synthesis(self.result)
+        walker.add_legs(1)
+        self.assertEqual(len(walker.topology.driver_nodes()), 2)
+
+    def test_rejects_unknown_type(self):
+        with self.assertRaises(TypeError):
+            Walker.from_synthesis(42)
+        with self.assertRaises(TypeError):
+            Walker.from_synthesis("fourbar")
+
+    def test_empty_container_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            Walker.from_synthesis([])
+
+    def test_index_out_of_range_raises(self):
+        with self.assertRaises(IndexError):
+            Walker.from_synthesis(self.result, index=999)
+        with self.assertRaises(IndexError):
+            Walker.from_synthesis(self.result.ensemble, index=999)
 
 
 if __name__ == "__main__":

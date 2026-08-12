@@ -122,7 +122,8 @@ def optimize_walking_mechanism(
     3. Run ``warm_start_co_optimization()`` or ``co_optimize()``
        (depending on ``spec.use_warm_start``).
     4. Convert Pareto-front solutions to ``Walker`` instances via
-       ``Walker.from_synthesis()``.
+       ``Walker.from_synthesis()``, which wraps pylinkage's
+       ``Linkage.to_hypergraph()`` bridge.
     5. Re-evaluate each walker with the original fitness functions to
        produce full ``FitnessResult`` dicts (with metrics and loci).
     6. Rank by primary objective score (highest first).
@@ -191,11 +192,8 @@ def optimize_walking_mechanism(
             objective_names=names,
         )
 
-    # 4. Convert solutions to Walkers via the temporary SimLinkage shim.
-    # Drop this routing in favor of a direct pylinkage call once 1.0
-    # exposes a supported SimLinkage → Walker bridge.
-    from .walker import _walker_from_sim_linkage
-
+    # 4. Convert solutions to Walkers. Thin wrapper over pylinkage's
+    # native ``Linkage.to_hypergraph()`` bridge since 0.6.0.
     walkers: list[Walker] = []
     fitness_results_list: list[dict[str, FitnessResult]] = []
 
@@ -204,7 +202,7 @@ def optimize_walking_mechanism(
         if sim_linkage is None:
             continue
         try:
-            walker = _walker_from_sim_linkage(
+            walker = Walker.from_synthesis(
                 sim_linkage, motor_rates=spec.motor_rates,
             )
         except Exception:

@@ -7,6 +7,127 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-12
+
+Requires **pylinkage >= 1.1.0**. This release drops the compatibility
+shims that carried leggedsnake across the 0.9.x → 1.0.0 transition,
+handing the work back to upstream now that it is supported there, and
+opens the synthesis hand-off as public API.
+
+### Added
+
+- **``Walker.from_synthesis``.** Dimensional synthesis answers "which
+  mechanism traces this foot path?"; this factory turns that answer
+  into a physics-ready walker in one call, where the route previously
+  ran through the private ``_walker_from_sim_linkage``. It accepts
+  every container ``pylinkage.synthesis`` emits — ``SynthesisResult``
+  (``path_generation``, ``function_generation``,
+  ``motion_generation_3_poses``, ``six_bar_path_generation``,
+  ``path_generation_with_timing``), ``TopologySolution`` from
+  ``multi_topology_synthesize``, ``NBarSolution`` from
+  ``generalized_synthesis``, a raw ``FourBarSolution``, an
+  ``Ensemble``, a ``Linkage``, or a sequence of any of those —
+  selecting among candidates with ``index``. ``Ensemble`` members are
+  materialised onto a private copy of the shared linkage, so
+  converting one never disturbs the ensemble. pylinkage's 1.0.0
+  changelog referred to this factory before it existed; it exists now.
+
+- **``omega`` / ``alpha`` on ``Walker.step_with_derivatives``.** Both
+  take a float (all drivers) or a ``dict`` keyed by driver node id,
+  mirroring ``motor_rates``. ``alpha`` is the only way to express a
+  driver that is spinning up or down; the previous implementation
+  could not represent one at all.
+
+### Changed
+
+- **``Walker.step_with_derivatives`` now solves derivatives
+  analytically.** It delegates to pylinkage 1.0.0's
+  ``Mechanism.step_with_derivatives`` (``solver.velocity`` /
+  ``solver.acceleration``) instead of central-differencing its own
+  position stream. **Velocity and acceleration values change**: they
+  are now exact rather than O(dt²)-accurate, including at the first
+  and last frame, where the finite-difference stencil had to degrade
+  to one-sided. A unit crank at ``omega`` now reports exactly
+  ``|omega| * r`` on every frame. The method also streams instead of
+  materialising the whole run before yielding.
+
+  ``skip_unbuildable`` is preserved. Upstream's generator dies on the
+  first ``UnbuildableError``, so dead zones are stepped one frame at a
+  time: blank frames yield ``(None, None)`` per joint, drivers keep
+  advancing, and the stream length still equals ``iterations``.
+  Positions are identical to ``step()``'s, frame for frame.
+
+  Auditing the switch — every joint of every shipped factory against
+  finite differences of the position stream, rather than only checking
+  for ``None`` — turned up two defects in pylinkage 1.0.0, both fixed
+  upstream and released in 1.1.0. A joint collinear with its two
+  anchors (a ternary link carrying its foot on the coupler line, which
+  is a standard walking-linkage arrangement) was mistaken for a dead
+  centre and reported no derivative; and an unresolved anchor was read
+  as a stationary one, so joints downstream of it reported plausible
+  but wrong values rather than ``None``. **This release therefore
+  requires pylinkage >= 1.1.0.** Against 1.0.0,
+  ``from_chebyshev``'s foot and several of ``from_trotbot``'s report
+  no velocity, and ``from_trotbot``'s ``j5`` / ``j7`` report wrong
+  ones. With the upstream fix every joint of every factory agrees with
+  finite differences to the reference's own truncation error.
+
+  A joint may still legitimately yield ``(None, None)``: prismatic
+  joints, and genuine dead centres where the mechanism is at a toggle.
+  Those propagate, so an undefined derivative stays visibly undefined
+  instead of turning into a number downstream.
+
+- **``Walker.set_constraints`` accepts nested input.** It flattens a
+  nested sequence (what a ``param_expander`` such as
+  ``param2dimensions`` returns) in order, and passes flat input
+  through unchanged. This absorbs the ``flat=False`` keyword that
+  only existed on the deprecated ``set_num_constraints``, so callers
+  no longer need a keyword to declare which shape they are holding.
+
+- **Internal constraint plumbing.** ``utility`` gains three private
+  helpers — ``_flatten_constraints``, ``_get_constraints``,
+  ``_set_constraints`` — used by ``fitness``, ``genetic_optimizer``,
+  ``nsga_optimizer`` and ``walking_objectives``. The optimizers accept
+  any object honouring the pylinkage optimizer contract rather than
+  only a ``Walker``, so these prefer the new method names and fall
+  back to the old ones, keeping unmigrated third-party linkages
+  working. As a side effect ``agents_to_ensemble`` now distinguishes
+  "linkage reports zero constraints" from "linkage has no such
+  method" instead of silently treating both as zero.
+
+### Removed
+
+- **``_walker_from_sim_linkage``'s in-tree component walker.** The
+  function had a hand-written converter covering ``Ground`` /
+  ``Crank`` / ``ArcCrank`` / ``RRRDyad`` / ``FixedDyad``, gated behind
+  a ``getattr`` probe so it could run on pylinkage 0.9.x. pylinkage
+  1.0.0 ships :meth:`pylinkage.simulation.Linkage.to_hypergraph`,
+  which covers those types plus ``LinearActuator``, ``RRPDyad`` and
+  ``PPDyad``. The function is now a thin wrapper over the native
+  bridge, and non-SimLinkage input raises ``TypeError`` up front
+  rather than part-way through conversion. The ``FixedDyad`` branch
+  is the one behaviour change worth noting: it approximated the
+  second anchor distance from current joint positions, where
+  upstream derives it from the dyad itself.
+
+- **``serialization._dimensions_to_dict`` / ``_dimensions_from_dict``.**
+  Replaced by pylinkage's native ``Dimensions.to_dict`` /
+  ``Dimensions.from_dict``. Files written by leggedsnake < 0.6.0 still
+  load: upstream's ``from_dict`` accepts both the current
+  ``[node_a, node_b, distance]`` triples and the older
+  stringified-tuple hyperedge keys. Newly written files use triples.
+  The old in-tree parser stripped punctuation and split on commas,
+  which quietly corrupted any node id containing a comma or a quote;
+  the upstream format has no such failure mode.
+
+### Deprecated
+
+- **``Walker.get_num_constraints`` / ``Walker.set_num_constraints``.**
+  Use ``get_constraints`` / ``set_constraints``. The old pair now
+  emits a ``DeprecationWarning`` and will be removed in **0.7.0**.
+  pylinkage made the same rename in 1.0.0 and removed its own
+  wrappers outright; ours survive one further cycle.
+
 ## [0.5.1] - 2026-07-23
 
 ### Changed

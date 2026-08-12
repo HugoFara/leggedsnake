@@ -2,8 +2,13 @@
 Walker and optimization result serialization.
 
 Provides JSON save/load for Walker instances and NsgaWalkingResult.
-Uses pylinkage's ``graph_to_dict``/``graph_from_dict`` for topology
-and manually serializes Dimensions (positions, distances, driver angles).
+Delegates to pylinkage's ``graph_to_dict``/``graph_from_dict`` for
+topology and ``Dimensions.to_dict``/``Dimensions.from_dict`` for
+geometry (positions, distances, driver angles).
+
+Files written by leggedsnake < 0.6.0 remain readable: pylinkage's
+``Dimensions.from_dict`` accepts both the current ``[node_a, node_b,
+distance]`` triples and the older stringified-tuple hyperedge keys.
 
 Example::
 
@@ -28,75 +33,12 @@ if TYPE_CHECKING:
 
 import numpy as np
 
-from pylinkage.dimensions import Dimensions, DriverAngle
+from pylinkage.dimensions import Dimensions
 from pylinkage.hypergraph.serialization import graph_from_dict, graph_to_dict
 from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 
 from .nsga_optimizer import NsgaWalkingConfig, NsgaWalkingResult
 
-
-# ---------------------------------------------------------------------------
-# Dimensions serialization helpers (Dimensions has no built-in to_dict)
-# ---------------------------------------------------------------------------
-
-
-def _dimensions_to_dict(dims: Dimensions) -> dict[str, Any]:
-    """Serialize a Dimensions object to a plain dict."""
-    return {
-        "node_positions": {
-            nid: list(pos) for nid, pos in dims.node_positions.items()
-        },
-        "driver_angles": {
-            nid: {
-                "angular_velocity": da.angular_velocity,
-                "initial_angle": da.initial_angle,
-            }
-            for nid, da in dims.driver_angles.items()
-        },
-        "edge_distances": dict(dims.edge_distances),
-        "hyperedge_constraints": {
-            he_id: {str(k): v for k, v in constraints.items()}
-            for he_id, constraints in dims.hyperedge_constraints.items()
-        } if dims.hyperedge_constraints else {},
-        "name": dims.name,
-    }
-
-
-def _dimensions_from_dict(data: dict[str, Any]) -> Dimensions:
-    """Deserialize a Dimensions object from a plain dict."""
-    node_positions = {
-        nid: tuple(pos) for nid, pos in data.get("node_positions", {}).items()
-    }
-    driver_angles = {
-        nid: DriverAngle(
-            angular_velocity=da["angular_velocity"],
-            initial_angle=da.get("initial_angle", 0.0),
-        )
-        for nid, da in data.get("driver_angles", {}).items()
-    }
-    edge_distances = dict(data.get("edge_distances", {}))
-
-    # Reconstruct hyperedge constraints
-    hyperedge_constraints: dict[str, dict[tuple[str, str], float]] = {}
-    for he_id, constraints in data.get("hyperedge_constraints", {}).items():
-        parsed: dict[tuple[str, str], float] = {}
-        for key_str, val in constraints.items():
-            # Keys were stored as stringified tuples like "('a', 'b')"
-            # or as "[a, b]" format
-            key_str = key_str.strip("()[]'\" ")
-            parts = [p.strip().strip("'\"") for p in key_str.split(",")]
-            if len(parts) == 2:
-                parsed[(parts[0], parts[1])] = val
-        if parsed:
-            hyperedge_constraints[he_id] = parsed
-
-    return Dimensions(
-        node_positions=node_positions,
-        driver_angles=driver_angles,
-        edge_distances=edge_distances,
-        hyperedge_constraints=hyperedge_constraints,
-        name=data.get("name", ""),
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +63,7 @@ def walker_to_dict(walker: Any) -> dict[str, Any]:
         "version": 1,
         "name": walker.name,
         "topology": graph_to_dict(walker.topology),
-        "dimensions": _dimensions_to_dict(walker.dimensions),
+        "dimensions": walker.dimensions.to_dict(),
         "motor_rates": walker.motor_rates,
     }
 
@@ -141,7 +83,7 @@ def walker_from_dict(data: dict[str, Any]) -> Any:
     from .walker import Walker
 
     topology = graph_from_dict(data["topology"])
-    dimensions = _dimensions_from_dict(data["dimensions"])
+    dimensions = Dimensions.from_dict(data["dimensions"])
     motor_rates = data.get("motor_rates", -4.0)
     name = data.get("name", "")
 

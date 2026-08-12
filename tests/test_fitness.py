@@ -208,7 +208,7 @@ class TestAsEvalFunc(unittest.TestCase):
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         eval_fn = as_eval_func(fitness)
         walker = _make_simple_walker()
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         pos = walker.get_coords()
         score = eval_fn(walker, dims, pos)
         self.assertIsInstance(score, float)
@@ -219,7 +219,7 @@ class TestAsEvalFunc(unittest.TestCase):
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         eval_fn = as_eval_func(fitness, config=cfg)
         walker = _make_simple_walker()
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         pos = walker.get_coords()
         score = eval_fn(walker, dims, pos)
         self.assertIsInstance(score, float)
@@ -229,7 +229,7 @@ class TestAsEvalFunc(unittest.TestCase):
         fitness = StrideFitness(lap_points=6, foot_index=-1)
         eval_fn = as_eval_func(fitness)
         walker = _make_simple_walker()
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         pos = walker.get_coords()
         score = eval_fn(walker, dims, pos)
         self.assertIsInstance(score, float)
@@ -239,7 +239,7 @@ class TestAsEvalFunc(unittest.TestCase):
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         eval_fn = as_eval_func(fitness, walker_factory=_make_simple_walker)
         walker = _make_simple_walker()
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         # linkage and pos are ignored in walker_factory mode.
         score = eval_fn(None, dims, ())
         self.assertIsInstance(score, float)
@@ -255,7 +255,7 @@ class TestAsEvalFunc(unittest.TestCase):
             negate=True,
         )
         walker = _make_simple_walker()
-        score = eval_fn(None, walker.get_num_constraints(), ())
+        score = eval_fn(None, walker.get_constraints(), ())
         self.assertAlmostEqual(score, -2.0)
 
     def test_pylinkage_moo_accepts_walking_fitness(self):
@@ -287,7 +287,7 @@ class TestAsGaFitness(unittest.TestCase):
         fitness = DistanceFitness(duration=0.5, n_legs=1)
         ga_fn = as_ga_fitness(fitness, walker_factory=_make_simple_walker)
         walker = _make_simple_walker()
-        dna = [0, walker.get_num_constraints(), walker.get_coords()]
+        dna = [0, walker.get_constraints(), walker.get_coords()]
         score, positions = ga_fn(dna)
         self.assertIsInstance(score, float)
         self.assertIsInstance(positions, list)
@@ -302,7 +302,7 @@ class TestAsGaFitness(unittest.TestCase):
             always_one, walker_factory=_make_fourbar_walker, minimize=True,
         )
         walker = _make_fourbar_walker()
-        dna = [0, walker.get_num_constraints(), walker.get_coords()]
+        dna = [0, walker.get_constraints(), walker.get_coords()]
         score, _ = ga_fn(dna)
         self.assertAlmostEqual(score, -1.0)
 

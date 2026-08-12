@@ -143,7 +143,7 @@ def _eval_strider_distance(linkage, dims, pos):
     """Physics distance score for the GA — ignores ``linkage``/``pos``.
 
     Rebuilds a fresh Strider from the 7 compact params on each
-    evaluation (``set_num_constraints`` can't propagate through the
+    evaluation (``set_constraints`` can't propagate through the
     hypergraph's rigid triangles). Uses physics simulation directly
     because kinematic stride alone can select for walkers that tip
     over under gravity.

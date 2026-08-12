@@ -166,6 +166,96 @@ class TestWalkerToDict(unittest.TestCase):
         self.assertEqual(loaded.motor_rates, {"crank": -3.5})
 
 
+class TestLegacyFormatCompat(unittest.TestCase):
+    """Files written by leggedsnake <= 0.5.1 must keep loading.
+
+    Before 0.6.0 the in-tree ``_dimensions_to_dict`` stringified
+    hyperedge constraint keys as ``"('a', 'b')"``. 0.6.0 delegates to
+    pylinkage's ``Dimensions.from_dict``, which reads that legacy form
+    as well as the current ``[node_a, node_b, distance]`` triples.
+    """
+
+    LEGACY = {
+        "version": 1,
+        "name": "legacy",
+        "topology": {
+            "name": "legacy",
+            "nodes": [
+                {"id": "a", "role": "GROUND"},
+                {"id": "b", "role": "DRIVER"},
+                {"id": "c", "role": "DRIVEN"},
+            ],
+            "edges": [
+                {"id": "e0", "source": "a", "target": "b"},
+                {"id": "e1", "source": "a", "target": "c"},
+                {"id": "e2", "source": "b", "target": "c"},
+            ],
+            "hyperedges": [],
+        },
+        "dimensions": {
+            "node_positions": {
+                "a": [0.0, 0.0], "b": [1.0, 0.0], "c": [0.0, 2.0],
+            },
+            "driver_angles": {
+                "b": {"angular_velocity": -0.5, "initial_angle": 0.25},
+            },
+            "edge_distances": {"e0": 1.0, "e1": 2.0, "e2": 1.5},
+            "hyperedge_constraints": {"he0": {"('a', 'b')": 2.5}},
+            "name": "legacy",
+        },
+        "motor_rates": -4.0,
+    }
+
+    def _write_legacy(self):
+        with tempfile.NamedTemporaryFile(
+            suffix=".json", delete=False, mode="w",
+        ) as f:
+            json.dump(self.LEGACY, f)
+            return f.name
+
+    def test_legacy_file_loads(self):
+        """A pre-0.6.0 file round-trips into an equivalent Walker."""
+        path = self._write_legacy()
+        try:
+            walker = load_walker(path)
+        finally:
+            Path(path).unlink()
+
+        self.assertEqual(walker.name, "legacy")
+        self.assertEqual(set(walker.topology.nodes), {"a", "b", "c"})
+        self.assertAlmostEqual(walker.dimensions.edge_distances["e2"], 1.5)
+        self.assertAlmostEqual(
+            walker.dimensions.driver_angles["b"].initial_angle, 0.25,
+        )
+
+    def test_legacy_hyperedge_keys_parse_to_tuples(self):
+        """Stringified ``"('a', 'b')"`` keys come back as real tuples."""
+        path = self._write_legacy()
+        try:
+            walker = load_walker(path)
+        finally:
+            Path(path).unlink()
+
+        self.assertEqual(
+            walker.dimensions.hyperedge_constraints,
+            {"he0": {("a", "b"): 2.5}},
+        )
+
+    def test_new_writes_use_triples(self):
+        """0.6.0 writes the ``[node_a, node_b, distance]`` form."""
+        path = self._write_legacy()
+        try:
+            walker = load_walker(path)
+        finally:
+            Path(path).unlink()
+
+        data = walker_to_dict(walker)
+        self.assertEqual(
+            data["dimensions"]["hyperedge_constraints"],
+            {"he0": [["a", "b", 2.5]]},
+        )
+
+
 class TestSaveLoadWalker(unittest.TestCase):
 
     def test_save_load_file(self):

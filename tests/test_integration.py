@@ -197,7 +197,7 @@ class TestWalkingObjectives(unittest.TestCase):
         """stride_length_objective returns a float score."""
         walker = _make_simple_walker()
         obj = ls.stride_length_objective(lap_points=6, foot_index=-1)
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         pos = walker.get_coords()
         score = obj(walker, dims, pos)
         self.assertIsInstance(score, float)
@@ -206,7 +206,7 @@ class TestWalkingObjectives(unittest.TestCase):
         """total_distance_objective runs physics and returns distance."""
         walker = _make_simple_walker()
         obj = ls.total_distance_objective(duration=1.0, n_legs=1)
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         pos = walker.get_coords()
         score = obj(walker, dims, pos)
         self.assertIsInstance(score, float)
@@ -215,7 +215,7 @@ class TestWalkingObjectives(unittest.TestCase):
         """energy_efficiency_objective runs physics and returns efficiency."""
         walker = _make_simple_walker()
         obj = ls.energy_efficiency_objective(duration=1.0, n_legs=1, min_distance=0.0)
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         pos = walker.get_coords()
         score = obj(walker, dims, pos)
         self.assertIsInstance(score, float)
@@ -227,13 +227,13 @@ class TestGAPhysicsPipeline(unittest.TestCase):
     def test_ga_with_walker(self):
         """GeneticOptimization can optimize a Walker with physics fitness."""
         walker = _make_fourbar_walker()
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         coords = walker.get_coords()
         dna = [0, dims, coords]
 
         def fitness(dna):
             w = _make_fourbar_walker()
-            w.set_num_constraints(dna[1])
+            w.set_constraints(dna[1])
             w.set_coords(dna[2])
             # Simple kinematic score — no physics needed for smoke test
             try:
@@ -319,7 +319,7 @@ class TestWorldConfig(unittest.TestCase):
         walker = _make_simple_walker()
         cfg = WorldConfig(gravity=(0, -5.0), physics_period=0.05)
         obj = ls.total_distance_objective(duration=0.5, n_legs=1, config=cfg)
-        dims = walker.get_num_constraints()
+        dims = walker.get_constraints()
         pos = walker.get_coords()
         score = obj(walker, dims, pos)
         self.assertIsInstance(score, float)

@@ -35,9 +35,11 @@ The library composes into four layers. The public API is re-exported from `legge
 Key surface:
 - `Walker(topology, dimensions, name=..., motor_rates=...)` — `motor_rates` is `float` (all drivers) or `dict[str, float]` (per-driver, enables multi-DOF).
 - `Walker.from_catalog`, `from_hierarchy`, `from_watt`, `from_jansen`, etc. — factory builders for classical mechanisms.
+- `Walker.from_synthesis(solution, index=0, ...)` — the public synthesis hand-off. Accepts every container `pylinkage.synthesis` emits (`SynthesisResult`, `TopologySolution`, `NBarSolution`, `FourBarSolution`, `Ensemble`, a `Linkage`, or a sequence of those) and resolves it to one Walker. Dispatch lives in `walker._sim_linkage_from_synthesis`; note `FourBarSolution` is a `NamedTuple`, so it must be matched before the generic sequence branch.
 - `add_legs(n)` phase-offsets copies along the axis; `add_opposite_leg(axis_x)` mirrors across the frame.
 - `to_mechanism()` hands off to pylinkage's `Mechanism` for kinematic stepping.
-- `get_num_constraints()` / `set_num_constraints()` and `get_coords()` / `set_coords()` are the (de)serialization hooks used by optimizers.
+- `step_with_derivatives(iterations, dt, skip_unbuildable, omega, alpha)` — analytic velocity/acceleration via pylinkage's solver, since 0.6.0. Adds three things upstream lacks: `skip_unbuildable` (upstream's generator dies on the first `UnbuildableError`, so dead zones are stepped one frame at a time), seeding of the per-driver input rates upstream requires (an unseeded driver reports zero velocity), and normalisation of upstream's bare `None` to `(None, None)`. A joint can still yield `(None, None)` — prismatic joints and genuine dead centres — and those propagate to dependents. Needs pylinkage >= 1.1.0: on 1.0.0, joints collinear with their anchors report no derivative and their dependents report wrong ones.
+- `get_constraints()` / `set_constraints()` and `get_coords()` / `set_coords()` are the (de)serialization hooks used by optimizers. `set_constraints()` flattens nested input (what a `param_expander` returns). The `get_num_constraints` / `set_num_constraints` spelling is deprecated since 0.6.0 and removed in 0.7.0; internal callers should go through `utility._get_constraints` / `_set_constraints`, which tolerate both on third-party objects.
 - `get_foots()` returns terminal joints (feet).
 
 ### 2. Physics — `physics_engine.py`, `dynamic_linkage.py`, `hypergraph_physics.py`

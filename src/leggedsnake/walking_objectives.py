@@ -34,7 +34,7 @@ from typing import Any, Callable
 from pylinkage.optimization.collections import ParetoFront
 
 from .physics_engine import World, WorldConfig
-from .utility import step as step_check, stride
+from .utility import _set_constraints, step as step_check, stride
 from .walker import Walker
 
 
@@ -89,9 +89,9 @@ def _prepare_walker(
 ) -> Walker:
     """Configure a walker with dimensions and add legs."""
     if param_expander is not None:
-        linkage.set_num_constraints(param_expander(dimensions), flat=False)
+        _set_constraints(linkage, param_expander(dimensions))
     else:
-        linkage.set_num_constraints(dimensions)
+        _set_constraints(linkage, dimensions)
     linkage.set_coords(init_positions)
 
     # Add legs if the walker doesn't have them yet
@@ -146,9 +146,9 @@ def stride_length_objective(
         pos: Sequence[Any],
     ) -> float:
         if param_expander is not None:
-            linkage.set_num_constraints(param_expander(dims), flat=False)
+            _set_constraints(linkage, param_expander(dims))
         else:
-            linkage.set_num_constraints(dims)
+            _set_constraints(linkage, dims)
         linkage.set_coords(pos)
         try:
             loci = tuple(
