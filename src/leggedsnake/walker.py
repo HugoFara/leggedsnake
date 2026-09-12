@@ -18,15 +18,14 @@ from typing import TYPE_CHECKING, Any
 
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole, to_mechanism
-from pylinkage.hypergraph.core import Edge, Hyperedge, Node
+from pylinkage.hypergraph import Edge, Hyperedge, Node
 
 from .utility import _flatten_constraints
 
 if TYPE_CHECKING:
     from pylinkage.hypergraph import HierarchicalLinkage
     from pylinkage.mechanism import Mechanism
-    from pylinkage.topology.catalog import CatalogEntry
-    from pylinkage.topology.analysis import MobilityInfo
+    from pylinkage.topology import CatalogEntry, MobilityInfo
 
 
 class Walker:
@@ -1308,7 +1307,7 @@ class Walker:
 
     def _sync_dimensions_from_mechanism(self, mechanism: Mechanism) -> None:
         """Sync Dimensions edge distances from Mechanism link state."""
-        from pylinkage.mechanism.link import DriverLink, ArcDriverLink, GroundLink
+        from pylinkage.mechanism import ArcDriverLink, DriverLink, GroundLink
 
         # Rebuild edge distance mapping from mechanism's links
         # This matches the order used in get_constraints/set_constraints
@@ -1329,7 +1328,7 @@ class Walker:
 
     def _update_edge_distance_for_link(self, link: object, distance: float) -> None:
         """Update the edge distance in Dimensions for a given Mechanism link."""
-        from pylinkage.mechanism.link import Link
+        from pylinkage.mechanism import Link
         if not isinstance(link, Link) or len(link.joints) < 2:
             return
         j0_id = link.joints[0].id

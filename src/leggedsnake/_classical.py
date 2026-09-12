@@ -12,7 +12,7 @@ from math import atan2, cos, sin, sqrt
 
 from pylinkage.dimensions import Dimensions, DriverAngle
 from pylinkage.hypergraph import HypergraphLinkage, NodeRole
-from pylinkage.hypergraph.core import Edge, Hyperedge, Node
+from pylinkage.hypergraph import Edge, Hyperedge, Node
 
 
 Point = tuple[float, float]

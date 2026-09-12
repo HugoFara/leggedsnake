@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Requires **pylinkage >= 1.2.0**.
+
+### Changed
+
+- **Every pylinkage import goes through a package, not a module.** pylinkage
+  1.2.0 defines its public surface as the `__all__` of its packages; modules
+  inside a package (`hypergraph.core`, `topology.catalog`,
+  `visualizer.plotly_viz`, `optimization.co_optimization_types`,
+  `mechanism.link`, …) are implementation and may move. leggedsnake now
+  imports from `pylinkage.hypergraph`, `pylinkage.topology`,
+  `pylinkage.visualizer`, `pylinkage.optimization` and `pylinkage.mechanism`
+  instead. `ArcDriverLink` and `TrackerJoint` are exported from
+  `pylinkage.mechanism` as of 1.2.0, which is why that release is the floor.
+
 ## [0.6.0] - 2026-08-12
 
 Requires **pylinkage >= 1.1.0**. This release drops the compatibility
