@@ -120,14 +120,14 @@ def to_urdf(
     # Assign URDF link names
     assigned_hyperedges: set[str] = set()
     for eid, edge in topo.edges.items():
-        he_id = edge_to_hyperedge.get(eid)
-        if he_id is not None and he_id not in assigned_hyperedges:
+        group = edge_to_hyperedge.get(eid)
+        if group is not None and group not in assigned_hyperedges:
             # First edge in this hyperedge group
-            link_name = _sanitize(f"link_{he_id}")
-            assigned_hyperedges.add(he_id)
+            link_name = _sanitize(f"link_{group}")
+            assigned_hyperedges.add(group)
             # Add all edges of this hyperedge
             for eid2, e2 in topo.edges.items():
-                if edge_to_hyperedge.get(eid2) == he_id:
+                if edge_to_hyperedge.get(eid2) == group:
                     edge_to_urdf_link[eid2] = link_name
                     dist = dims.get_edge_distance(eid2) or _node_distance(
                         dims, e2.source, e2.target
@@ -135,9 +135,9 @@ def to_urdf(
                     if link_name not in urdf_links:
                         urdf_links[link_name] = []
                     urdf_links[link_name].append((e2.source, e2.target, dist))
-        elif he_id is not None:
+        elif group is not None:
             # Already assigned
-            link_name = _sanitize(f"link_{he_id}")
+            link_name = _sanitize(f"link_{group}")
             edge_to_urdf_link[eid] = link_name
         else:
             # Standalone edge

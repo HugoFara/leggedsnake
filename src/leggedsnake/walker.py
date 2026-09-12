@@ -932,7 +932,9 @@ class Walker:
                 for j in mech.joints:
                     jid = getattr(j, 'id', None)
                     if jid is not None and jid in template_node_ids:
-                        pose[jid] = j.coord()
+                        jx, jy = j.coord()
+                        if jx is not None and jy is not None:
+                            pose[jid] = (jx, jy)
                 clone_positions.append(pose)
                 _ = omega_sign  # quiet lint; retained for future asymmetric drivers
             self._invalidate_cache()
@@ -1297,7 +1299,8 @@ class Walker:
     ) -> None:
         """Set joint positions."""
         mechanism = self.to_mechanism()
-        mechanism.set_joint_positions(coords)
+        for joint, (x, y) in zip(mechanism.joints, coords, strict=False):
+            joint.set_coord(x, y)
 
         # Sync back to Dimensions
         for joint in mechanism.joints:

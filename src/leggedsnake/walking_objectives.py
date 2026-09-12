@@ -29,7 +29,7 @@ Example::
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from pylinkage.optimization.collections import ParetoFront
 
@@ -270,7 +270,7 @@ def multi_objective_walking_optimization(
     objectives: Sequence[Callable[..., float]],
     bounds: tuple[Sequence[float], Sequence[float]],
     objective_names: Sequence[str] | None = None,
-    algorithm: str = "nsga2",
+    algorithm: Literal["nsga2", "nsga3"] = "nsga2",
     n_generations: int = 100,
     pop_size: int = 100,
     seed: int | None = None,
@@ -313,7 +313,7 @@ def multi_objective_walking_optimization(
     """
     from pylinkage.optimization import multi_objective_optimization
 
-    return multi_objective_optimization(
+    ensemble = multi_objective_optimization(
         objectives=objectives,
         linkage=linkage,
         bounds=bounds,
@@ -325,3 +325,5 @@ def multi_objective_walking_optimization(
         verbose=verbose,
         **kwargs,
     )
+    # pylinkage returns an Ensemble; the documented contract is a ParetoFront.
+    return ensemble.to_pareto_front()

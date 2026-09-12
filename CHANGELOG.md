@@ -21,6 +21,23 @@ Requires **pylinkage >= 1.2.0**.
   instead. `ArcDriverLink` and `TrackerJoint` are exported from
   `pylinkage.mechanism` as of 1.2.0, which is why that release is the floor.
 
+### Fixed
+
+- **`multi_objective_walking_optimization` returns the `ParetoFront` it
+  documents.** pylinkage's optimizers have returned an `Ensemble` since
+  1.0.0, so the wrapper's promise of `.best_compromise()` / `.plot()` /
+  `.filter()` on the result was false and its `algorithm` parameter was
+  typed as a bare `str`. It now converts through
+  `Ensemble.to_pareto_front()` (new in pylinkage 1.2.0) and is tested.
+- **`mypy` is clean again.** `Walker.set_coords` sets each joint directly
+  instead of passing `None`-able coordinates to
+  `Mechanism.set_joint_positions`, the clone-pose loop in
+  `Walker.add_legs` skips unsolved joints, and two lookups in
+  `hypergraph_physics` / `urdf_export` no longer reuse a loop variable
+  for an optional value. No behavioural change.
+- `uv.lock` records pylinkage 1.2.0 (and its `typing_extensions` marker
+  for Python 3.10).
+
 ## [0.6.0] - 2026-08-12
 
 Requires **pylinkage >= 1.1.0**. This release drops the compatibility
