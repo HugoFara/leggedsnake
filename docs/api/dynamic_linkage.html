@@ -1,0 +1,441 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dynamic_linkage &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="hypergraph_physics" href="hypergraph_physics.html" />
+    <link rel="prev" title="physics_engine" href="physics_engine.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">dynamic_linkage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.dynamic_linkage">Interface to dynamic compatible joints</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.__init__"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage._build_load"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage._build_load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage._dimensions"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage._dimensions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage._hypergraph"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage._hypergraph</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage._non_foot_filter"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage._non_foot_filter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage._thickness"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage._thickness</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.body"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.body</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.density"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.density</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.filter"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.filter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.get_all_positions"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.get_all_positions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.height"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.height</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.joints"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.joints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.mass"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.mass</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.mechanical_energy"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.mechanical_energy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.name"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.physics_mapping"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.physics_mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.rigidbodies"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.rigidbodies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage.space"><code class="docutils literal notranslate"><span class="pre">DynamicLinkage.space</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamic_linkage.GROUND_FILTER"><code class="docutils literal notranslate"><span class="pre">GROUND_FILTER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy"><code class="docutils literal notranslate"><span class="pre">NodeProxy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy.__init__"><code class="docutils literal notranslate"><span class="pre">NodeProxy.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy._mapping"><code class="docutils literal notranslate"><span class="pre">NodeProxy._mapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy._node_id"><code class="docutils literal notranslate"><span class="pre">NodeProxy._node_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy._role"><code class="docutils literal notranslate"><span class="pre">NodeProxy._role</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy._x"><code class="docutils literal notranslate"><span class="pre">NodeProxy._x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy._y"><code class="docutils literal notranslate"><span class="pre">NodeProxy._y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy.coord"><code class="docutils literal notranslate"><span class="pre">NodeProxy.coord()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy.name"><code class="docutils literal notranslate"><span class="pre">NodeProxy.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy.reload"><code class="docutils literal notranslate"><span class="pre">NodeProxy.reload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy.role"><code class="docutils literal notranslate"><span class="pre">NodeProxy.role</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy.x"><code class="docutils literal notranslate"><span class="pre">NodeProxy.x</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy.y"><code class="docutils literal notranslate"><span class="pre">NodeProxy.y</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.dynamic_linkage.convert_to_dynamic_linkage"><code class="docutils literal notranslate"><span class="pre">convert_to_dynamic_linkage()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">dynamic_linkage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/dynamic_linkage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dynamic-linkage">
+<h1>dynamic_linkage<a class="headerlink" href="#dynamic-linkage" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.dynamic_linkage">
+<span id="interface-to-dynamic-compatible-joints"></span><h2>Interface to dynamic compatible joints<a class="headerlink" href="#module-leggedsnake.dynamic_linkage" title="Link to this heading"></a></h2>
+<p>Dynamic linkage: pymunk physics wrapper for hypergraph-based linkages.</p>
+<p>Provides <code class="docutils literal notranslate"><span class="pre">DynamicLinkage</span></code> which converts a <code class="docutils literal notranslate"><span class="pre">HypergraphLinkage</span></code> + <code class="docutils literal notranslate"><span class="pre">Dimensions</span></code>
+into pymunk rigid bodies and constraints for physics simulation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamic_linkage.</span></span><span class="sig-name descname"><span class="pre">DynamicLinkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topology</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HypergraphLinkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_edge_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Physics simulation wrapper for a hypergraph linkage.</p>
+<p>Converts a <code class="docutils literal notranslate"><span class="pre">HypergraphLinkage</span></code> + <code class="docutils literal notranslate"><span class="pre">Dimensions</span></code> into pymunk rigid
+bodies and constraints. Each edge becomes a rigid body, and nodes
+where multiple bodies meet get PivotJoint constraints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>body</strong> (<em>pm.Body</em>) – The frame/chassis body (load).</p></li>
+<li><p><strong>rigidbodies</strong> (<em>list</em><em>[</em><em>pm.Body</em><em>]</em>) – All physics bodies including the load body.</p></li>
+<li><p><strong>joints</strong> (<em>tuple</em><em>[</em><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy" title="leggedsnake.dynamic_linkage.NodeProxy"><em>NodeProxy</em></a><em>, </em><em>...</em><em>]</em>) – Proxy objects for reading node positions from physics.</p></li>
+<li><p><strong>mass</strong> (<em>float</em>) – Total mass of all bodies.</p></li>
+<li><p><strong>space</strong> (<em>pm.Space</em>) – The pymunk simulation space.</p></li>
+<li><p><strong>physics_mapping</strong> (<a class="reference internal" href="hypergraph_physics.html#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping"><em>PhysicsMapping</em></a>) – Mapping from hypergraph elements to pymunk objects.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topology</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HypergraphLinkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_edge_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.__init__" title="Link to this definition"></a></dt>
+<dd><p>Create a DynamicLinkage from a hypergraph.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>HypergraphLinkage</em>) – The mechanism topology.</p></li>
+<li><p><strong>dimensions</strong> (<em>Dimensions</em>) – Geometric data (positions, distances, driver angles).</p></li>
+<li><p><strong>space</strong> (<em>pm.Space</em>) – Pymunk simulation space.</p></li>
+<li><p><strong>motor_rates</strong> (<em>MotorRates</em><em> | </em><em>None</em>) – Motor angular velocities. Single float for all drivers, or
+dict mapping driver node IDs to individual rates (multi-DOF).</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – Density for body mass calculation.</p></li>
+<li><p><strong>load</strong> (<em>float</em>) – Mass of the load/chassis body.</p></li>
+<li><p><strong>thickness</strong> (<em>float</em>) – Radius of segment shapes.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Human-readable name.</p></li>
+<li><p><strong>foot_edge_ids</strong> (<em>set</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Edge IDs whose segments should collide with the ground.
+All other edges (and the load body) will pass through the
+ground.  <em>None</em> disables selective collision (all edges
+collide with the ground, legacy behaviour).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage._build_load">
+<span class="sig-name descname"><span class="pre">_build_load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Vec2d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_mass</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_non_foot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Body</span></span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage._build_load" title="Link to this definition"></a></dt>
+<dd><p>Create the load/chassis body.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage._dimensions">
+<span class="sig-name descname"><span class="pre">_dimensions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dimensions</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage._dimensions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage._hypergraph">
+<span class="sig-name descname"><span class="pre">_hypergraph</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">HypergraphLinkage</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage._hypergraph" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage._non_foot_filter">
+<span class="sig-name descname"><span class="pre">_non_foot_filter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ShapeFilter</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage._non_foot_filter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage._thickness">
+<span class="sig-name descname"><span class="pre">_thickness</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage._thickness" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.body">
+<span class="sig-name descname"><span class="pre">body</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Body</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.body" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.density">
+<span class="sig-name descname"><span class="pre">density</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.density" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.filter">
+<span class="sig-name descname"><span class="pre">filter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ShapeFilter</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.filter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.get_all_positions">
+<span class="sig-name descname"><span class="pre">get_all_positions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.get_all_positions" title="Link to this definition"></a></dt>
+<dd><p>Get current world positions of all nodes.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.height">
+<span class="sig-name descname"><span class="pre">height</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.height" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.joints">
+<span class="sig-name descname"><span class="pre">joints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#leggedsnake.dynamic_linkage.NodeProxy" title="leggedsnake.dynamic_linkage.NodeProxy"><span class="pre">NodeProxy</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.joints" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.mass">
+<span class="sig-name descname"><span class="pre">mass</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.mass" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.mechanical_energy">
+<span class="sig-name descname"><span class="pre">mechanical_energy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.mechanical_energy" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.physics_mapping">
+<span class="sig-name descname"><span class="pre">physics_mapping</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="hypergraph_physics.html#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping"><span class="pre">PhysicsMapping</span></a></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.physics_mapping" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.rigidbodies">
+<span class="sig-name descname"><span class="pre">rigidbodies</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Body</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.rigidbodies" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.DynamicLinkage.space">
+<span class="sig-name descname"><span class="pre">space</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Space</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.DynamicLinkage.space" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.GROUND_FILTER">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamic_linkage.</span></span><span class="sig-name descname"><span class="pre">GROUND_FILTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0,</span> <span class="pre">4,</span> <span class="pre">1)</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.GROUND_FILTER" title="Link to this definition"></a></dt>
+<dd><p>Collision filter for ground / road segments.</p>
+<p>Category bit 2 (<code class="docutils literal notranslate"><span class="pre">0x4</span></code>).  Mask <code class="docutils literal notranslate"><span class="pre">0x1</span></code> means the ground only
+collides with foot edges (category <code class="docutils literal notranslate"><span class="pre">0x1</span></code>), ignoring non-foot
+linkage parts (category <code class="docutils literal notranslate"><span class="pre">0x2</span></code>).  When no foot edges are specified
+(legacy mode) every linkage shape stays in pymunk’s default collision
+regime and this filter is unused.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamic_linkage.</span></span><span class="sig-name descname"><span class="pre">NodeProxy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">NodeRole</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hypergraph_physics.html#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping"><span class="pre">PhysicsMapping</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Lightweight proxy for reading a node’s physics position.</p>
+<p>Provides <code class="docutils literal notranslate"><span class="pre">.x</span></code>, <code class="docutils literal notranslate"><span class="pre">.y</span></code>, <code class="docutils literal notranslate"><span class="pre">.coord()</span></code>, <code class="docutils literal notranslate"><span class="pre">.name</span></code>, <code class="docutils literal notranslate"><span class="pre">.role</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">.reload()</span></code> for compatibility with physics engine and visualizer code.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">NodeRole</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hypergraph_physics.html#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping"><span class="pre">PhysicsMapping</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy._mapping">
+<span class="sig-name descname"><span class="pre">_mapping</span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy._mapping" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy._node_id">
+<span class="sig-name descname"><span class="pre">_node_id</span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy._node_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy._role">
+<span class="sig-name descname"><span class="pre">_role</span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy._role" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy._x">
+<span class="sig-name descname"><span class="pre">_x</span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy._x" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy._y">
+<span class="sig-name descname"><span class="pre">_y</span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy._y" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy.coord">
+<span class="sig-name descname"><span class="pre">coord</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy.coord" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy.reload">
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy.reload" title="Link to this definition"></a></dt>
+<dd><p>Update cached coordinates from physics body positions.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy.role">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">role</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">NodeRole</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy.role" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy.x">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">x</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy.x" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.NodeProxy.y">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">y</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.dynamic_linkage.NodeProxy.y" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.dynamic_linkage.convert_to_dynamic_linkage">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.dynamic_linkage.</span></span><span class="sig-name descname"><span class="pre">convert_to_dynamic_linkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pm.Space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MotorRates</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><span class="pre">DynamicLinkage</span></a></span></span><a class="headerlink" href="#leggedsnake.dynamic_linkage.convert_to_dynamic_linkage" title="Link to this definition"></a></dt>
+<dd><p>Convert a Walker to a DynamicLinkage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> (<a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><em>Walker</em></a>) – The mechanism to convert.</p></li>
+<li><p><strong>space</strong> (<em>pm.Space</em>) – Pymunk simulation space.</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – Density for body mass calculation.</p></li>
+<li><p><strong>load</strong> (<em>float</em>) – Mass of the load/chassis.</p></li>
+<li><p><strong>motor_rates</strong> (<em>MotorRates</em><em> | </em><em>None</em>) – Motor angular velocities. If None, uses <code class="docutils literal notranslate"><span class="pre">source.motor_rates</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="physics_engine.html" class="btn btn-neutral float-left" title="physics_engine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hypergraph_physics.html" class="btn btn-neutral float-right" title="hypergraph_physics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

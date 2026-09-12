@@ -1,26 +1,26 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>walker &mdash; LeggedSnake 0.4.0 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <title>walker &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="utility" href="utility.html" />
-    <link rel="prev" title="Changelog" href="../changeloglink.html" /> 
+    <link rel="prev" title="Migrating from params to WorldConfig" href="../migration_world_config.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -47,27 +47,101 @@
 <li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">walker</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.walker">Inheritance for Linkages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walker.Walker"><code class="docutils literal notranslate"><span class="pre">Walker</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._cranks"><code class="docutils literal notranslate"><span class="pre">Walker._cranks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.__init__"><code class="docutils literal notranslate"><span class="pre">Walker.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._apply_input_velocities"><code class="docutils literal notranslate"><span class="pre">Walker._apply_input_velocities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._foot_edge_ids"><code class="docutils literal notranslate"><span class="pre">Walker._foot_edge_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._invalidate_cache"><code class="docutils literal notranslate"><span class="pre">Walker._invalidate_cache()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._mechanism"><code class="docutils literal notranslate"><span class="pre">Walker._mechanism</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._solve_order"><code class="docutils literal notranslate"><span class="pre">Walker._solve_order</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._sync_dimensions_from_mechanism"><code class="docutils literal notranslate"><span class="pre">Walker._sync_dimensions_from_mechanism()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker._update_edge_distance_for_link"><code class="docutils literal notranslate"><span class="pre">Walker._update_edge_distance_for_link()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.add_legs"><code class="docutils literal notranslate"><span class="pre">Walker.add_legs()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.get_foots"><code class="docutils literal notranslate"><span class="pre">Walker.get_foots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.add_opposite_leg"><code class="docutils literal notranslate"><span class="pre">Walker.add_opposite_leg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.dimensions"><code class="docutils literal notranslate"><span class="pre">Walker.dimensions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.dof"><code class="docutils literal notranslate"><span class="pre">Walker.dof</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.foot_edge_ids"><code class="docutils literal notranslate"><span class="pre">Walker.foot_edge_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_catalog"><code class="docutils literal notranslate"><span class="pre">Walker.from_catalog()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_chebyshev"><code class="docutils literal notranslate"><span class="pre">Walker.from_chebyshev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_ghassaei"><code class="docutils literal notranslate"><span class="pre">Walker.from_ghassaei()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_hierarchy"><code class="docutils literal notranslate"><span class="pre">Walker.from_hierarchy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_jansen"><code class="docutils literal notranslate"><span class="pre">Walker.from_jansen()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_klann"><code class="docutils literal notranslate"><span class="pre">Walker.from_klann()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_stephenson"><code class="docutils literal notranslate"><span class="pre">Walker.from_stephenson()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_strider"><code class="docutils literal notranslate"><span class="pre">Walker.from_strider()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_synthesis"><code class="docutils literal notranslate"><span class="pre">Walker.from_synthesis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_trotbot"><code class="docutils literal notranslate"><span class="pre">Walker.from_trotbot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.from_watt"><code class="docutils literal notranslate"><span class="pre">Walker.from_watt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.get_constraints"><code class="docutils literal notranslate"><span class="pre">Walker.get_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.get_coords"><code class="docutils literal notranslate"><span class="pre">Walker.get_coords()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.get_feet"><code class="docutils literal notranslate"><span class="pre">Walker.get_feet()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.get_foot_edges"><code class="docutils literal notranslate"><span class="pre">Walker.get_foot_edges()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.get_num_constraints"><code class="docutils literal notranslate"><span class="pre">Walker.get_num_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.get_rotation_period"><code class="docutils literal notranslate"><span class="pre">Walker.get_rotation_period()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.joints"><code class="docutils literal notranslate"><span class="pre">Walker.joints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.mirror_leg"><code class="docutils literal notranslate"><span class="pre">Walker.mirror_leg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.mobility"><code class="docutils literal notranslate"><span class="pre">Walker.mobility</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.motor_rates"><code class="docutils literal notranslate"><span class="pre">Walker.motor_rates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.name"><code class="docutils literal notranslate"><span class="pre">Walker.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.set_constraints"><code class="docutils literal notranslate"><span class="pre">Walker.set_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.set_coords"><code class="docutils literal notranslate"><span class="pre">Walker.set_coords()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.set_num_constraints"><code class="docutils literal notranslate"><span class="pre">Walker.set_num_constraints()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.step"><code class="docutils literal notranslate"><span class="pre">Walker.step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.step_with_derivatives"><code class="docutils literal notranslate"><span class="pre">Walker.step_with_derivatives()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.to_mechanism"><code class="docutils literal notranslate"><span class="pre">Walker.to_mechanism()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.walker.Walker.topology"><code class="docutils literal notranslate"><span class="pre">Walker.topology</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walker._derivative_pairs"><code class="docutils literal notranslate"><span class="pre">_derivative_pairs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walker._driver_rate"><code class="docutils literal notranslate"><span class="pre">_driver_rate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walker._pick_solution"><code class="docutils literal notranslate"><span class="pre">_pick_solution()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walker._sim_linkage_from_ensemble"><code class="docutils literal notranslate"><span class="pre">_sim_linkage_from_ensemble()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walker._sim_linkage_from_synthesis"><code class="docutils literal notranslate"><span class="pre">_sim_linkage_from_synthesis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walker._walker_from_sim_linkage"><code class="docutils literal notranslate"><span class="pre">_walker_from_sim_linkage()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="dynamiclinkage.html">dynamiclinkage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="physicsengine.html">physicsengine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="geneticoptimizer.html">geneticoptimizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
 <ul>
@@ -105,70 +179,793 @@
            <div itemprop="articleBody">
              
   <section id="walker">
-<h1>walker<a class="headerlink" href="#walker" title="Permalink to this heading"></a></h1>
+<h1>walker<a class="headerlink" href="#walker" title="Link to this heading"></a></h1>
 <section id="module-leggedsnake.walker">
-<span id="inheritance-for-linkages"></span><h2>Inheritance for Linkages<a class="headerlink" href="#module-leggedsnake.walker" title="Permalink to this heading"></a></h2>
-<p>The walker module gives a simple interface between a generic linkage and a Walker.</p>
-<p>A generic linkage should be understood as a pylinkage.linkage.Linkage. Thus a
-Walker is a kinematic mechanism (not dynamic).</p>
-<p>Created on Thu Jun 10 2021 21:13:12.</p>
-<p>&#64;author: HugoFara</p>
+<span id="inheritance-for-linkages"></span><h2>Inheritance for Linkages<a class="headerlink" href="#module-leggedsnake.walker" title="Link to this heading"></a></h2>
+<p>Hypergraph-native Walker for simulating and optimizing walking linkages.</p>
+<p>A Walker stores a mechanism as a HypergraphLinkage (topology) plus Dimensions
+(geometry). It delegates kinematic simulation to pylinkage’s Mechanism class
+via <code class="docutils literal notranslate"><span class="pre">to_mechanism()</span></code>, naturally supporting multi-DOF mechanisms through
+multiple DRIVER nodes with independent angular velocities.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="leggedsnake.walker.Walker">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">Walker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joints</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.walker.Walker" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Linkage</span></code></p>
-<p>A Walker, or a leg mechanism is a Linkage with some useful methods.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="leggedsnake.walker.Walker._cranks">
-<span class="sig-name descname"><span class="pre">_cranks</span></span><a class="headerlink" href="#leggedsnake.walker.Walker._cranks" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">Walker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topology</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HypergraphLinkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_edge_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.walker.Walker" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A walking mechanism represented as a hypergraph.</p>
+<p>The Walker holds a <code class="docutils literal notranslate"><span class="pre">HypergraphLinkage</span></code> (topology) and <code class="docutils literal notranslate"><span class="pre">Dimensions</span></code>
+(geometry). It supports multi-DOF mechanisms: each DRIVER node can have
+an independent angular velocity stored in <code class="docutils literal notranslate"><span class="pre">Dimensions.driver_angles</span></code>.</p>
+<p>Kinematic simulation is delegated to pylinkage’s <code class="docutils literal notranslate"><span class="pre">Mechanism</span></code> class
+via <code class="docutils literal notranslate"><span class="pre">to_mechanism()</span></code>. Physics simulation is handled by converting
+to a <code class="docutils literal notranslate"><span class="pre">DynamicLinkage</span></code> (see <code class="docutils literal notranslate"><span class="pre">physics_engine.World.add_linkage</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology</strong> (<em>HypergraphLinkage</em>) – The mechanism topology (nodes, edges, hyperedges).</p></li>
+<li><p><strong>dimensions</strong> (<em>Dimensions</em>) – Geometric data (node positions, edge distances, driver angles).</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Human-readable name.</p></li>
+<li><p><strong>motor_rates</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>] </em><em>| </em><em>float</em>) – Motor angular velocities for dynamic (physics) simulation.
+Single float applies to all drivers. Dict maps driver node IDs
+to individual rates. Default -4.0 rad/s (clockwise).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topology</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HypergraphLinkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_edge_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker._apply_input_velocities">
+<span class="sig-name descname"><span class="pre">_apply_input_velocities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mechanism</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mechanism</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker._apply_input_velocities" title="Link to this definition"></a></dt>
+<dd><p>Seed each driver’s angular velocity and acceleration.</p>
+<p>pylinkage treats a driver with no explicit input as stationary, so
+this has to run before every derivative sweep or the whole
+mechanism reports zero velocity. The default rate is the driver’s
+own <code class="docutils literal notranslate"><span class="pre">angular_velocity</span></code> — the same value <code class="docutils literal notranslate"><span class="pre">_step_once</span></code> advances
+the crank by, so positions and derivatives cannot disagree.</p>
+</dd></dl>
+
 <dl class="py attribute">
-<dt class="sig sig-object py" id="leggedsnake.walker.Walker._solve_order">
-<span class="sig-name descname"><span class="pre">_solve_order</span></span><a class="headerlink" href="#leggedsnake.walker.Walker._solve_order" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker._foot_edge_ids">
+<span class="sig-name descname"><span class="pre">_foot_edge_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.walker.Walker._foot_edge_ids" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker._invalidate_cache">
+<span class="sig-name descname"><span class="pre">_invalidate_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker._invalidate_cache" title="Link to this definition"></a></dt>
+<dd><p>Invalidate cached Mechanism after topology/dimension changes.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker._mechanism">
+<span class="sig-name descname"><span class="pre">_mechanism</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Mechanism</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.walker.Walker._mechanism" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker._solve_order">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_solve_order</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.walker.Walker._solve_order" title="Link to this definition"></a></dt>
+<dd><p>Expose the underlying mechanism’s solve order.</p>
+<p>pylinkage 0.9’s <code class="docutils literal notranslate"><span class="pre">linkage_to_solver_data</span></code> (invoked from <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code>
+and every optimizer that wraps it) reads <code class="docutils literal notranslate"><span class="pre">linkage._solve_order</span></code>.
+Delegating to the cached <code class="docutils literal notranslate"><span class="pre">Mechanism</span></code> keeps joint identities in sync
+with <code class="docutils literal notranslate"><span class="pre">self.joints</span></code> so <code class="docutils literal notranslate"><span class="pre">id(joint)</span></code> lookups resolve correctly.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker._sync_dimensions_from_mechanism">
+<span class="sig-name descname"><span class="pre">_sync_dimensions_from_mechanism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mechanism</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mechanism</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker._sync_dimensions_from_mechanism" title="Link to this definition"></a></dt>
+<dd><p>Sync Dimensions edge distances from Mechanism link state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker._update_edge_distance_for_link">
+<span class="sig-name descname"><span class="pre">_update_edge_distance_for_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker._update_edge_distance_for_link" title="Link to this definition"></a></dt>
+<dd><p>Update the edge distance in Dimensions for a given Mechanism link.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="leggedsnake.walker.Walker.add_legs">
-<span class="sig-name descname"><span class="pre">add_legs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.walker.Walker.add_legs" title="Permalink to this definition"></a></dt>
-<dd><p>Add legs to a linkage, mostly for a dynamic simulation.</p>
-<p>The leg is a subset a joints whose position inherits from a crank.</p>
+<span class="sig-name descname"><span class="pre">add_legs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.add_legs" title="Link to this definition"></a></dt>
+<dd><p>Add phase-offset copies of all non-ground mechanism parts.</p>
+<p>Each copy shares the same ground nodes but has its driver(s)
+phase-offset from the template. Cloned drivers remain DRIVER
+nodes with offset <code class="docutils literal notranslate"><span class="pre">initial_angle</span></code>, so each leg is
+independently driven at the same angular velocity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>number</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of legs to add. The default is 2.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>None.</p>
+<dd class="field-odd"><p><strong>legs</strong> (<em>int</em><em> or </em><em>sequence</em><em> of </em><em>float</em>) – <p>When <code class="docutils literal notranslate"><span class="pre">int</span></code> (default behaviour), add that many legs with
+phase offsets evenly spaced at <code class="docutils literal notranslate"><span class="pre">tau</span> <span class="pre">*</span> <span class="pre">k</span> <span class="pre">/</span> <span class="pre">(n</span> <span class="pre">+</span> <span class="pre">1)</span></code> for
+<code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">in</span> <span class="pre">1..n</span></code> — the classic rotating-stack gait.</p>
+<p>When a sequence of floats, each entry is the phase offset
+(radians, taken modulo <code class="docutils literal notranslate"><span class="pre">tau</span></code>) of one new leg. This enables
+discovery of trot, pace, canter, bound, and other gait
+patterns when phase offsets are evolved by an optimizer.</p>
+</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="leggedsnake.walker.Walker.get_foots">
-<span class="sig-name descname"><span class="pre">get_foots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.walker.Walker.get_foots" title="Permalink to this definition"></a></dt>
-<dd><p>Return the list of foot joints, joints that should be used as foots.</p>
-<p>Formally, they are joints without children; their positions do not
-influence other joints.</p>
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.add_opposite_leg">
+<span class="sig-name descname"><span class="pre">add_opposite_leg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.add_opposite_leg" title="Link to this definition"></a></dt>
+<dd><p>Create an antisymmetric (mirrored) copy of the mechanism.</p>
+<p>The opposite leg has X-coordinates reflected across <code class="docutils literal notranslate"><span class="pre">axis_x</span></code>
+and driver initial angles offset by pi for phase opposition.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>candidates</strong> – List of terminal joints, feet.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>list</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis_x</strong> (<em>float</em>) – X-coordinate of the vertical mirror axis. Default 0.0.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.dimensions">
+<span class="sig-name descname"><span class="pre">dimensions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dimensions</span></em><a class="headerlink" href="#leggedsnake.walker.Walker.dimensions" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.dof">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dof</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#leggedsnake.walker.Walker.dof" title="Link to this definition"></a></dt>
+<dd><p>Mobility of the underlying hypergraph via Grübler’s formula.</p>
+<p>Returns 1 for a well-formed single-input walking mechanism,
+0 for a rigid structure, negative for overconstrained, &gt;1 for
+under-constrained (needs more inputs).</p>
+<p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.topology.compute_dof()</span></code> on
+<code class="docutils literal notranslate"><span class="pre">self.topology</span></code>. Intended for fast pre-flight screening of
+candidates during optimization — reject DOF != 1 without
+paying the cost of building the mechanism and stepping it.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.foot_edge_ids">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">foot_edge_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.walker.Walker.foot_edge_ids" title="Link to this definition"></a></dt>
+<dd><p>Explicit foot-edge override, or <em>None</em> for auto-detection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_catalog">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_catalog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">CatalogEntry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_catalog" title="Link to this definition"></a></dt>
+<dd><p>Create a Walker from a topology catalog entry.</p>
+<p>The catalog provides topology only (nodes, edges, roles).
+Dimensions (positions, distances, driver angles) must be supplied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entry</strong> (<em>CatalogEntry</em>) – A topology from <code class="docutils literal notranslate"><span class="pre">pylinkage.topology.load_catalog()</span></code>.</p></li>
+<li><p><strong>dimensions</strong> (<em>Dimensions</em>) – Geometric data for the topology’s nodes and edges.</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocities for dynamic simulation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_chebyshev">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_chebyshev</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rocker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_crank_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-0.1308996938995747</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'chebyshev'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_chebyshev" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker for Chebyshev’s Lambda linkage (1878).</p>
+<p>A 4-bar crank-rocker whose coupler point traces an approximate
+straight line — the basis of Chebyshev’s “plantigrade machine”.
+The foot <code class="docutils literal notranslate"><span class="pre">P</span></code> rides rigidly on the coupler at distance
+<code class="docutils literal notranslate"><span class="pre">foot_ratio</span> <span class="pre">*</span> <span class="pre">coupler</span></code> from A (<code class="docutils literal notranslate"><span class="pre">foot_ratio=1.0</span></code> puts P at B).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crank</strong> (<em>float</em>) – Link lengths. Defaults reproduce the working ratio used in
+the Chebyshev example.</p></li>
+<li><p><strong>coupler</strong> (<em>float</em>) – Link lengths. Defaults reproduce the working ratio used in
+the Chebyshev example.</p></li>
+<li><p><strong>rocker</strong> (<em>float</em>) – Link lengths. Defaults reproduce the working ratio used in
+the Chebyshev example.</p></li>
+<li><p><strong>ground_length</strong> (<em>float</em>) – Distance between ground pivots O1 and O2 (both on y=0).</p></li>
+<li><p><strong>foot_ratio</strong> (<em>float</em>) – Position of the foot along the A→B coupler, as a fraction
+of <code class="docutils literal notranslate"><span class="pre">coupler</span></code> (0.5 is the midpoint straight-line tracing
+point, 1.0 extends it to B).</p></li>
+<li><p><strong>initial_crank_angle</strong> (<em>float</em>) – Starting crank angle (radians).</p></li>
+<li><p><strong>angular_velocity</strong> (<em>float</em>) – Kinematic crank step (rad per <code class="docutils literal notranslate"><span class="pre">step()</span></code> iteration).</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocity (rad/s) for physics simulation.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name for the linkage.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the coupler and rocker cannot meet at the chosen angle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_ghassaei">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_ghassaei</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_crank_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-0.1308996938995747</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ghassaei'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_ghassaei" title="Link to this definition"></a></dt>
+<dd><p>Build Amanda Ghassaei’s 5-dyad leg (Boim/Walkin8r, thesis Fig. 5.4.4).</p>
+<p>8 nodes (A, B grounds; C crank tip; D, F off (C, B); H unnamed
+intermediate off (D, B); E real lower-left joint off (H, B); G foot
+off (E, F)), 11 bars, 5 RRR dyads. Classical Ghassaei dimensions
+are applied exactly: crank=26, ground=53, 56/77 inner/outer bars,
+75 closing bars. H-E (not given on the figure) defaults to 130 to
+reproduce the Wikibooks reference foot-locus aspect (~0.243).
+Initial crank angle is 0.085 rad off vertical.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_hierarchy">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_hierarchy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HierarchicalLinkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_hierarchy" title="Link to this definition"></a></dt>
+<dd><p>Create a Walker from a hierarchical linkage composition.</p>
+<p>Flattens the hierarchy (merging shared ports) into a single
+<code class="docutils literal notranslate"><span class="pre">HypergraphLinkage</span></code> suitable for simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hierarchy</strong> (<em>HierarchicalLinkage</em>) – Composed mechanism with component instances and connections.</p></li>
+<li><p><strong>dimensions</strong> (<em>Dimensions</em>) – Geometric data for the flattened topology’s nodes and edges.</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocities for dynamic simulation.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_jansen">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_jansen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_crank_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-0.1308996938995747</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'jansen'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_jansen" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker for Theo Jansen’s 8-bar “Strandbeest” leg.</p>
+<p>Uses Jansen’s canonical “Holy Numbers” (link lengths he discovered
+through decades of optimization), scaled by <code class="docutils literal notranslate"><span class="pre">scale</span></code>. The single
+foot <code class="docutils literal notranslate"><span class="pre">G</span></code> traces a stable walking locus for a full crank rotation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> (<em>float</em>) – Multiplier applied to every link length. Default 1.0 yields
+the raw Holy Numbers (~65 length units at widest); drop to
+~0.04 for physics-friendly metric dimensions.</p></li>
+<li><p><strong>initial_crank_angle</strong> (<em>float</em>) – Starting crank angle (radians).</p></li>
+<li><p><strong>angular_velocity</strong> (<em>float</em>) – Kinematic crank step (rad per <code class="docutils literal notranslate"><span class="pre">step()</span></code> iteration). Default
+traces 48 samples per revolution.</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocity (rad/s) for physics simulation.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name for the linkage.</p></li>
+<li><p><strong>lengths</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Per-parameter overrides of the 13 length parameters (keys
+<code class="docutils literal notranslate"><span class="pre">&quot;a&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;b&quot;</span></code>, …, <code class="docutils literal notranslate"><span class="pre">&quot;m&quot;</span></code> — see
+<code class="xref py py-data docutils literal notranslate"><span class="pre">leggedsnake._classical.JANSEN_HOLY_NUMBERS</span></code> for the
+canonical values). Partial dicts are allowed. Use this to
+optimize link lengths directly rather than round-tripping
+through <code class="docutils literal notranslate"><span class="pre">set_constraints</span></code>, which on hypergraph walkers
+can’t propagate through rigid triangles.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_klann">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_klann</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_crank_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1308996938995747</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'klann'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_klann" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker for Joe Klann’s 6-bar walking linkage.</p>
+<p>Uses the dimensions of US Patent 6,260,862, scaled by <code class="docutils literal notranslate"><span class="pre">scale</span></code>.
+The mechanism is a Stephenson-III topology with two rigid
+triangles: the ternary coupler (A-elbow-knee) rotates with the
+crank, while the ternary leg (hip-knee-foot) carries the foot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> (<em>float</em>) – Multiplier applied to every length and offset. Default 3.0
+matches the canonical example visualization; patent values
+themselves are dimensionless ratios around 1.0.</p></li>
+<li><p><strong>initial_crank_angle</strong> (<em>float</em>) – Starting crank angle (radians).</p></li>
+<li><p><strong>angular_velocity</strong> (<em>float</em>) – Kinematic crank step (rad per <code class="docutils literal notranslate"><span class="pre">step()</span></code> iteration). Positive
+by default since the Klann mechanism walks forward under
+counter-clockwise rotation.</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocity (rad/s) for physics simulation.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name for the linkage.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_stephenson">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_stephenson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rocker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link4</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link5</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link6</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_pivot_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_crank_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'stephenson'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_stephenson" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker from a Stephenson six-bar specification.</p>
+<p>Wraps <code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.stephenson_from_lengths()</span></code> and
+feeds its result through pylinkage’s <code class="docutils literal notranslate"><span class="pre">to_hypergraph</span></code> bridge.</p>
+<p>Stephenson differs from Watt in where the second loop attaches:
+on a Stephenson the second chain branches from the coupler
+joint C and ground D (so the two ternary links are separated);
+on a Watt the second chain branches from B and C (ternary
+links adjacent). See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.stephenson_from_lengths()</span></code> for the
+kinematic chain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If pylinkage cannot assemble the mechanism at the given
+    link lengths / initial angle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_strider">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_strider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triangle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">femur</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rocker_l</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rocker_s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tibia</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-0.6283185307179586</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'strider'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_strider" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker for the Strider mechanism (Vagle, DIY Walkers).</p>
+<p>The Strider is a symmetric 11-node mechanism producing two feet
+per crank. Its kinematic chain: ground pair (<code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">Y</span></code>) →
+rigidly attached frame points (<code class="docutils literal notranslate"><span class="pre">B</span></code>, <code class="docutils literal notranslate"><span class="pre">B_p</span></code>) → knees
+(<code class="docutils literal notranslate"><span class="pre">D</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code>) driven off crank <code class="docutils literal notranslate"><span class="pre">C</span></code> → ankles (<code class="docutils literal notranslate"><span class="pre">F</span></code>, <code class="docutils literal notranslate"><span class="pre">G</span></code>)
+rigid on the <code class="docutils literal notranslate"><span class="pre">C-E</span></code> / <code class="docutils literal notranslate"><span class="pre">C-D</span></code> rockers → feet (<code class="docutils literal notranslate"><span class="pre">H</span></code>, <code class="docutils literal notranslate"><span class="pre">I</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crank</strong> (<em>float</em>) – Link lengths. Defaults reproduce the canonical Strider geometry
+documented in the gallery notebook
+(<code class="docutils literal notranslate"><span class="pre">examples/01_walkers_gallery.ipynb</span></code>).</p></li>
+<li><p><strong>triangle</strong> (<em>float</em>) – Link lengths. Defaults reproduce the canonical Strider geometry
+documented in the gallery notebook
+(<code class="docutils literal notranslate"><span class="pre">examples/01_walkers_gallery.ipynb</span></code>).</p></li>
+<li><p><strong>femur</strong> (<em>float</em>) – Link lengths. Defaults reproduce the canonical Strider geometry
+documented in the gallery notebook
+(<code class="docutils literal notranslate"><span class="pre">examples/01_walkers_gallery.ipynb</span></code>).</p></li>
+<li><p><strong>rocker_l</strong> (<em>float</em>) – Link lengths. Defaults reproduce the canonical Strider geometry
+documented in the gallery notebook
+(<code class="docutils literal notranslate"><span class="pre">examples/01_walkers_gallery.ipynb</span></code>).</p></li>
+<li><p><strong>rocker_s</strong> (<em>float</em>) – Link lengths. Defaults reproduce the canonical Strider geometry
+documented in the gallery notebook
+(<code class="docutils literal notranslate"><span class="pre">examples/01_walkers_gallery.ipynb</span></code>).</p></li>
+<li><p><strong>tibia</strong> (<em>float</em>) – Link lengths. Defaults reproduce the canonical Strider geometry
+documented in the gallery notebook
+(<code class="docutils literal notranslate"><span class="pre">examples/01_walkers_gallery.ipynb</span></code>).</p></li>
+<li><p><strong>foot</strong> (<em>float</em>) – Link lengths. Defaults reproduce the canonical Strider geometry
+documented in the gallery notebook
+(<code class="docutils literal notranslate"><span class="pre">examples/01_walkers_gallery.ipynb</span></code>).</p></li>
+<li><p><strong>angular_velocity</strong> (<em>float</em>) – Kinematic crank step (rad per <code class="docutils literal notranslate"><span class="pre">step()</span></code> iteration). Default
+traces 10 samples per revolution (matches the example).</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocity (rad/s) for physics simulation.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name for the linkage.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_synthesis">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_synthesis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">360</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_synthesis" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker from any <code class="xref py py-mod docutils literal notranslate"><span class="pre">pylinkage.synthesis</span></code> output.</p>
+<p>Dimensional synthesis (Burmester path/motion/function generation,
+topology-aware N-bar synthesis) answers “which mechanism traces
+this foot path?”. This factory is the hand-off from that answer to
+a physics-ready walker, collapsing the
+<code class="docutils literal notranslate"><span class="pre">solution</span> <span class="pre">-&gt;</span> <span class="pre">SimLinkage</span> <span class="pre">-&gt;</span> <span class="pre">Walker</span></code> chain into one call.</p>
+<p>Every solution container pylinkage emits is accepted:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Input</p></th>
+<th class="head"><p>Produced by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SynthesisResult</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">path_generation</span></code>,
+<code class="docutils literal notranslate"><span class="pre">function_generation</span></code>,
+<code class="docutils literal notranslate"><span class="pre">motion_generation_3_poses</span></code>,
+<code class="docutils literal notranslate"><span class="pre">six_bar_path_generation</span></code>,
+<code class="docutils literal notranslate"><span class="pre">path_generation_with_timing</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">list[TopologySolution]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">multi_topology_synthesize</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">list[NBarSolution]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">generalized_synthesis</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FourBarSolution</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SynthesisResult.raw_solutions</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Ensemble</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SynthesisResult.ensemble</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Linkage</span></code> (SimLinkage)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">solution_to_linkage</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">co_optimize</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>Containers are indexed with <em>index</em>; scalars ignore it. Synthesis
+routines return candidates best-first, so the default <code class="docutils literal notranslate"><span class="pre">index=0</span></code>
+picks the top-ranked solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solution</strong> (<em>Any</em>) – A synthesis result, a single solution, an <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code>, a
+SimLinkage, or a sequence of any of those.</p></li>
+<li><p><strong>index</strong> (<em>int</em>) – Which candidate to convert when <em>solution</em> is a container.
+Negative indices count from the end.</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocities (rad/s) for physics simulation.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name for the resulting Walker. Empty keeps the name pylinkage
+gave the solution.</p></li>
+<li><p><strong>iterations</strong> (<em>int</em>) – Simulation steps per rotation, forwarded to pylinkage when a
+raw solution still has to be converted to a linkage. Ignored
+for inputs that already carry a linkage.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Hypergraph-native walker ready for <code class="docutils literal notranslate"><span class="pre">add_legs()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">World.add_linkage()</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker">Walker</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – If <em>solution</em> is not a recognised synthesis output.</p></li>
+<li><p><strong>ValueError</strong> – If <em>solution</em> is an empty container.</p></li>
+<li><p><strong>IndexError</strong> – If <em>index</em> is out of range for <em>solution</em>.</p></li>
+<li><p><strong>NotImplementedError</strong> – Propagated from <code class="docutils literal notranslate"><span class="pre">to_hypergraph</span></code> when the solution contains a
+    component type pylinkage cannot convert.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pylinkage.synthesis</span><span class="w"> </span><span class="kn">import</span> <span class="n">path_generation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">path_generation</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">precision_points</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)],</span>
+<span class="gp">... </span>    <span class="n">max_solutions</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">walker</span> <span class="o">=</span> <span class="n">Walker</span><span class="o">.</span><span class="n">from_synthesis</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">walker</span><span class="o">.</span><span class="n">add_legs</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_trotbot">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_trotbot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_crank_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angular_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-0.1308996938995747</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'trotbot'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_trotbot" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker for the TrotBot mechanism (Vagle, DIYwalkers).</p>
+<p>Uses the bar lengths from Wade &amp; Ben Vagle’s combined Python
+simulator published at <a class="reference external" href="https://www.diywalkers.com">https://www.diywalkers.com</a>, scaled by
+<code class="docutils literal notranslate"><span class="pre">scale</span></code>. The mechanism has 10 joints, 15 binary edges, and
+three collinear rigid ternaries (<code class="docutils literal notranslate"><span class="pre">j3-j2-j4</span></code>, <code class="docutils literal notranslate"><span class="pre">j5-j4-j6</span></code>,
+<code class="docutils literal notranslate"><span class="pre">j1-j2-j9</span></code>) modelled as hyperedges. The foot is <code class="docutils literal notranslate"><span class="pre">j7</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale</strong> (<em>float</em>) – Multiplier applied to every link length and the frame offset.</p></li>
+<li><p><strong>initial_crank_angle</strong> (<em>float</em>) – Starting crank angle (radians).</p></li>
+<li><p><strong>angular_velocity</strong> (<em>float</em>) – Kinematic crank step (rad per <code class="docutils literal notranslate"><span class="pre">step()</span></code> iteration).</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocity (rad/s) for physics simulation.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name for the linkage.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the mechanism cannot be assembled at the given crank angle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.from_watt">
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_watt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crank</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coupler1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rocker1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link4</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link5</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rocker2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_pivot_a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_crank_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'watt'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.from_watt" title="Link to this definition"></a></dt>
+<dd><p>Build a Walker from a Watt six-bar specification.</p>
+<p>Wraps <code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.watt_from_lengths()</span></code> and feeds its
+result through pylinkage’s <code class="docutils literal notranslate"><span class="pre">to_hypergraph</span></code> bridge.
+A Watt six-bar has two four-bar loops sharing the crank output,
+yielding two coupled rocker trajectories that can serve as foot
+paths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crank</strong> (<em>float</em>) – Link lengths. See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.watt_from_lengths()</span></code> for the
+kinematic chain diagram.</p></li>
+<li><p><strong>coupler1</strong> (<em>float</em>) – Link lengths. See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.watt_from_lengths()</span></code> for the
+kinematic chain diagram.</p></li>
+<li><p><strong>rocker1</strong> (<em>float</em>) – Link lengths. See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.watt_from_lengths()</span></code> for the
+kinematic chain diagram.</p></li>
+<li><p><strong>link4</strong> (<em>float</em>) – Link lengths. See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.watt_from_lengths()</span></code> for the
+kinematic chain diagram.</p></li>
+<li><p><strong>link5</strong> (<em>float</em>) – Link lengths. See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.watt_from_lengths()</span></code> for the
+kinematic chain diagram.</p></li>
+<li><p><strong>rocker2</strong> (<em>float</em>) – Link lengths. See
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.synthesis.watt_from_lengths()</span></code> for the
+kinematic chain diagram.</p></li>
+<li><p><strong>ground_length</strong> (<em>float</em>) – Distance between ground pivots A and D.</p></li>
+<li><p><strong>ground_pivot_a</strong> (<em>(</em><em>float</em><em>, </em><em>float</em><em>)</em>) – World position of ground pivot A.</p></li>
+<li><p><strong>initial_crank_angle</strong> (<em>float</em>) – Starting crank angle (radians).</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocities applied to the resulting Walker.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name for the linkage.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If pylinkage cannot assemble the mechanism at the given
+    link lengths / initial angle.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.get_constraints">
+<span class="sig-name descname"><span class="pre">get_constraints</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.get_constraints" title="Link to this definition"></a></dt>
+<dd><p>Get optimizable constraints as a flat list of floats.</p>
+<p>Returns edge distances from the Mechanism (link lengths),
+compatible with pylinkage optimizers that sniff
+<code class="docutils literal notranslate"><span class="pre">linkage.get_constraints()</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.get_coords">
+<span class="sig-name descname"><span class="pre">get_coords</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.get_coords" title="Link to this definition"></a></dt>
+<dd><p>Get current joint positions as a list of (x, y) tuples.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.get_feet">
+<span class="sig-name descname"><span class="pre">get_feet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.get_feet" title="Link to this definition"></a></dt>
+<dd><p>Return node IDs of foot joints.</p>
+<p>Detection heuristic (in priority order):</p>
+<ol class="arabic simple">
+<li><p>Terminal nodes (degree 1, non-ground, non-driver) — classic
+walking linkages like Theo Jansen or Klann.</p></li>
+<li><p><em>Outermost driven nodes</em> — nodes that are DRIVEN and whose
+neighbours are all either GROUND, DRIVER, or already
+identified as feet.  This catches coupler points (<code class="docutils literal notranslate"><span class="pre">P</span></code>) in
+synthesised four-bars where P connects to B and C but is the
+true foot.</p></li>
+</ol>
+<p>If auto-detection returns nothing, every DRIVEN node is
+considered a candidate (safe fallback that preserves the old
+“all edges collide” behaviour until the user specifies manually).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.get_foot_edges">
+<span class="sig-name descname"><span class="pre">get_foot_edges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.get_foot_edges" title="Link to this definition"></a></dt>
+<dd><p>Return edge IDs of edges that connect to foot nodes.</p>
+<p>Foot edges are the only edges that should collide with the ground
+during physics simulation.  By default, every edge with at least
+one foot endpoint (as returned by <a class="reference internal" href="#leggedsnake.walker.Walker.get_feet" title="leggedsnake.walker.Walker.get_feet"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_feet()</span></code></a>) is considered
+a foot edge.  Override or set <code class="docutils literal notranslate"><span class="pre">foot_edge_ids</span></code> to customise.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.get_num_constraints">
+<span class="sig-name descname"><span class="pre">get_num_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.get_num_constraints" title="Link to this definition"></a></dt>
+<dd><p>Deprecated alias for <a class="reference internal" href="#leggedsnake.walker.Walker.get_constraints" title="leggedsnake.walker.Walker.get_constraints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_constraints()</span></code></a>.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>Use <a class="reference internal" href="#leggedsnake.walker.Walker.get_constraints" title="leggedsnake.walker.Walker.get_constraints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_constraints()</span></code></a>. Removed in 0.7.0.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.get_rotation_period">
+<span class="sig-name descname"><span class="pre">get_rotation_period</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.get_rotation_period" title="Link to this definition"></a></dt>
+<dd><p>Number of steps for one full rotation cycle.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="leggedsnake.walker.Walker.joints">
-<span class="sig-name descname"><span class="pre">joints</span></span><a class="headerlink" href="#leggedsnake.walker.Walker.joints" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">joints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.walker.Walker.joints" title="Link to this definition"></a></dt>
+<dd><p>Mechanism joints in solve order.</p>
+<p>Surface pylinkage’s compatibility hook: <code class="docutils literal notranslate"><span class="pre">pylinkage._compat.get_parts</span></code>
+sniffs for <code class="docutils literal notranslate"><span class="pre">.joints</span></code> or <code class="docutils literal notranslate"><span class="pre">.components</span></code> to iterate over a
+linkage’s parts. Optimizers such as <code class="docutils literal notranslate"><span class="pre">chain_optimizers</span></code> /
+<code class="docutils literal notranslate"><span class="pre">minimize_linkage</span></code> / <code class="docutils literal notranslate"><span class="pre">particle_swarm_optimization</span></code> rely on it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.mirror_leg">
+<span class="sig-name descname"><span class="pre">mirror_leg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.mirror_leg" title="Link to this definition"></a></dt>
+<dd><p>Create an antisymmetric (mirrored) copy of the mechanism.</p>
+<p>The opposite leg has X-coordinates reflected across <code class="docutils literal notranslate"><span class="pre">axis_x</span></code>
+and driver initial angles offset by pi for phase opposition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis_x</strong> (<em>float</em>) – X-coordinate of the vertical mirror axis. Default 0.0.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.mobility">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mobility</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">MobilityInfo</span></em><a class="headerlink" href="#leggedsnake.walker.Walker.mobility" title="Link to this definition"></a></dt>
+<dd><p>Full <code class="docutils literal notranslate"><span class="pre">MobilityInfo</span></code> (DOF, link count, joint counts).</p>
+<p>See <a class="reference internal" href="#leggedsnake.walker.Walker.dof" title="leggedsnake.walker.Walker.dof"><code class="xref py py-attr docutils literal notranslate"><span class="pre">dof</span></code></a> for the scalar-only variant. Delegates to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.topology.compute_mobility()</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.motor_rates">
+<span class="sig-name descname"><span class="pre">motor_rates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.walker.Walker.motor_rates" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="leggedsnake.walker.Walker.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#leggedsnake.walker.Walker.name" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#leggedsnake.walker.Walker.name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.set_constraints">
+<span class="sig-name descname"><span class="pre">set_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.set_constraints" title="Link to this definition"></a></dt>
+<dd><p>Set constraints from a list of floats.</p>
+<p>Nested input (as returned by a <code class="docutils literal notranslate"><span class="pre">param_expander</span></code> such as
+<code class="docutils literal notranslate"><span class="pre">param2dimensions</span></code>) is flattened in order; flat input is used
+as-is. Updates the Mechanism, then syncs edge distances back to
+Dimensions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.set_coords">
+<span class="sig-name descname"><span class="pre">set_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.set_coords" title="Link to this definition"></a></dt>
+<dd><p>Set joint positions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.set_num_constraints">
+<span class="sig-name descname"><span class="pre">set_num_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.set_num_constraints" title="Link to this definition"></a></dt>
+<dd><p>Deprecated alias for <a class="reference internal" href="#leggedsnake.walker.Walker.set_constraints" title="leggedsnake.walker.Walker.set_constraints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_constraints()</span></code></a>.</p>
+<p>Accepts a flat list of floats or a nested list that will be
+flattened in order.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 0.6.0: </span>Use <a class="reference internal" href="#leggedsnake.walker.Walker.set_constraints" title="leggedsnake.walker.Walker.set_constraints"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set_constraints()</span></code></a>, which now flattens nested input
+itself. Removed in 0.7.0.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_unbuildable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.step" title="Link to this definition"></a></dt>
+<dd><p>Simulate one full rotation of the mechanism.</p>
+<p>Delegates to <code class="docutils literal notranslate"><span class="pre">Mechanism.step()</span></code>. Each driver advances independently.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iterations</strong> (<em>int</em><em> | </em><em>None</em>) – Number of simulation steps. If None, uses one full rotation period.</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Time step multiplier.</p></li>
+<li><p><strong>skip_unbuildable</strong> (<em>bool</em>) – If True, yield <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> tuples for iterations where the
+mechanism cannot be assembled, instead of raising
+<code class="docutils literal notranslate"><span class="pre">UnbuildableError</span></code>. Drivers keep advancing so the trajectory
+resumes on the buildable side of dead zones. Mirrors
+<code class="docutils literal notranslate"><span class="pre">pylinkage.linkage.Linkage.step</span></code>’s parameter of the same name.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>tuple of (x, y) coordinate tuples</em> – Joint positions at each step.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.step_with_derivatives">
+<span class="sig-name descname"><span class="pre">step_with_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_unbuildable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">omega</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.step_with_derivatives" title="Link to this definition"></a></dt>
+<dd><p>Simulate one rotation, yielding per-frame positions, velocities, accelerations.</p>
+<p>Velocities and accelerations are solved analytically by pylinkage
+(<code class="docutils literal notranslate"><span class="pre">solver.velocity</span></code> / <code class="docutils literal notranslate"><span class="pre">solver.acceleration</span></code>) rather than
+differenced from the position stream, so they are exact at every
+frame — including the first and last, where a finite-difference
+estimate has to degrade to a one-sided stencil.</p>
+<p>Rates default to each driver’s own <code class="docutils literal notranslate"><span class="pre">angular_velocity</span></code>, which is
+expressed in radians per simulation step. One step spans <code class="docutils literal notranslate"><span class="pre">dt</span></code>
+time units and advances the crank by <code class="docutils literal notranslate"><span class="pre">angular_velocity</span> <span class="pre">*</span> <span class="pre">dt</span></code>
+radians, so the derivatives come out per unit time and are
+independent of <code class="docutils literal notranslate"><span class="pre">dt</span></code>. Pass <em>omega</em> / <em>alpha</em> to drive the
+mechanism at physical rates instead.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A joint can still come back <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> on an otherwise
+buildable frame — prismatic joints, and genuine dead centres
+where the mechanism is at a toggle. Those are honest
+reports of an indeterminate derivative, and they propagate:
+a joint solved from an undefined anchor is undefined too,
+rather than being solved against an anchor assumed
+stationary. Requires pylinkage &gt;= 1.1.0; on 1.0.0,
+joints collinear with their anchors (<code class="docutils literal notranslate"><span class="pre">from_chebyshev</span></code>’s
+foot, several of <code class="docutils literal notranslate"><span class="pre">from_trotbot</span></code>’s) report no derivative,
+and the joints downstream of those report wrong ones.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iterations</strong> (<em>int</em><em> | </em><em>None</em>) – Number of simulation steps. If <em>None</em>, one full rotation period.</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Time step multiplier, as in <a class="reference internal" href="#leggedsnake.walker.Walker.step" title="leggedsnake.walker.Walker.step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">step()</span></code></a>.</p></li>
+<li><p><strong>skip_unbuildable</strong> (<em>bool</em>) – If True, frames where the mechanism cannot be assembled yield
+<code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> for every joint in all three tuples instead of
+raising <code class="docutils literal notranslate"><span class="pre">UnbuildableError</span></code>. Drivers keep advancing, so the
+stream resumes on the far side of a dead zone and its length
+always equals <em>iterations</em>.</p></li>
+<li><p><strong>omega</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Driver angular velocity to differentiate against. A float
+applies to every driver, a dict maps driver node id → rate.
+<em>None</em> uses each driver’s own <code class="docutils literal notranslate"><span class="pre">angular_velocity</span></code>.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Driver angular acceleration, same shape as <em>omega</em>. Defaults
+to 0 — a constant-speed crank. This is the only way to express
+a driver that is spinning up or down; without it accelerations
+describe centripetal terms alone.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>(positions, velocities, accelerations)</em> – Each is a tuple of per-joint <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> (or <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code>
+where undefined). The stream’s length equals <code class="docutils literal notranslate"><span class="pre">iterations</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.to_mechanism">
+<span class="sig-name descname"><span class="pre">to_mechanism</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Mechanism</span></span></span><a class="headerlink" href="#leggedsnake.walker.Walker.to_mechanism" title="Link to this definition"></a></dt>
+<dd><p>Convert to a pylinkage Mechanism for kinematic simulation.</p>
+<p>The result is cached and invalidated when topology or dimensions change.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.walker.Walker.topology">
+<span class="sig-name descname"><span class="pre">topology</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">HypergraphLinkage</span></em><a class="headerlink" href="#leggedsnake.walker.Walker.topology" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walker._derivative_pairs">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">_derivative_pairs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walker._derivative_pairs" title="Link to this definition"></a></dt>
+<dd><p>Normalise pylinkage’s per-joint <code class="docutils literal notranslate"><span class="pre">Coord</span> <span class="pre">|</span> <span class="pre">None</span></code> to <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">y)</span></code> pairs.</p>
+<p>Upstream reports an undefined derivative as a bare <code class="docutils literal notranslate"><span class="pre">None</span></code>, which
+would make callers special-case those entries before unpacking. Every
+frame this module yields unpacks as two values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walker._driver_rate">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">_driver_rate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#leggedsnake.walker._driver_rate" title="Link to this definition"></a></dt>
+<dd><p>Resolve a per-driver rate from a scalar, a per-node dict, or <em>None</em>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walker._pick_solution">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">_pick_solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">candidates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#leggedsnake.walker._pick_solution" title="Link to this definition"></a></dt>
+<dd><p>Index into a synthesis container, reporting its size on failure.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walker._sim_linkage_from_ensemble">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">_sim_linkage_from_ensemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ensemble</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#leggedsnake.walker._sim_linkage_from_ensemble" title="Link to this definition"></a></dt>
+<dd><p>Materialise one Ensemble member as a standalone SimLinkage.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> stores a single shared linkage plus one row of
+constraints and initial positions per member, so a member only becomes
+an independent mechanism once those are applied to a private copy.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walker._sim_linkage_from_synthesis">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">_sim_linkage_from_synthesis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">360</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#leggedsnake.walker._sim_linkage_from_synthesis" title="Link to this definition"></a></dt>
+<dd><p>Resolve any pylinkage synthesis output down to a single SimLinkage.</p>
+<p>See <a class="reference internal" href="#leggedsnake.walker.Walker.from_synthesis" title="leggedsnake.walker.Walker.from_synthesis"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Walker.from_synthesis()</span></code></a> for the accepted input types.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walker._walker_from_sim_linkage">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walker.</span></span><span class="sig-name descname"><span class="pre">_walker_from_sim_linkage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a></span></span><a class="headerlink" href="#leggedsnake.walker._walker_from_sim_linkage" title="Link to this definition"></a></dt>
+<dd><p>Convert a pylinkage SimLinkage to a Walker.</p>
+<p>Thin wrapper over pylinkage’s native
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">pylinkage.simulation.Linkage.to_hypergraph()</span></code> bridge (available
+since pylinkage 1.0.0), which handles every component type upstream
+emits and raises <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> for any it does not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sim_linkage</strong> (<em>pylinkage.simulation.Linkage</em>) – A SimLinkage, as produced by <code class="docutils literal notranslate"><span class="pre">pylinkage.synthesis</span></code> or
+<code class="docutils literal notranslate"><span class="pre">pylinkage.optimization.co_optimize</span></code>.</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Forwarded to the resulting Walker.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Hypergraph-native walker wrapping the converted topology and
+dimensions.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker">Walker</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>TypeError</strong> – If <code class="docutils literal notranslate"><span class="pre">sim_linkage</span></code> is not a SimLinkage.</p></li>
+<li><p><strong>NotImplementedError</strong> – Propagated from <code class="docutils literal notranslate"><span class="pre">to_hypergraph</span></code> when the linkage contains a
+    component type pylinkage cannot yet convert.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -178,7 +975,7 @@ influence other joints.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../changeloglink.html" class="btn btn-neutral float-left" title="Changelog" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../migration_world_config.html" class="btn btn-neutral float-left" title="Migrating from params to WorldConfig" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="utility.html" class="btn btn-neutral float-right" title="utility" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

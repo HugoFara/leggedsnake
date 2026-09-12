@@ -1,25 +1,25 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>utility &mdash; LeggedSnake 0.4.0 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+  <title>utility &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="dynamiclinkage" href="dynamiclinkage.html" />
+    <link rel="next" title="physics_engine" href="physics_engine.html" />
     <link rel="prev" title="walker" href="walker.html" /> 
 </head>
 
@@ -47,11 +47,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Modules</span></p>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">utility</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.utility">Utility functions for Walkers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility._flatten_constraints"><code class="docutils literal notranslate"><span class="pre">_flatten_constraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility._get_constraints"><code class="docutils literal notranslate"><span class="pre">_get_constraints()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility._set_constraints"><code class="docutils literal notranslate"><span class="pre">_set_constraints()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility.ggb_extractor"><code class="docutils literal notranslate"><span class="pre">ggb_extractor()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility.step"><code class="docutils literal notranslate"><span class="pre">step()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#leggedsnake.utility.stride"><code class="docutils literal notranslate"><span class="pre">stride()</span></code></a></li>
@@ -59,9 +67,36 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="dynamiclinkage.html">dynamiclinkage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="physicsengine.html">physicsengine</a></li>
-<li class="toctree-l1"><a class="reference internal" href="geneticoptimizer.html">geneticoptimizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
 <ul>
@@ -99,17 +134,39 @@
            <div itemprop="articleBody">
              
   <section id="utility">
-<h1>utility<a class="headerlink" href="#utility" title="Permalink to this heading"></a></h1>
+<h1>utility<a class="headerlink" href="#utility" title="Link to this heading"></a></h1>
 <section id="module-leggedsnake.utility">
-<span id="utility-functions-for-walkers"></span><h2>Utility functions for Walkers<a class="headerlink" href="#module-leggedsnake.utility" title="Permalink to this heading"></a></h2>
+<span id="utility-functions-for-walkers"></span><h2>Utility functions for Walkers<a class="headerlink" href="#module-leggedsnake.utility" title="Link to this heading"></a></h2>
 <p>Also known as WalkerUtility.</p>
 <p>This module aims to standardize and simplify the study of walking mechanisms.</p>
 <p>It contains useful functions that make study of planar mechanisms easy.</p>
 <p>Created on Sat Nov 17 2018 20:35:39.</p>
 <p>&#64;author: HugoFara</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.utility._flatten_constraints">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">_flatten_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.utility._flatten_constraints" title="Link to this definition"></a></dt>
+<dd><p>Flatten a possibly-nested constraint sequence to a list of floats.</p>
+<p>Nested input (as produced by a <code class="docutils literal notranslate"><span class="pre">param_expander</span></code> such as
+<code class="docutils literal notranslate"><span class="pre">param2dimensions</span></code>) is flattened in order; flat input passes
+through unchanged.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.utility._get_constraints">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">_get_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.utility._get_constraints" title="Link to this definition"></a></dt>
+<dd><p>Read constraints off a linkage, new API first.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.utility._set_constraints">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">_set_constraints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.utility._set_constraints" title="Link to this definition"></a></dt>
+<dd><p>Write constraints to a linkage, new API first.</p>
+<p>Accepts flat or nested <code class="docutils literal notranslate"><span class="pre">constraints</span></code>; nested input is flattened.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.utility.ggb_extractor">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">ggb_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.utility.ggb_extractor" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">ggb_extractor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.utility.ggb_extractor" title="Link to this definition"></a></dt>
 <dd><p>Take data from GeoGebra file, and return them as a dictionary.</p>
 <p>Each element of the dictionary is a slider in the file. Name and value of
 items are the same as in the GeoGebra file.</p>
@@ -117,7 +174,7 @@ items are the same as in the GeoGebra file.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.utility.step">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_res</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.utility.step" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_res</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.utility.step" title="Link to this definition"></a></dt>
 <dd><p>Return if a step can cross an obstacle during locus.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -146,7 +203,7 @@ and False if we can’t cross.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="leggedsnake.utility.stride">
-<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">stride</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.utility.stride" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.utility.</span></span><span class="sig-name descname"><span class="pre">stride</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">point</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.utility.stride" title="Link to this definition"></a></dt>
 <dd><p>Return length of higher “step” in the locus.</p>
 <p>A step is a set of points of the locus, adjacents, with limited height
 difference, and containing the lowest point of the locus.</p>
@@ -162,7 +219,7 @@ for locus containing Diracs.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="walker.html" class="btn btn-neutral float-left" title="walker" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="dynamiclinkage.html" class="btn btn-neutral float-right" title="dynamiclinkage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="physics_engine.html" class="btn btn-neutral float-right" title="physics_engine" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

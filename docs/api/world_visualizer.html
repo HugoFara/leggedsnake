@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>world_visualizer &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="fitness" href="fitness.html" />
+    <link rel="prev" title="hypergraph_physics" href="hypergraph_physics.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">world_visualizer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pyglet-backed-live-visualization">Pyglet-backed live visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.world_visualizer.CameraSettings"><code class="docutils literal notranslate"><span class="pre">CameraSettings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.CameraSettings.dynamic_camera"><code class="docutils literal notranslate"><span class="pre">CameraSettings.dynamic_camera</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.CameraSettings.fps"><code class="docutils literal notranslate"><span class="pre">CameraSettings.fps</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld"><code class="docutils literal notranslate"><span class="pre">VisualWorld</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld.__init__"><code class="docutils literal notranslate"><span class="pre">VisualWorld.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld.batch"><code class="docutils literal notranslate"><span class="pre">VisualWorld.batch</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld.init_visuals"><code class="docutils literal notranslate"><span class="pre">VisualWorld.init_visuals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld.reload_visuals"><code class="docutils literal notranslate"><span class="pre">VisualWorld.reload_visuals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld.run"><code class="docutils literal notranslate"><span class="pre">VisualWorld.run()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld.visual_update"><code class="docutils literal notranslate"><span class="pre">VisualWorld.visual_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld.window"><code class="docutils literal notranslate"><span class="pre">VisualWorld.window</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.world_visualizer.all_linkages_video"><code class="docutils literal notranslate"><span class="pre">all_linkages_video()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.world_visualizer.im_debug"><code class="docutils literal notranslate"><span class="pre">im_debug()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.world_visualizer.smooth_transition"><code class="docutils literal notranslate"><span class="pre">smooth_transition()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.world_visualizer.video"><code class="docutils literal notranslate"><span class="pre">video()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.world_visualizer.video_debug"><code class="docutils literal notranslate"><span class="pre">video_debug()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">world_visualizer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/world_visualizer.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="world-visualizer">
+<h1>world_visualizer<a class="headerlink" href="#world-visualizer" title="Link to this heading"></a></h1>
+<section id="pyglet-backed-live-visualization">
+<h2>Pyglet-backed live visualization<a class="headerlink" href="#pyglet-backed-live-visualization" title="Link to this heading"></a></h2>
+<p>Provides <code class="docutils literal notranslate"><span class="pre">video</span></code>, <code class="docutils literal notranslate"><span class="pre">video_debug</span></code>, and <code class="docutils literal notranslate"><span class="pre">all_linkages_video</span></code>.
+Lazy-imported from the package root — only pulls in <code class="docutils literal notranslate"><span class="pre">pyglet</span></code> at
+access time, so headless environments aren’t penalized.</p>
+<p id="module-leggedsnake.world_visualizer">Visualization for walking linkage simulations.</p>
+<p>Uses Pyglet for hardware-accelerated rendering with pymunk integration.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.CameraSettings">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.world_visualizer.</span></span><span class="sig-name descname"><span class="pre">CameraSettings</span></span><a class="headerlink" href="#leggedsnake.world_visualizer.CameraSettings" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.CameraSettings.dynamic_camera">
+<span class="sig-name descname"><span class="pre">dynamic_camera</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#leggedsnake.world_visualizer.CameraSettings.dynamic_camera" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.CameraSettings.fps">
+<span class="sig-name descname"><span class="pre">fps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#leggedsnake.world_visualizer.CameraSettings.fps" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.world_visualizer.</span></span><span class="sig-name descname"><span class="pre">VisualWorld</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Space</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">road_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headless</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.World" title="leggedsnake.physics_engine.World"><code class="xref py py-class docutils literal notranslate"><span class="pre">World</span></code></a></p>
+<p>Same as parent class World, but with Pyglet rendering.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Space</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">road_y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headless</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld.batch">
+<span class="sig-name descname"><span class="pre">batch</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pyglet.graphics.Batch</span></em><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld.batch" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld.init_visuals">
+<span class="sig-name descname"><span class="pre">init_visuals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld.init_visuals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld.reload_visuals">
+<span class="sig-name descname"><span class="pre">reload_visuals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld.reload_visuals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld.run" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld.visual_update">
+<span class="sig-name descname"><span class="pre">visual_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld.visual_update" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.VisualWorld.window">
+<span class="sig-name descname"><span class="pre">window</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">pyglet.window.Window</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.world_visualizer.VisualWorld.window" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.all_linkages_video">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.world_visualizer.</span></span><span class="sig-name descname"><span class="pre">all_linkages_video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_camera</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.all_linkages_video" title="Link to this definition"></a></dt>
+<dd><p>Simulate linkages with video output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linkages</strong> (<em>list</em>) – Walkers, DynamicLinkages, or legacy Linkages to simulate.</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) – Duration in seconds.</p></li>
+<li><p><strong>save</strong> (<em>bool</em>) – Save as video (not yet implemented for Pyglet).</p></li>
+<li><p><strong>colors</strong> (<em>list</em>) – Opacity or color per linkage.</p></li>
+<li><p><strong>dynamic_camera</strong> (<em>bool</em>) – Follow one strider vs. larger view.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.im_debug">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.world_visualizer.</span></span><span class="sig-name descname"><span class="pre">im_debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">world</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#leggedsnake.world_visualizer.VisualWorld" title="leggedsnake.world_visualizer.VisualWorld"><span class="pre">VisualWorld</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><span class="pre">DynamicLinkage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.im_debug" title="Link to this definition"></a></dt>
+<dd><p>Use pymunk debugging for visual debugging.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.smooth_transition">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.world_visualizer.</span></span><span class="sig-name descname"><span class="pre">smooth_transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_view</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dampers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">((-10,</span> <span class="pre">-5),</span> <span class="pre">(10,</span> <span class="pre">5))</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.smooth_transition" title="Link to this definition"></a></dt>
+<dd><p>Create a smooth transition between a camera view and a target view.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.video">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.world_visualizer.</span></span><span class="sig-name descname"><span class="pre">video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_camera</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.video" title="Link to this definition"></a></dt>
+<dd><p>Simulate a linkage with video output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linkage</strong> (<a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><em>Walker</em></a><em>, </em><a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><em>DynamicLinkage</em></a><em>, or </em><em>legacy Linkage</em>) – The mechanism to simulate.</p></li>
+<li><p><strong>duration</strong> (<em>float</em>) – Duration in seconds.</p></li>
+<li><p><strong>save</strong> (<em>bool</em>) – Save as video (not yet implemented).</p></li>
+<li><p><strong>dynamic_camera</strong> (<em>bool</em>) – Follow the mechanism vs. wider view.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.world_visualizer.video_debug">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.world_visualizer.</span></span><span class="sig-name descname"><span class="pre">video_debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.world_visualizer.video_debug" title="Link to this definition"></a></dt>
+<dd><p>Launch the simulation frame by frame, useful for debug.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hypergraph_physics.html" class="btn btn-neutral float-left" title="hypergraph_physics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fitness.html" class="btn btn-neutral float-right" title="fitness" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>serialization &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="urdf_export" href="urdf_export.html" />
+    <link rel="prev" title="show_evolution" href="show_evolution.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">serialization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.serialization">JSON serialization for Walkers and optimization results.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.load_result"><code class="docutils literal notranslate"><span class="pre">load_result()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.load_walker"><code class="docutils literal notranslate"><span class="pre">load_walker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.result_from_dict"><code class="docutils literal notranslate"><span class="pre">result_from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.result_to_dict"><code class="docutils literal notranslate"><span class="pre">result_to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.save_result"><code class="docutils literal notranslate"><span class="pre">save_result()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.save_walker"><code class="docutils literal notranslate"><span class="pre">save_walker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.walker_from_dict"><code class="docutils literal notranslate"><span class="pre">walker_from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.serialization.walker_to_dict"><code class="docutils literal notranslate"><span class="pre">walker_to_dict()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">serialization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/serialization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="serialization">
+<h1>serialization<a class="headerlink" href="#serialization" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.serialization">
+<span id="json-serialization-for-walkers-and-optimization-results"></span><h2>JSON serialization for Walkers and optimization results.<a class="headerlink" href="#module-leggedsnake.serialization" title="Link to this heading"></a></h2>
+<p>Walker and optimization result serialization.</p>
+<p>Provides JSON save/load for Walker instances and NsgaWalkingResult.
+Delegates to pylinkage’s <code class="docutils literal notranslate"><span class="pre">graph_to_dict</span></code>/<code class="docutils literal notranslate"><span class="pre">graph_from_dict</span></code> for
+topology and <code class="docutils literal notranslate"><span class="pre">Dimensions.to_dict</span></code>/<code class="docutils literal notranslate"><span class="pre">Dimensions.from_dict</span></code> for
+geometry (positions, distances, driver angles).</p>
+<p>Files written by leggedsnake &lt; 0.6.0 remain readable: pylinkage’s
+<code class="docutils literal notranslate"><span class="pre">Dimensions.from_dict</span></code> accepts both the current <code class="docutils literal notranslate"><span class="pre">[node_a,</span> <span class="pre">node_b,</span>
+<span class="pre">distance]</span></code> triples and the older stringified-tuple hyperedge keys.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_walker</span><span class="p">,</span> <span class="n">load_walker</span>
+
+<span class="n">save_walker</span><span class="p">(</span><span class="n">walker</span><span class="p">,</span> <span class="s2">&quot;my_walker.json&quot;</span><span class="p">)</span>
+<span class="n">loaded</span> <span class="o">=</span> <span class="n">load_walker</span><span class="p">(</span><span class="s2">&quot;my_walker.json&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save full optimization results</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_result</span><span class="p">,</span> <span class="n">load_result</span>
+<span class="n">save_result</span><span class="p">(</span><span class="n">nsga_result</span><span class="p">,</span> <span class="s2">&quot;optimization.json&quot;</span><span class="p">)</span>
+<span class="n">loaded_result</span> <span class="o">=</span> <span class="n">load_result</span><span class="p">(</span><span class="s2">&quot;optimization.json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.load_result">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">load_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><span class="pre">NsgaWalkingResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="topology_optimization.html#leggedsnake.topology_optimization.TopologyWalkingResult" title="leggedsnake.topology_optimization.TopologyWalkingResult"><span class="pre">TopologyWalkingResult</span></a></span></span><a class="headerlink" href="#leggedsnake.serialization.load_result" title="Link to this definition"></a></dt>
+<dd><p>Load an NsgaWalkingResult from a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em><em> | </em><em>Path</em>) – Path to JSON file created by <code class="docutils literal notranslate"><span class="pre">save_result</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult">NsgaWalkingResult</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.load_walker">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">load_walker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#leggedsnake.serialization.load_walker" title="Link to this definition"></a></dt>
+<dd><p>Load a Walker from a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>str</em><em> | </em><em>Path</em>) – Path to JSON file created by <code class="docutils literal notranslate"><span class="pre">save_walker</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker">Walker</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.result_from_dict">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">result_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><span class="pre">NsgaWalkingResult</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="topology_optimization.html#leggedsnake.topology_optimization.TopologyWalkingResult" title="leggedsnake.topology_optimization.TopologyWalkingResult"><span class="pre">TopologyWalkingResult</span></a></span></span><a class="headerlink" href="#leggedsnake.serialization.result_from_dict" title="Link to this definition"></a></dt>
+<dd><p>Deserialize an NsgaWalkingResult from a plain dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – Dictionary from <code class="docutils literal notranslate"><span class="pre">result_to_dict</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult">NsgaWalkingResult</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.result_to_dict">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">result_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><span class="pre">NsgaWalkingResult</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.serialization.result_to_dict" title="Link to this definition"></a></dt>
+<dd><p>Serialize an NsgaWalkingResult to a plain dict.</p>
+<p>Serializes the Pareto front (scores, dimensions), configuration,
+and topology metadata. Gait and stability time series are omitted
+(too large and can be recomputed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>result</strong> (<a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><em>NsgaWalkingResult</em></a>) – Optimization result to serialize.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON-serializable dictionary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.save_result">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">save_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><span class="pre">NsgaWalkingResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.serialization.save_result" title="Link to this definition"></a></dt>
+<dd><p>Save an NsgaWalkingResult to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> (<a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><em>NsgaWalkingResult</em></a>) – Optimization result to save.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em> | </em><em>Path</em>) – Output file path.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.save_walker">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">save_walker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">walker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.serialization.save_walker" title="Link to this definition"></a></dt>
+<dd><p>Save a Walker to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>walker</strong> (<a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><em>Walker</em></a>) – The walker to save.</p></li>
+<li><p><strong>path</strong> (<em>str</em><em> | </em><em>Path</em>) – Output file path.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.walker_from_dict">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">walker_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#leggedsnake.serialization.walker_from_dict" title="Link to this definition"></a></dt>
+<dd><p>Deserialize a Walker from a plain dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – Dictionary from <code class="docutils literal notranslate"><span class="pre">walker_to_dict</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker">Walker</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.serialization.walker_to_dict">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.serialization.</span></span><span class="sig-name descname"><span class="pre">walker_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">walker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.serialization.walker_to_dict" title="Link to this definition"></a></dt>
+<dd><p>Serialize a Walker to a plain dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>walker</strong> (<a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><em>Walker</em></a>) – The walker to serialize.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>JSON-serializable dictionary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="show_evolution.html" class="btn btn-neutral float-left" title="show_evolution" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="urdf_export.html" class="btn btn-neutral float-right" title="urdf_export" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>walking_objectives &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="genetic_optimizer" href="genetic_optimizer.html" />
+    <link rel="prev" title="gait_analysis" href="gait_analysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">walking_objectives</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.walking_objectives">Walking-specific objective factories for pylinkage’s optimizer infrastructure.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walking_objectives.energy_efficiency_objective"><code class="docutils literal notranslate"><span class="pre">energy_efficiency_objective()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walking_objectives.multi_objective_walking_optimization"><code class="docutils literal notranslate"><span class="pre">multi_objective_walking_optimization()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walking_objectives.stride_length_objective"><code class="docutils literal notranslate"><span class="pre">stride_length_objective()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.walking_objectives.total_distance_objective"><code class="docutils literal notranslate"><span class="pre">total_distance_objective()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">walking_objectives</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/walking_objectives.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="walking-objectives">
+<h1>walking_objectives<a class="headerlink" href="#walking-objectives" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.walking_objectives">
+<span id="walking-specific-objective-factories-for-pylinkage-s-optimizer-infrastructure"></span><h2>Walking-specific objective factories for pylinkage’s optimizer infrastructure.<a class="headerlink" href="#module-leggedsnake.walking_objectives" title="Link to this heading"></a></h2>
+<p>Pre-built objective functions for multi-objective walking optimization.</p>
+<p>These objectives wrap the standard pylinkage eval_func contract:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">objective</span><span class="p">(</span><span class="n">linkage</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">,</span> <span class="n">init_positions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span>
+</pre></div>
+</div>
+<p>They can be passed directly to <code class="docutils literal notranslate"><span class="pre">multi_objective_optimization</span></code> or composed
+with <code class="docutils literal notranslate"><span class="pre">chain_optimizers</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">multi_objective_optimization</span><span class="p">,</span>
+    <span class="n">stride_length_objective</span><span class="p">,</span>
+    <span class="n">energy_efficiency_objective</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">front</span> <span class="o">=</span> <span class="n">multi_objective_optimization</span><span class="p">(</span>
+    <span class="n">objectives</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">stride_length_objective</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">n_legs</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+        <span class="n">energy_efficiency_objective</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">n_legs</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">linkage</span><span class="o">=</span><span class="n">my_walker</span><span class="p">,</span>
+    <span class="n">bounds</span><span class="o">=</span><span class="n">my_bounds</span><span class="p">,</span>
+    <span class="n">objective_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;stride length (maximize)&quot;</span><span class="p">,</span> <span class="s2">&quot;energy per meter&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walking_objectives.energy_efficiency_objective">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walking_objectives.</span></span><span class="sig-name descname"><span class="pre">energy_efficiency_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_expander</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><span class="pre">WorldConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walking_objectives.energy_efficiency_objective" title="Link to this definition"></a></dt>
+<dd><p>Create a dynamic energy-efficiency objective (to maximize).</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">total_efficiency</span> <span class="pre">/</span> <span class="pre">total_energy</span></code> from physics simulation.
+Returns 0 if the walker doesn’t travel at least <code class="docutils literal notranslate"><span class="pre">min_distance</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> (<em>float</em>) – Simulation duration in seconds.</p></li>
+<li><p><strong>n_legs</strong> (<em>int</em>) – Number of leg pairs for the walker.</p></li>
+<li><p><strong>param_expander</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function to expand compact parameters to full dimensions.</p></li>
+<li><p><strong>min_distance</strong> (<em>float</em>) – Minimum distance the walker must cover to get a non-zero score.</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><em>WorldConfig</em></a><em>, </em><em>optional</em>) – Simulation parameters (gravity, terrain, etc.).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">objective(linkage,</span> <span class="pre">dims,</span> <span class="pre">pos)</span> <span class="pre">-&gt;</span> <span class="pre">float</span></code></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walking_objectives.multi_objective_walking_optimization">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walking_objectives.</span></span><span class="sig-name descname"><span class="pre">multi_objective_walking_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'nsga2'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'nsga3'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'nsga2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_generations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ParetoFront</span></span></span><a class="headerlink" href="#leggedsnake.walking_objectives.multi_objective_walking_optimization" title="Link to this definition"></a></dt>
+<dd><p>Multi-objective optimization for walking linkages.</p>
+<p>Convenience wrapper around <code class="docutils literal notranslate"><span class="pre">pylinkage.optimization.multi_objective_optimization</span></code>
+that accepts walking-specific objective factories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linkage</strong> (<a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><em>Walker</em></a><em> or </em><em>Linkage</em>) – The linkage to optimize.</p></li>
+<li><p><strong>objectives</strong> (<em>sequence</em><em> of </em><em>callables</em>) – Objective functions, each with signature
+<code class="docutils literal notranslate"><span class="pre">(linkage,</span> <span class="pre">dims,</span> <span class="pre">pos)</span> <span class="pre">-&gt;</span> <span class="pre">float</span></code>. Use the factory functions
+in this module (<code class="docutils literal notranslate"><span class="pre">stride_length_objective</span></code>, etc.) to create them.</p></li>
+<li><p><strong>bounds</strong> (<em>tuple</em><em> of </em><em>(</em><em>lower</em><em>, </em><em>upper</em><em>)</em>) – Parameter bounds.</p></li>
+<li><p><strong>objective_names</strong> (<em>sequence</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Names for plotting and identification.</p></li>
+<li><p><strong>algorithm</strong> (<em>{&quot;nsga2&quot;</em><em>, </em><em>&quot;nsga3&quot;}</em>) – Multi-objective algorithm. Default “nsga2”.</p></li>
+<li><p><strong>n_generations</strong> (<em>int</em>) – Number of generations. Default 100.</p></li>
+<li><p><strong>pop_size</strong> (<em>int</em>) – Population size. Default 100.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Random seed for reproducibility.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Show progress. Default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Collection of non-dominated solutions with <code class="docutils literal notranslate"><span class="pre">.best_compromise()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">.plot()</span></code>, and <code class="docutils literal notranslate"><span class="pre">.filter()</span></code> methods.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ParetoFront</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walking_objectives.stride_length_objective">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walking_objectives.</span></span><span class="sig-name descname"><span class="pre">stride_length_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">lap_points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride_height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_expander</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walking_objectives.stride_length_objective" title="Link to this definition"></a></dt>
+<dd><p>Create a kinematic stride-length objective (to maximize).</p>
+<p>This is a fast, physics-free evaluation that measures horizontal
+travel of the foot locus. Suitable for initial exploration stages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lap_points</strong> (<em>int</em>) – Points per crank revolution for simulation.</p></li>
+<li><p><strong>step_height</strong> (<em>float</em>) – Obstacle clearance requirements.</p></li>
+<li><p><strong>step_width</strong> (<em>float</em>) – Obstacle clearance requirements.</p></li>
+<li><p><strong>stride_height</strong> (<em>float</em>) – Height threshold for stride extraction.</p></li>
+<li><p><strong>foot_index</strong> (<em>int</em>) – Index of the foot joint in the locus output.</p></li>
+<li><p><strong>param_expander</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function to expand compact parameters to full dimensions
+(e.g., <code class="docutils literal notranslate"><span class="pre">param2dimensions</span></code> for symmetric linkages).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">objective(linkage,</span> <span class="pre">dims,</span> <span class="pre">pos)</span> <span class="pre">-&gt;</span> <span class="pre">float</span></code></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.walking_objectives.total_distance_objective">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.walking_objectives.</span></span><span class="sig-name descname"><span class="pre">total_distance_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">40.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_expander</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><span class="pre">WorldConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.walking_objectives.total_distance_objective" title="Link to this definition"></a></dt>
+<dd><p>Create a dynamic total-distance objective (to maximize).</p>
+<p>Returns the horizontal position of the walker body after simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>duration</strong> (<em>float</em>) – Simulation duration in seconds.</p></li>
+<li><p><strong>n_legs</strong> (<em>int</em>) – Number of leg pairs for the walker.</p></li>
+<li><p><strong>param_expander</strong> (<em>callable</em><em>, </em><em>optional</em>) – Function to expand compact parameters to full dimensions.</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><em>WorldConfig</em></a><em>, </em><em>optional</em>) – Simulation parameters (gravity, terrain, etc.).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">objective(linkage,</span> <span class="pre">dims,</span> <span class="pre">pos)</span> <span class="pre">-&gt;</span> <span class="pre">float</span></code></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>callable</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gait_analysis.html" class="btn btn-neutral float-left" title="gait_analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="genetic_optimizer.html" class="btn btn-neutral float-right" title="genetic_optimizer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

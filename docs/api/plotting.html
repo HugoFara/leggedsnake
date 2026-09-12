@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plotting &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="urdf_export" href="urdf_export.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">plotting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.plotting">Matplotlib and Plotly visualizations for results and walkers.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.plot_com_trajectory"><code class="docutils literal notranslate"><span class="pre">plot_com_trajectory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.plot_foot_trajectories"><code class="docutils literal notranslate"><span class="pre">plot_foot_trajectories()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.plot_gait_diagram"><code class="docutils literal notranslate"><span class="pre">plot_gait_diagram()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.plot_optimization_dashboard"><code class="docutils literal notranslate"><span class="pre">plot_optimization_dashboard()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.plot_pareto_front"><code class="docutils literal notranslate"><span class="pre">plot_pareto_front()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.plot_stability_timeseries"><code class="docutils literal notranslate"><span class="pre">plot_stability_timeseries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.plot_walker_plotly"><code class="docutils literal notranslate"><span class="pre">plot_walker_plotly()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.plotting.save_walker_svg"><code class="docutils literal notranslate"><span class="pre">save_walker_svg()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">plotting</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/plotting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="plotting">
+<h1>plotting<a class="headerlink" href="#plotting" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.plotting">
+<span id="matplotlib-and-plotly-visualizations-for-results-and-walkers"></span><h2>Matplotlib and Plotly visualizations for results and walkers.<a class="headerlink" href="#module-leggedsnake.plotting" title="Link to this heading"></a></h2>
+<p>Visualization and reporting for walking mechanism analysis.</p>
+<p>Provides matplotlib-based plotting functions for:
+- Pareto front scatter plots (2D and 3D)
+- Gait phase / timing diagrams
+- Stability time series (tip-over margin, ZMP, body angle)
+- Center-of-mass trajectory overlays
+- Foot trajectory shape analysis
+- Combined dashboard views</p>
+<p>All functions return <code class="docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code> so callers can
+further customize or save to file.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">plot_pareto_front</span><span class="p">,</span>
+    <span class="n">plot_gait_diagram</span><span class="p">,</span>
+    <span class="n">plot_stability_timeseries</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plot_pareto_front</span><span class="p">(</span><span class="n">nsga_result</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;pareto.png&quot;</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plot_gait_diagram</span><span class="p">(</span><span class="n">gait_result</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plot_stability_timeseries</span><span class="p">(</span><span class="n">stability_series</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.plot_com_trajectory">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_com_trajectory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="stability.html#leggedsnake.stability.StabilityTimeSeries" title="leggedsnake.stability.StabilityTimeSeries"><span class="pre">StabilityTimeSeries</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(10,</span> <span class="pre">4)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">matplotlib.figure.Figure</span></span></span><a class="headerlink" href="#leggedsnake.plotting.plot_com_trajectory" title="Link to this definition"></a></dt>
+<dd><p>2D plot of center-of-mass trajectory with support polygon snapshots.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>series</strong> (<a class="reference internal" href="stability.html#leggedsnake.stability.StabilityTimeSeries" title="leggedsnake.stability.StabilityTimeSeries"><em>StabilityTimeSeries</em></a>) – Stability recording with CoM and support polygon data.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Figure size in inches.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.plot_foot_trajectories">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_foot_trajectories</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="gait_analysis.html#leggedsnake.gait_analysis.GaitAnalysisResult" title="leggedsnake.gait_analysis.GaitAnalysisResult"><span class="pre">GaitAnalysisResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(10,</span> <span class="pre">6)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">matplotlib.figure.Figure</span></span></span><a class="headerlink" href="#leggedsnake.plotting.plot_foot_trajectories" title="Link to this definition"></a></dt>
+<dd><p>Foot trajectory shape plot for each tracked foot.</p>
+<p>Each foot trajectory is drawn with contact regions highlighted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gait</strong> (<a class="reference internal" href="gait_analysis.html#leggedsnake.gait_analysis.GaitAnalysisResult" title="leggedsnake.gait_analysis.GaitAnalysisResult"><em>GaitAnalysisResult</em></a>) – Gait analysis with foot trajectory data.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Figure size in inches.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.plot_gait_diagram">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_gait_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="gait_analysis.html#leggedsnake.gait_analysis.GaitAnalysisResult" title="leggedsnake.gait_analysis.GaitAnalysisResult"><span class="pre">GaitAnalysisResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(10,</span> <span class="pre">4)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">matplotlib.figure.Figure</span></span></span><a class="headerlink" href="#leggedsnake.plotting.plot_gait_diagram" title="Link to this definition"></a></dt>
+<dd><p>Gait timing diagram showing stance/swing phases per foot.</p>
+<p>Each foot gets a horizontal bar: dark = stance, light = swing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gait</strong> (<a class="reference internal" href="gait_analysis.html#leggedsnake.gait_analysis.GaitAnalysisResult" title="leggedsnake.gait_analysis.GaitAnalysisResult"><em>GaitAnalysisResult</em></a>) – Output of <code class="docutils literal notranslate"><span class="pre">analyze_gait</span></code>.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Figure size in inches.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.plot_optimization_dashboard">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_optimization_dashboard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><span class="pre">NsgaWalkingResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">solution_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(16,</span> <span class="pre">10)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">matplotlib.figure.Figure</span></span></span><a class="headerlink" href="#leggedsnake.plotting.plot_optimization_dashboard" title="Link to this definition"></a></dt>
+<dd><p>Combined dashboard for a single Pareto-front solution.</p>
+<p>Shows Pareto front (top-left), gait diagram (top-right),
+stability series (bottom-left), and foot trajectories (bottom-right).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> (<a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><em>NsgaWalkingResult</em></a>) – Full NSGA optimization result with gait and stability data.</p></li>
+<li><p><strong>solution_index</strong> (<em>int</em>) – Index of the Pareto solution to detail.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Figure size in inches.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.plot_pareto_front">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_pareto_front</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><span class="pre">NsgaWalkingResult</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_best</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(8,</span> <span class="pre">6)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">matplotlib.figure.Figure</span></span></span><a class="headerlink" href="#leggedsnake.plotting.plot_pareto_front" title="Link to this definition"></a></dt>
+<dd><p>Scatter plot of the Pareto front.</p>
+<p>Supports 2D (two objectives) and 3D (three objectives).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>result</strong> (<a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult"><em>NsgaWalkingResult</em></a>) – Output of <code class="docutils literal notranslate"><span class="pre">nsga_walking_optimization</span></code>.</p></li>
+<li><p><strong>objective_indices</strong> (<em>tuple</em><em> of </em><em>int</em>) – Which objectives to plot (indices into scores tuple).</p></li>
+<li><p><strong>highlight_best</strong> (<em>bool</em>) – If True, mark the best-compromise solution.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Figure size in inches.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.plot_stability_timeseries">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_stability_timeseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="stability.html#leggedsnake.stability.StabilityTimeSeries" title="leggedsnake.stability.StabilityTimeSeries"><span class="pre">StabilityTimeSeries</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(12,</span> <span class="pre">8)</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">matplotlib.figure.Figure</span></span></span><a class="headerlink" href="#leggedsnake.plotting.plot_stability_timeseries" title="Link to this definition"></a></dt>
+<dd><p>Multi-panel stability time series plot.</p>
+<p>Four subplots: tip-over margin, ZMP x-coordinate, body angle,
+and CoM height.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>series</strong> (<a class="reference internal" href="stability.html#leggedsnake.stability.StabilityTimeSeries" title="leggedsnake.stability.StabilityTimeSeries"><em>StabilityTimeSeries</em></a>) – Output of stability recording.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Figure size in inches.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>matplotlib.figure.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.plot_walker_plotly">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_walker_plotly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">walker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_unbuildable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_loci</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">800</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">600</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#leggedsnake.plotting.plot_walker_plotly" title="Link to this definition"></a></dt>
+<dd><p>Interactive Plotly diagram of a Walker’s kinematic trajectory.</p>
+<p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.visualizer.plot_linkage_plotly()</span></code> with a
+pre-computed locus from <code class="xref py py-meth docutils literal notranslate"><span class="pre">Walker.step()</span></code>. Useful for inspecting
+optimization-run outputs in notebooks or dashboards.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>walker</strong> (<a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><em>Walker</em></a>) – Mechanism to render.</p></li>
+<li><p><strong>iterations</strong> (<em>int</em><em> | </em><em>None</em>) – Simulation steps. Defaults to one full rotation period.</p></li>
+<li><p><strong>skip_unbuildable</strong> (<em>bool</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">Walker.step</span></code>. Dead-zone frames are drawn with
+their <code class="docutils literal notranslate"><span class="pre">(None,</span> <span class="pre">None)</span></code> positions, which pylinkage’s plotly
+renderer tolerates gracefully.</p></li>
+<li><p><strong>title</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">plot_linkage_plotly</span></code>.</p></li>
+<li><p><strong>show_loci</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">plot_linkage_plotly</span></code>.</p></li>
+<li><p><strong>show_labels</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">plot_linkage_plotly</span></code>.</p></li>
+<li><p><strong>width</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">plot_linkage_plotly</span></code>.</p></li>
+<li><p><strong>height</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">plot_linkage_plotly</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>plotly.graph_objects.Figure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.plotting.save_walker_svg">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.plotting.</span></span><span class="sig-name descname"><span class="pre">save_walker_svg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">walker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iterations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_unbuildable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.plotting.save_walker_svg" title="Link to this definition"></a></dt>
+<dd><p>Save a Walker’s kinematic trajectory as an SVG file.</p>
+<p>Delegates to <code class="xref py py-func docutils literal notranslate"><span class="pre">pylinkage.visualizer.save_linkage_svg()</span></code> with a
+pre-computed locus. Useful for embedding optimizer outputs in
+papers or reports.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>walker</strong> (<a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><em>Walker</em></a>) – Mechanism to render.</p></li>
+<li><p><strong>path</strong> (<em>str</em>) – Output SVG file path.</p></li>
+<li><p><strong>iterations</strong> (<em>int</em><em> | </em><em>None</em>) – Simulation steps. Defaults to one full rotation period.</p></li>
+<li><p><strong>skip_unbuildable</strong> (<em>bool</em>) – Forwarded to <code class="docutils literal notranslate"><span class="pre">Walker.step</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="docutils literal notranslate"><span class="pre">save_linkage_svg</span></code> (<code class="docutils literal notranslate"><span class="pre">show_loci</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code>,
+<code class="docutils literal notranslate"><span class="pre">height</span></code>, etc.).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="urdf_export.html" class="btn btn-neutral float-left" title="urdf_export" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

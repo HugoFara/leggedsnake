@@ -1,0 +1,546 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>stability &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="gait_analysis" href="gait_analysis.html" />
+    <link rel="prev" title="fitness" href="fitness.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">stability</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.stability">Center-of-mass, ZMP, support polygon, and tip-over margin metrics.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.__init__"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.body_angle"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.body_angle</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.com"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.com</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.com_velocity"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.com_velocity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.ground_reaction_force"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.ground_reaction_force</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.peak_contact_force"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.peak_contact_force</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.support_polygon"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.support_polygon</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.time"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.tip_over_margin"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.tip_over_margin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot.zmp_x"><code class="docutils literal notranslate"><span class="pre">StabilitySnapshot.zmp_x</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.__init__"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.angular_stability"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.angular_stability</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.com_trajectory"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.com_trajectory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.mean_ground_reaction_force"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.mean_ground_reaction_force</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.mean_speed"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.mean_speed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.mean_tip_over_margin"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.mean_tip_over_margin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.min_tip_over_margin"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.min_tip_over_margin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.peak_contact_force"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.peak_contact_force</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.peak_ground_reaction_force"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.peak_ground_reaction_force</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.snapshots"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.snapshots</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.speed_variance"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.speed_variance</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.summary_metrics"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.summary_metrics()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.stability.StabilityTimeSeries.zmp_excursion"><code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries.zmp_excursion</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.approximate_zmp"><code class="docutils literal notranslate"><span class="pre">approximate_zmp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.compute_com"><code class="docutils literal notranslate"><span class="pre">compute_com()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.compute_com_velocity"><code class="docutils literal notranslate"><span class="pre">compute_com_velocity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.compute_stability_snapshot"><code class="docutils literal notranslate"><span class="pre">compute_stability_snapshot()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.compute_tip_over_margin"><code class="docutils literal notranslate"><span class="pre">compute_tip_over_margin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.get_support_polygon"><code class="docutils literal notranslate"><span class="pre">get_support_polygon()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.stability.sample_ground_reaction_force"><code class="docutils literal notranslate"><span class="pre">sample_ground_reaction_force()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">stability</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/stability.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="stability">
+<h1>stability<a class="headerlink" href="#stability" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.stability">
+<span id="center-of-mass-zmp-support-polygon-and-tip-over-margin-metrics"></span><h2>Center-of-mass, ZMP, support polygon, and tip-over margin metrics.<a class="headerlink" href="#module-leggedsnake.stability" title="Link to this heading"></a></h2>
+<p>Stability metrics for walking mechanism evaluation.</p>
+<p>Provides center-of-mass (CoM) tracking, zero-moment-point (ZMP) approximation,
+support polygon computation, and tip-over margin for planar walkers.</p>
+<p>These metrics run on top of pymunk simulation data extracted from
+<code class="docutils literal notranslate"><span class="pre">DynamicLinkage</span></code> and are collected into <code class="docutils literal notranslate"><span class="pre">StabilityTimeSeries</span></code> for
+post-simulation analysis.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake.stability</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_stability_snapshot</span><span class="p">,</span> <span class="n">StabilityTimeSeries</span>
+
+<span class="n">snapshots</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">prev</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+    <span class="n">world</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+    <span class="n">snap</span> <span class="o">=</span> <span class="n">compute_stability_snapshot</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">prev</span><span class="p">,</span> <span class="n">t</span> <span class="o">*</span> <span class="n">dt</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">gravity_y</span><span class="p">)</span>
+    <span class="n">snapshots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">snap</span><span class="p">)</span>
+    <span class="n">prev</span> <span class="o">=</span> <span class="n">snap</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">StabilityTimeSeries</span><span class="p">(</span><span class="n">snapshots</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">summary_metrics</span><span class="p">())</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">StabilitySnapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmp_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support_polygon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tip_over_margin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_reaction_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_contact_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Single-timestep stability measurement.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zmp_x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support_polygon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tip_over_margin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_reaction_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_contact_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.body_angle">
+<span class="sig-name descname"><span class="pre">body_angle</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.body_angle" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.com">
+<span class="sig-name descname"><span class="pre">com</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.com" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.com_velocity">
+<span class="sig-name descname"><span class="pre">com_velocity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.com_velocity" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.ground_reaction_force">
+<span class="sig-name descname"><span class="pre">ground_reaction_force</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.ground_reaction_force" title="Link to this definition"></a></dt>
+<dd><p>Sum of contact-force magnitudes between the linkage and the ground
+(Newtons) — zero when no foot is touching.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.peak_contact_force">
+<span class="sig-name descname"><span class="pre">peak_contact_force</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.peak_contact_force" title="Link to this definition"></a></dt>
+<dd><p>Largest single-contact force magnitude this step.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.support_polygon">
+<span class="sig-name descname"><span class="pre">support_polygon</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.support_polygon" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.time">
+<span class="sig-name descname"><span class="pre">time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.time" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.tip_over_margin">
+<span class="sig-name descname"><span class="pre">tip_over_margin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.tip_over_margin" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilitySnapshot.zmp_x">
+<span class="sig-name descname"><span class="pre">zmp_x</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilitySnapshot.zmp_x" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">StabilityTimeSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snapshots:</span> <span class="pre">list[~leggedsnake.stability.StabilitySnapshot]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Full stability history across a simulation run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>snapshots</strong> (<em>list</em><em>[</em><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot" title="leggedsnake.stability.StabilitySnapshot"><em>StabilitySnapshot</em></a><em>]</em>) – Chronologically ordered stability measurements.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">snapshots:</span> <span class="pre">list[~leggedsnake.stability.StabilitySnapshot]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.angular_stability">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">angular_stability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.angular_stability" title="Link to this definition"></a></dt>
+<dd><p>RMS body angle — lower means more upright.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.com_trajectory">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">com_trajectory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.com_trajectory" title="Link to this definition"></a></dt>
+<dd><p>Center-of-mass (x, y) at each timestep.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.mean_ground_reaction_force">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mean_ground_reaction_force</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.mean_ground_reaction_force" title="Link to this definition"></a></dt>
+<dd><p>Mean summed foot-ground contact force across the run (N).</p>
+<p>Averages over <em>every</em> step — steps with no foot contact count
+as zero. A well-footed walker’s mean should approximate the
+weight of the walker.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.mean_speed">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mean_speed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.mean_speed" title="Link to this definition"></a></dt>
+<dd><p>Mean forward (x-axis) CoM speed across the run.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.mean_tip_over_margin">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">mean_tip_over_margin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.mean_tip_over_margin" title="Link to this definition"></a></dt>
+<dd><p>Average tip-over margin across the simulation.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.min_tip_over_margin">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">min_tip_over_margin</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.min_tip_over_margin" title="Link to this definition"></a></dt>
+<dd><p>Worst-case tip-over margin (most unstable instant).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.peak_contact_force">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">peak_contact_force</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.peak_contact_force" title="Link to this definition"></a></dt>
+<dd><p>Largest single foot-ground contact force across the run (N).</p>
+<p>Useful for spotting impulsive spikes that would shatter a real
+mechanism even when the summed force looks benign.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.peak_ground_reaction_force">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">peak_ground_reaction_force</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.peak_ground_reaction_force" title="Link to this definition"></a></dt>
+<dd><p>Maximum summed foot-ground contact force across the run (N).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.snapshots">
+<span class="sig-name descname"><span class="pre">snapshots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot" title="leggedsnake.stability.StabilitySnapshot"><span class="pre">StabilitySnapshot</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.snapshots" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.speed_variance">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">speed_variance</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.speed_variance" title="Link to this definition"></a></dt>
+<dd><p>Population variance of the forward CoM speed.</p>
+<p>Captures how steady the walker’s progress is under the current
+terrain — a smooth gait on flat ground has near-zero variance,
+jerky gaits or rough terrain raise it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.summary_metrics">
+<span class="sig-name descname"><span class="pre">summary_metrics</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.summary_metrics" title="Link to this definition"></a></dt>
+<dd><p>Flat dictionary of all scalar stability metrics.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.stability.StabilityTimeSeries.zmp_excursion">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">zmp_excursion</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.stability.StabilityTimeSeries.zmp_excursion" title="Link to this definition"></a></dt>
+<dd><p>Maximum deviation of ZMP from the support polygon center.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.stability.approximate_zmp">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">approximate_zmp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">com_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_velocity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gravity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#leggedsnake.stability.approximate_zmp" title="Link to this definition"></a></dt>
+<dd><p>Zero-moment-point x-coordinate via inverted-pendulum model.</p>
+<p>Uses the linear inverted pendulum approximation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x_zmp</span> <span class="o">=</span> <span class="n">x_com</span> <span class="o">-</span> <span class="p">(</span><span class="n">z_com</span> <span class="o">*</span> <span class="n">a_x</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">g</span> <span class="o">+</span> <span class="n">a_z</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <em>a</em> is the CoM acceleration computed by finite difference
+from consecutive velocity readings, and <em>g</em> is the magnitude of
+gravitational acceleration (positive downward).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>com</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Current center-of-mass position.</p></li>
+<li><p><strong>com_velocity</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Current CoM velocity.</p></li>
+<li><p><strong>prev_velocity</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – CoM velocity at the previous timestep.</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Timestep duration (seconds).</p></li>
+<li><p><strong>gravity</strong> (<em>float</em>) – Gravitational acceleration magnitude (positive, e.g. 9.81).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ZMP x-coordinate.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.stability.compute_com">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">compute_com</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><span class="pre">DynamicLinkage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.stability.compute_com" title="Link to this definition"></a></dt>
+<dd><p>Mass-weighted center of mass of all rigid bodies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>linkage</strong> (<a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><em>DynamicLinkage</em></a>) – The physics-enabled linkage.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(x, y) center of mass in world coordinates.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.stability.compute_com_velocity">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">compute_com_velocity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><span class="pre">DynamicLinkage</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.stability.compute_com_velocity" title="Link to this definition"></a></dt>
+<dd><p>Mass-weighted center-of-mass velocity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>linkage</strong> (<a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><em>DynamicLinkage</em></a>) – The physics-enabled linkage.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>(vx, vy) CoM velocity.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.stability.compute_stability_snapshot">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">compute_stability_snapshot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><span class="pre">DynamicLinkage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_snapshot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot" title="leggedsnake.stability.StabilitySnapshot"><span class="pre">StabilitySnapshot</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gravity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pm.Body</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot" title="leggedsnake.stability.StabilitySnapshot"><span class="pre">StabilitySnapshot</span></a></span></span><a class="headerlink" href="#leggedsnake.stability.compute_stability_snapshot" title="Link to this definition"></a></dt>
+<dd><p>Assemble a full stability snapshot from current physics state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linkage</strong> (<a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><em>DynamicLinkage</em></a>) – The physics-enabled linkage (call after <code class="docutils literal notranslate"><span class="pre">world.update()</span></code>).</p></li>
+<li><p><strong>prev_snapshot</strong> (<a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot" title="leggedsnake.stability.StabilitySnapshot"><em>StabilitySnapshot</em></a><em> | </em><em>None</em>) – Previous snapshot (for velocity finite-differencing). If None,
+ZMP defaults to CoM x-position.</p></li>
+<li><p><strong>time</strong> (<em>float</em>) – Current simulation time.</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Physics timestep.</p></li>
+<li><p><strong>gravity</strong> (<em>float</em>) – Gravitational acceleration magnitude (positive).</p></li>
+<li><p><strong>foot_ids</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Node IDs of feet for support polygon computation.</p></li>
+<li><p><strong>ground_threshold</strong> (<em>float</em>) – Maximum y-coordinate for ground contact detection.</p></li>
+<li><p><strong>static_body</strong> (<em>pm.Body</em><em> | </em><em>None</em>) – If provided, sample foot–ground contact forces via
+<a class="reference internal" href="#leggedsnake.stability.sample_ground_reaction_force" title="leggedsnake.stability.sample_ground_reaction_force"><code class="xref py py-func docutils literal notranslate"><span class="pre">sample_ground_reaction_force()</span></code></a> and populate the
+<code class="docutils literal notranslate"><span class="pre">ground_reaction_force</span></code> and <code class="docutils literal notranslate"><span class="pre">peak_contact_force</span></code> fields.
+Pass <code class="docutils literal notranslate"><span class="pre">world.space.static_body</span></code> to enable.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#leggedsnake.stability.StabilitySnapshot" title="leggedsnake.stability.StabilitySnapshot">StabilitySnapshot</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.stability.compute_tip_over_margin">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">compute_tip_over_margin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">com</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">support_polygon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#leggedsnake.stability.compute_tip_over_margin" title="Link to this definition"></a></dt>
+<dd><p>Signed distance from CoM projection to nearest support boundary.</p>
+<p>For a 2D planar walker, the “support polygon” is typically a line
+segment on the x-axis. The margin is the minimum horizontal distance
+from the CoM x-projection to the support boundary edges.</p>
+<p>Positive means the CoM is inside the support; negative means tipping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>com</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Center-of-mass position.</p></li>
+<li><p><strong>support_polygon</strong> (<em>list</em><em>[</em><em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em><em>]</em>) – Ground contact points (sorted by x).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Signed tip-over margin. Positive = stable, negative = tipping.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.stability.get_support_polygon">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">get_support_polygon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><span class="pre">DynamicLinkage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ground_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.stability.get_support_polygon" title="Link to this definition"></a></dt>
+<dd><p>Convex hull of foot positions near ground level.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linkage</strong> (<a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><em>DynamicLinkage</em></a>) – The physics-enabled linkage.</p></li>
+<li><p><strong>foot_ids</strong> (<em>list</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Node IDs of feet. If None, uses all joints.</p></li>
+<li><p><strong>ground_threshold</strong> (<em>float</em>) – Maximum y-coordinate for a foot to be considered in ground contact.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Convex hull vertices of the support polygon (may be empty,
+a single point, or a line segment for 2D walkers).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[tuple[float, float]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.stability.sample_ground_reaction_force">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.stability.</span></span><span class="sig-name descname"><span class="pre">sample_ground_reaction_force</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linkage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><span class="pre">DynamicLinkage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">static_body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pm.Body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.stability.sample_ground_reaction_force" title="Link to this definition"></a></dt>
+<dd><p>Sample foot–ground contact forces right after a physics step.</p>
+<p>Iterates active pymunk arbiters on every linkage body and sums the
+impulse magnitude of arbiters that involve the space’s static body
+(the ground / road). Call <strong>after</strong> <code class="docutils literal notranslate"><span class="pre">space.step(dt)</span></code>; arbiters are
+only valid then.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>linkage</strong> (<a class="reference internal" href="dynamic_linkage.html#leggedsnake.dynamic_linkage.DynamicLinkage" title="leggedsnake.dynamic_linkage.DynamicLinkage"><em>DynamicLinkage</em></a>) – The linkage whose contacts to sample.</p></li>
+<li><p><strong>static_body</strong> (<em>pm.Body</em>) – The pymunk static body that owns all ground segments — typically
+<code class="docutils literal notranslate"><span class="pre">world.space.static_body</span></code>.</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – The timestep just taken. Used to convert accumulated impulse to
+an average force (<code class="docutils literal notranslate"><span class="pre">F</span> <span class="pre">=</span> <span class="pre">J</span> <span class="pre">/</span> <span class="pre">dt</span></code>). Must be &gt; 0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(total_force,</span> <span class="pre">peak_force)</span></code> — sum of all foot-ground contact
+forces this step, and the largest single-contact force. Both in
+the same units as pymunk mass × m / s² (usually Newtons).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[float, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="fitness.html" class="btn btn-neutral float-left" title="fitness" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gait_analysis.html" class="btn btn-neutral float-right" title="gait_analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

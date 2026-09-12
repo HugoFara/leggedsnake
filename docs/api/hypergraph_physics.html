@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hypergraph_physics &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="world_visualizer" href="world_visualizer.html" />
+    <link rel="prev" title="dynamic_linkage" href="dynamic_linkage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">hypergraph_physics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.hypergraph_physics">Hypergraph → pymunk body construction; merges Fixed-triangle edges into rigid bodies.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.__init__"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.constraints"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.constraints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.edge_to_body"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.edge_to_body</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.gear_joints"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.gear_joints</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.motor_node_ids"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.motor_node_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.motor_pivots"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.motor_pivots</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.motors"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.motors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.node_to_anchors"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.node_to_anchors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping.node_to_bodies"><code class="docutils literal notranslate"><span class="pre">PhysicsMapping.node_to_bodies</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.hypergraph_physics.create_bodies_from_hypergraph"><code class="docutils literal notranslate"><span class="pre">create_bodies_from_hypergraph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.hypergraph_physics.get_node_world_position"><code class="docutils literal notranslate"><span class="pre">get_node_world_position()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">hypergraph_physics</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/hypergraph_physics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="hypergraph-physics">
+<h1>hypergraph_physics<a class="headerlink" href="#hypergraph-physics" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.hypergraph_physics">
+<span id="hypergraph-pymunk-body-construction-merges-fixed-triangle-edges-into-rigid-bodies"></span><h2>Hypergraph → pymunk body construction; merges Fixed-triangle edges into rigid bodies.<a class="headerlink" href="#module-leggedsnake.hypergraph_physics" title="Link to this heading"></a></h2>
+<p>Hypergraph-based physics body generation.</p>
+<p>This module provides functions to convert a pylinkage hypergraph representation
+into pymunk physics bodies and constraints. Each edge in the hypergraph becomes
+a rigid body (bar), and nodes where multiple bodies meet get PivotJoint constraints.</p>
+<p>Hyperedges define rigid body groups: all nodes in a hyperedge share one pymunk body.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.hypergraph_physics.</span></span><span class="sig-name descname"><span class="pre">PhysicsMapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_to_body:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~pymunk.body.Body]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_to_bodies:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set[~pymunk.body.Body]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_to_anchors:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict[~pymunk.body.Body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~pymunk.vec2d.Vec2d]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints:</span> <span class="pre">list[~pymunk.constraints.PivotJoint]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motors:</span> <span class="pre">list[~pymunk.constraints.SimpleMotor]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_node_ids:</span> <span class="pre">list[str]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_pivots:</span> <span class="pre">list[~pymunk.constraints.PivotJoint]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gear_joints:</span> <span class="pre">list[~pymunk.constraints.GearJoint]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Maps hypergraph elements to pymunk physics objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edge_to_body</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>pm.Body</em><em>]</em>) – Maps edge IDs to their corresponding pymunk bodies.</p></li>
+<li><p><strong>node_to_bodies</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>set</em><em>[</em><em>pm.Body</em><em>]</em><em>]</em>) – Maps node IDs to all bodies that share that joint position.</p></li>
+<li><p><strong>node_to_anchors</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>dict</em><em>[</em><em>pm.Body</em><em>, </em><em>pm.Vec2d</em><em>]</em><em>]</em>) – Maps node IDs to local anchor positions on each body.</p></li>
+<li><p><strong>constraints</strong> (<em>list</em><em>[</em><em>pm.PivotJoint</em><em>]</em>) – All pivot joint constraints created.</p></li>
+<li><p><strong>motors</strong> (<em>list</em><em>[</em><em>pm.SimpleMotor</em><em>]</em>) – All motor constraints for driver nodes.</p></li>
+<li><p><strong>motor_node_ids</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – Driver node ID for each motor (parallel to motors list).</p></li>
+<li><p><strong>motor_pivots</strong> (<em>list</em><em>[</em><em>pm.PivotJoint</em><em>]</em>) – Pivot joints associated with motors (currently unused, kept for compatibility).</p></li>
+<li><p><strong>gear_joints</strong> (<em>list</em><em>[</em><em>pm.GearJoint</em><em>]</em>) – Gear constraints that lock cranks sharing the same motor rate to a
+common shaft, preventing torque-limited motors from drifting out of
+phase under asymmetric ground load.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_to_body:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~pymunk.body.Body]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_to_bodies:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set[~pymunk.body.Body]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_to_anchors:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict[~pymunk.body.Body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~pymunk.vec2d.Vec2d]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints:</span> <span class="pre">list[~pymunk.constraints.PivotJoint]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motors:</span> <span class="pre">list[~pymunk.constraints.SimpleMotor]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_node_ids:</span> <span class="pre">list[str]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_pivots:</span> <span class="pre">list[~pymunk.constraints.PivotJoint]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gear_joints:</span> <span class="pre">list[~pymunk.constraints.GearJoint]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.constraints">
+<span class="sig-name descname"><span class="pre">constraints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">PivotJoint</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.constraints" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.edge_to_body">
+<span class="sig-name descname"><span class="pre">edge_to_body</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Body</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.edge_to_body" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.gear_joints">
+<span class="sig-name descname"><span class="pre">gear_joints</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">GearJoint</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.gear_joints" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.motor_node_ids">
+<span class="sig-name descname"><span class="pre">motor_node_ids</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.motor_node_ids" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.motor_pivots">
+<span class="sig-name descname"><span class="pre">motor_pivots</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">PivotJoint</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.motor_pivots" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.motors">
+<span class="sig-name descname"><span class="pre">motors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">SimpleMotor</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.motors" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.node_to_anchors">
+<span class="sig-name descname"><span class="pre">node_to_anchors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Body</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Vec2d</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.node_to_anchors" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.PhysicsMapping.node_to_bodies">
+<span class="sig-name descname"><span class="pre">node_to_bodies</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">Body</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.hypergraph_physics.PhysicsMapping.node_to_bodies" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.create_bodies_from_hypergraph">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.hypergraph_physics.</span></span><span class="sig-name descname"><span class="pre">create_bodies_from_hypergraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HypergraphLinkage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dimensions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">space</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Space</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Body</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">density</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thickness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ShapeFilter</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">foot_edge_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">non_foot_filter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ShapeFilter</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping"><span class="pre">PhysicsMapping</span></a></span></span><a class="headerlink" href="#leggedsnake.hypergraph_physics.create_bodies_from_hypergraph" title="Link to this definition"></a></dt>
+<dd><p>Create pymunk bodies from a hypergraph representation.</p>
+<p>Each edge in the hypergraph becomes a rigid body with a segment shape,
+except for edges in hyperedges (rigid groups) which are merged into
+single bodies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hg</strong> (<em>HypergraphLinkage</em>) – The hypergraph representation of the linkage.</p></li>
+<li><p><strong>dimensions</strong> (<em>Dimensions</em>) – Geometric data (positions, distances, angles) for the hypergraph.</p></li>
+<li><p><strong>space</strong> (<em>pm.Space</em>) – The pymunk space to add bodies to.</p></li>
+<li><p><strong>load_body</strong> (<em>pm.Body</em>) – The frame/chassis body that ground nodes attach to.</p></li>
+<li><p><strong>density</strong> (<em>float</em>) – Density for body mass calculation.</p></li>
+<li><p><strong>thickness</strong> (<em>float</em>) – Radius of segment shapes.</p></li>
+<li><p><strong>shape_filter</strong> (<em>pm.ShapeFilter</em><em> | </em><em>None</em>) – Collision filter for foot segments (collide with ground).</p></li>
+<li><p><strong>motor_rates</strong> (<em>MotorRates</em><em> | </em><em>None</em>) – Motor angular velocities. Single float applies to all drivers.
+Dict maps driver node IDs to individual rates (multi-DOF).
+If None, falls back to driver angular velocity from dimensions.</p></li>
+<li><p><strong>foot_edge_ids</strong> (<em>set</em><em>[</em><em>str</em><em>] </em><em>| </em><em>None</em>) – Edge IDs that should collide with the ground.  When set, only
+these edges use <em>shape_filter</em>; all other edges use
+<em>non_foot_filter</em> instead (which should mask out ground
+collisions).  <em>None</em> disables selective collision — every edge
+uses <em>shape_filter</em>.</p></li>
+<li><p><strong>non_foot_filter</strong> (<em>pm.ShapeFilter</em><em> | </em><em>None</em>) – Collision filter for edges that are <strong>not</strong> in <em>foot_edge_ids</em>.
+Typically configured to ignore ground collisions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapping of hypergraph elements to physics objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping">PhysicsMapping</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.hypergraph_physics.get_node_world_position">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.hypergraph_physics.</span></span><span class="sig-name descname"><span class="pre">get_node_world_position</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping"><span class="pre">PhysicsMapping</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Vec2d</span></span></span><a class="headerlink" href="#leggedsnake.hypergraph_physics.get_node_world_position" title="Link to this definition"></a></dt>
+<dd><p>Get the current world position of a node from physics bodies.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_id</strong> (<em>str</em>) – The node ID to query.</p></li>
+<li><p><strong>mapping</strong> (<a class="reference internal" href="#leggedsnake.hypergraph_physics.PhysicsMapping" title="leggedsnake.hypergraph_physics.PhysicsMapping"><em>PhysicsMapping</em></a>) – The physics mapping containing body references.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The world position of the node.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pm.Vec2d</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dynamic_linkage.html" class="btn btn-neutral float-left" title="dynamic_linkage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="world_visualizer.html" class="btn btn-neutral float-right" title="world_visualizer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
