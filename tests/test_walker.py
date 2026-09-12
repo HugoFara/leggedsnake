@@ -546,15 +546,25 @@ class TestWalkerMobility(unittest.TestCase):
         walker = self._make_real_fourbar()
         self.assertEqual(walker.dof, 1)
 
-    def test_triangle_dof_is_three(self):
-        """A 3-node / 3-edge triangle is under-constrained (DOF=3).
+    def test_triangle_pinned_once_dof_is_one(self):
+        """Three bars closing a triangle, pinned to the frame at one node.
 
-        Sanity-check against Grübler: 4 links − 2·3 joints = 9 − 6 = 3.
-        The triangle walker used elsewhere in the test suite is really a
-        crank-follower pair without a second ground pin.
+        The triangle is a rigid body that rotates about ``frame``:
+        DOF = 3·(4 − 1) − 2·4 = 1 (pylinkage ≥ 1.2.1 counts the frame
+        node as two joints, one per bar it pins). The triangle walker
+        used elsewhere in the suite is really a crank-follower pair
+        without a second ground pin.
         """
         walker = _make_fourbar_walker()  # misnomer: actually a triangle
-        self.assertEqual(walker.dof, 3)
+        self.assertEqual(walker.dof, 1)
+
+    def test_classical_walkers_are_single_dof(self):
+        """Every shipped mechanism is a one-DOF linkage."""
+        for factory in ("from_jansen", "from_chebyshev", "from_klann",
+                        "from_trotbot", "from_strider"):
+            with self.subTest(factory=factory):
+                walker = getattr(Walker, factory)()
+                self.assertEqual(walker.dof, 1)
 
     def test_mobility_reports_links_and_joints(self):
         """``mobility`` surfaces the full MobilityInfo."""

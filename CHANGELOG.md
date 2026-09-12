@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Requires **pylinkage >= 1.2.0**.
+Requires **pylinkage >= 1.2.1**.
 
 ### Changed
 
@@ -23,6 +23,11 @@ Requires **pylinkage >= 1.2.0**.
 
 ### Fixed
 
+- **`Walker.dof` and `Walker.mobility` are right for real walkers.** They
+  delegate to `pylinkage.topology.compute_mobility`, which until pylinkage
+  1.2.1 counted every edge as a link and every node as a joint: Jansen
+  reported 17 DOF, Chebyshev 5, Klann 11, TrotBot 34, Strider 41. All are 1
+  now, and a test says so. The dependency floor moves to 1.2.1 for it.
 - **`multi_objective_walking_optimization` returns the `ParetoFront` it
   documents.** pylinkage's optimizers have returned an `Ensemble` since
   1.0.0, so the wrapper's promise of `.best_compromise()` / `.plot()` /
