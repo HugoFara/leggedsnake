@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gait_optimization &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="leg_count" href="leg_count.html" />
+    <link rel="prev" title="co_design" href="co_design.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">gait_optimization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.gait_optimization">Phase-offset optimization for multi-leg walkers.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.__init__"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.fitness"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.fitness</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.initial_offsets"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.initial_offsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.maxiter"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.maxiter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.n_legs"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.n_legs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.popsize"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.popsize</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.seed"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.seed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.tol"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.tol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.walker_factory"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.walker_factory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.workers"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.workers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.world_config"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationConfig.world_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult.__init__"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult.best_offsets"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult.best_offsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult.best_score"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult.best_score</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult.converged"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult.converged</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult.history"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult.history</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult.message"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult.n_evaluations"><code class="docutils literal notranslate"><span class="pre">GaitOptimizationResult.n_evaluations</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.gait_optimization.optimize_gait"><code class="docutils literal notranslate"><span class="pre">optimize_gait()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">gait_optimization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/gait_optimization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gait-optimization">
+<h1>gait_optimization<a class="headerlink" href="#gait-optimization" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.gait_optimization">
+<span id="phase-offset-optimization-for-multi-leg-walkers"></span><h2>Phase-offset optimization for multi-leg walkers.<a class="headerlink" href="#module-leggedsnake.gait_optimization" title="Link to this heading"></a></h2>
+<p>Phase-offset optimization for multi-leg walking mechanisms.</p>
+<p>Evolves the per-leg phase offsets of an N-leg walker — the discrete
+parameters that distinguish a rotating-stack gait (evenly spaced) from
+trot (opposite pairs in phase), pace, canter, bound, and other
+asymmetric gaits that emerge in nature but that the classical
+<code class="docutils literal notranslate"><span class="pre">Walker.add_legs(n)</span></code> constructor cannot express.</p>
+<p>The optimizer wraps <code class="docutils literal notranslate"><span class="pre">scipy.optimize.differential_evolution</span></code> on an
+<code class="docutils literal notranslate"><span class="pre">(n_legs</span> <span class="pre">-</span> <span class="pre">1)</span></code>-dimensional continuous search space (one offset per
+added leg, in radians). Each candidate rebuilds the walker via
+<code class="docutils literal notranslate"><span class="pre">Walker.add_legs(offsets=...)</span></code> and evaluates a user-supplied
+<code class="docutils literal notranslate"><span class="pre">DynamicFitness</span></code>.</p>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake</span><span class="w"> </span><span class="kn">import</span> <span class="n">DistanceFitness</span><span class="p">,</span> <span class="n">optimize_gait</span><span class="p">,</span> <span class="n">GaitOptimizationConfig</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">template_factory</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">Walker</span><span class="o">.</span><span class="n">from_jansen</span><span class="p">()</span>  <span class="c1"># single-leg template</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">GaitOptimizationConfig</span><span class="p">(</span>
+    <span class="n">walker_factory</span><span class="o">=</span><span class="n">template_factory</span><span class="p">,</span>
+    <span class="n">n_legs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">fitness</span><span class="o">=</span><span class="n">DistanceFitness</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">20.0</span><span class="p">),</span>
+    <span class="n">popsize</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">maxiter</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">optimize_gait</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;best offsets:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">best_offsets</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;best score:&quot;</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">best_score</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.gait_optimization.</span></span><span class="sig-name descname"><span class="pre">GaitOptimizationConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">walker_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="fitness.html#leggedsnake.fitness.DynamicFitness" title="leggedsnake.fitness.DynamicFitness"><span class="pre">DynamicFitness</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><span class="pre">WorldConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">popsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_offsets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for <a class="reference internal" href="#leggedsnake.gait_optimization.optimize_gait" title="leggedsnake.gait_optimization.optimize_gait"><code class="xref py py-func docutils literal notranslate"><span class="pre">optimize_gait()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>walker_factory</strong> (<em>callable</em>) – Zero-argument callable returning a fresh single-leg Walker
+template. Called once per candidate evaluation so no state
+leaks across generations.</p></li>
+<li><p><strong>n_legs</strong> (<em>int</em>) – Total number of legs in the evaluated walker (template + added).
+The optimizer searches <code class="docutils literal notranslate"><span class="pre">n_legs</span> <span class="pre">-</span> <span class="pre">1</span></code> phase offsets.</p></li>
+<li><p><strong>fitness</strong> (<a class="reference internal" href="fitness.html#leggedsnake.fitness.DynamicFitness" title="leggedsnake.fitness.DynamicFitness"><em>DynamicFitness</em></a>) – The fitness evaluator applied to each candidate walker after
+phase-offset assembly.</p></li>
+<li><p><strong>world_config</strong> (<a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><em>WorldConfig</em></a><em> | </em><em>None</em>) – Simulation environment passed through to <code class="docutils literal notranslate"><span class="pre">fitness</span></code>.</p></li>
+<li><p><strong>popsize</strong> (<em>int</em>) – Differential-evolution population size multiplier (scipy’s
+<code class="docutils literal notranslate"><span class="pre">popsize</span></code> = population / dimension).</p></li>
+<li><p><strong>maxiter</strong> (<em>int</em>) – Maximum DE generations.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>) – RNG seed for reproducibility.</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) – DE convergence tolerance.</p></li>
+<li><p><strong>workers</strong> (<em>int</em>) – Parallel workers (1 = serial; -1 = use all cores).</p></li>
+<li><p><strong>initial_offsets</strong> (<em>list</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – Optional warm-start — a seed member inserted into the initial
+population. Length must equal <code class="docutils literal notranslate"><span class="pre">n_legs</span> <span class="pre">-</span> <span class="pre">1</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">walker_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="fitness.html#leggedsnake.fitness.DynamicFitness" title="leggedsnake.fitness.DynamicFitness"><span class="pre">DynamicFitness</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><span class="pre">WorldConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">popsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_offsets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.fitness">
+<span class="sig-name descname"><span class="pre">fitness</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="fitness.html#leggedsnake.fitness.DynamicFitness" title="leggedsnake.fitness.DynamicFitness"><span class="pre">DynamicFitness</span></a></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.fitness" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.initial_offsets">
+<span class="sig-name descname"><span class="pre">initial_offsets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.initial_offsets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.maxiter">
+<span class="sig-name descname"><span class="pre">maxiter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">30</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.maxiter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.n_legs">
+<span class="sig-name descname"><span class="pre">n_legs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.n_legs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.popsize">
+<span class="sig-name descname"><span class="pre">popsize</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">15</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.popsize" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.seed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.tol">
+<span class="sig-name descname"><span class="pre">tol</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.tol" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.walker_factory">
+<span class="sig-name descname"><span class="pre">walker_factory</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="walker.html#leggedsnake.walker.Walker" title="leggedsnake.walker.Walker"><span class="pre">Walker</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.walker_factory" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.workers">
+<span class="sig-name descname"><span class="pre">workers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.workers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationConfig.world_config">
+<span class="sig-name descname"><span class="pre">world_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><span class="pre">WorldConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationConfig.world_config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.gait_optimization.</span></span><span class="sig-name descname"><span class="pre">GaitOptimizationResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">best_offsets:</span> <span class="pre">list[float],</span> <span class="pre">best_score:</span> <span class="pre">float,</span> <span class="pre">n_evaluations:</span> <span class="pre">int,</span> <span class="pre">converged:</span> <span class="pre">bool,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">history:</span> <span class="pre">list[float]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Outcome of <a class="reference internal" href="#leggedsnake.gait_optimization.optimize_gait" title="leggedsnake.gait_optimization.optimize_gait"><code class="xref py py-func docutils literal notranslate"><span class="pre">optimize_gait()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>best_offsets</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – Phase offsets (radians, in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">tau)</span></code>) for the highest-scoring
+candidate.</p></li>
+<li><p><strong>best_score</strong> (<em>float</em>) – Fitness value of the best candidate.</p></li>
+<li><p><strong>n_evaluations</strong> (<em>int</em>) – Total number of fitness evaluations the optimizer performed.</p></li>
+<li><p><strong>converged</strong> (<em>bool</em>) – Whether scipy reported convergence (<code class="docutils literal notranslate"><span class="pre">OptimizeResult.success</span></code>).</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – Optimizer status message.</p></li>
+<li><p><strong>history</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – Best score observed after each generation (populated only when
+the caller supplied a generation callback).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">best_offsets:</span> <span class="pre">list[float],</span> <span class="pre">best_score:</span> <span class="pre">float,</span> <span class="pre">n_evaluations:</span> <span class="pre">int,</span> <span class="pre">converged:</span> <span class="pre">bool,</span> <span class="pre">message:</span> <span class="pre">str,</span> <span class="pre">history:</span> <span class="pre">list[float]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult.best_offsets">
+<span class="sig-name descname"><span class="pre">best_offsets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult.best_offsets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult.best_score">
+<span class="sig-name descname"><span class="pre">best_score</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult.best_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult.converged">
+<span class="sig-name descname"><span class="pre">converged</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult.converged" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult.history">
+<span class="sig-name descname"><span class="pre">history</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult.history" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult.message">
+<span class="sig-name descname"><span class="pre">message</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult.message" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.GaitOptimizationResult.n_evaluations">
+<span class="sig-name descname"><span class="pre">n_evaluations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#leggedsnake.gait_optimization.GaitOptimizationResult.n_evaluations" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.gait_optimization.optimize_gait">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.gait_optimization.</span></span><span class="sig-name descname"><span class="pre">optimize_gait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig" title="leggedsnake.gait_optimization.GaitOptimizationConfig"><span class="pre">GaitOptimizationConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult" title="leggedsnake.gait_optimization.GaitOptimizationResult"><span class="pre">GaitOptimizationResult</span></a></span></span><a class="headerlink" href="#leggedsnake.gait_optimization.optimize_gait" title="Link to this definition"></a></dt>
+<dd><p>Evolve the phase-offset sequence of a multi-leg walker.</p>
+<p>Runs scipy’s differential evolution over the <code class="docutils literal notranslate"><span class="pre">n_legs</span> <span class="pre">-</span> <span class="pre">1</span></code> phase
+offsets (in radians, bounded to <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">tau)</span></code>). Each candidate rebuilds
+a fresh walker via <code class="docutils literal notranslate"><span class="pre">config.walker_factory</span></code> and evaluates
+<code class="docutils literal notranslate"><span class="pre">config.fitness</span></code>; the score is negated internally because scipy
+minimizes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationConfig" title="leggedsnake.gait_optimization.GaitOptimizationConfig"><em>GaitOptimizationConfig</em></a>) – Search configuration.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#leggedsnake.gait_optimization.GaitOptimizationResult" title="leggedsnake.gait_optimization.GaitOptimizationResult">GaitOptimizationResult</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="co_design.html" class="btn btn-neutral float-left" title="co_design" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="leg_count.html" class="btn btn-neutral float-right" title="leg_count" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

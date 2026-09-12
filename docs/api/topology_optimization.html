@@ -1,0 +1,649 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>topology_optimization &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="co_design" href="co_design.html" />
+    <link rel="prev" title="nsga_optimizer" href="nsga_optimizer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration_world_config.html">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">topology_optimization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-leggedsnake.topology_optimization">Joint topology + dimensions co-optimization over the catalog.</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.__init__"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.algorithm"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.algorithm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.allow_passive"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.allow_passive</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.dimension_lower"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.dimension_lower</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.dimension_upper"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.dimension_upper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.evolve_motor_rates"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.evolve_motor_rates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.evolve_offsets"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.evolve_offsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.leg_bounds"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.leg_bounds</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.leg_gene_active"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.leg_gene_active</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.max_links"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.max_links</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rate_lower"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.motor_rate_lower</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rate_upper"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.motor_rate_upper</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rates"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.motor_rates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_generations"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.n_generations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.n_legs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs_max"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.n_legs_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs_min"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.n_legs_min</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_offset_genes"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.n_offset_genes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_workers"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.n_workers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.pop_size"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.pop_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.seed"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.seed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.topology_mutation_rate"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.topology_mutation_rate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.verbose"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.verbose</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.wind_force"><code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.wind_force</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.__init__"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.motor_rates"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.motor_rates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.n_legs"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.n_legs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.num_links"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.num_links</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.phase_offsets"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.phase_offsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.topology_id"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.topology_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.topology_idx"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.topology_idx</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo.topology_name"><code class="docutils literal notranslate"><span class="pre">TopologySolutionInfo.topology_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.__init__"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.best_compromise"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.best_compromise()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.best_for_objective"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.best_for_objective()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.co_opt_config"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.co_opt_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.config"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.gait_analyses"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.gait_analyses</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.pareto_front"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.pareto_front</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.solutions_by_topology"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.solutions_by_topology()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.stability_series"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.stability_series</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult.topology_info"><code class="docutils literal notranslate"><span class="pre">TopologyWalkingResult.topology_info</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#leggedsnake.topology_optimization.topology_walking_optimization"><code class="docutils literal notranslate"><span class="pre">topology_walking_optimization()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">topology_optimization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/topology_optimization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="topology-optimization">
+<h1>topology_optimization<a class="headerlink" href="#topology-optimization" title="Link to this heading"></a></h1>
+<section id="module-leggedsnake.topology_optimization">
+<span id="joint-topology-dimensions-co-optimization-over-the-catalog"></span><h2>Joint topology + dimensions co-optimization over the catalog.<a class="headerlink" href="#module-leggedsnake.topology_optimization" title="Link to this heading"></a></h2>
+<p>Topology co-optimization for walking mechanisms.</p>
+<p>Jointly optimizes the discrete mechanism topology (four-bar, six-bar,
+eight-bar variants) alongside continuous link dimensions — and, when
+<code class="docutils literal notranslate"><span class="pre">evolve_offsets=True</span></code>, the per-leg phase offsets that determine
+gait, and when <code class="docutils literal notranslate"><span class="pre">evolve_motor_rates=True</span></code>, the crank angular velocity
+per DRIVER node — using NSGA-II/III. Each candidate is a mixed
+chromosome:
+<code class="docutils literal notranslate"><span class="pre">[topology_index,</span> <span class="pre">[n_legs,]</span> <span class="pre">dim_1,</span> <span class="pre">...,</span> <span class="pre">dim_N,</span> <span class="pre">[off_1,</span> <span class="pre">...,</span> <span class="pre">off_M],</span>
+<span class="pre">[motor_1,</span> <span class="pre">...,</span> <span class="pre">motor_K]]</span></code>.</p>
+<p>Leverages pylinkage’s topology catalog and co-optimization infrastructure
+while evaluating candidates through leggedsnake’s physics-based fitness
+functions.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DistanceFitness</span><span class="p">,</span>
+    <span class="n">StabilityFitness</span><span class="p">,</span>
+    <span class="n">NsgaWalkingConfig</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake.topology_optimization</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TopologyCoOptConfig</span><span class="p">,</span>
+    <span class="n">topology_walking_optimization</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">topology_walking_optimization</span><span class="p">(</span>
+    <span class="n">objectives</span><span class="o">=</span><span class="p">[</span><span class="n">DistanceFitness</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span> <span class="n">StabilityFitness</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mi">10</span><span class="p">)],</span>
+    <span class="n">objective_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="s2">&quot;stability&quot;</span><span class="p">],</span>
+    <span class="n">config</span><span class="o">=</span><span class="n">TopologyCoOptConfig</span><span class="p">(</span>
+        <span class="n">max_links</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">n_generations</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">pop_size</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">sol</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">pareto_front</span><span class="o">.</span><span class="n">solutions</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">scores</span><span class="p">,</span> <span class="n">sol</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;topology_name&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.topology_optimization.</span></span><span class="sig-name descname"><span class="pre">TopologyCoOptConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_links</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_generations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'nsga2'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'nsga3'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'nsga2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension_upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_mutation_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolve_offsets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolve_motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rate_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-8.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rate_upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_passive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wind_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration for topology co-optimization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>max_links</strong> (<em>int</em>) – Maximum number of links to consider from catalog.</p></li>
+<li><p><strong>n_generations</strong> (<em>int</em>) – Number of evolutionary generations.</p></li>
+<li><p><strong>pop_size</strong> (<em>int</em>) – Population size per generation.</p></li>
+<li><p><strong>algorithm</strong> (<em>{&quot;nsga2&quot;</em><em>, </em><em>&quot;nsga3&quot;}</em>) – Multi-objective algorithm.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em> | </em><em>None</em>) – Random seed for reproducibility.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Print progress.</p></li>
+<li><p><strong>n_legs</strong> (<em>int</em>) – Fixed number of legs per walker candidate. Applied when
+<code class="docutils literal notranslate"><span class="pre">n_legs_min</span></code> and <code class="docutils literal notranslate"><span class="pre">n_legs_max</span></code> are both unset (the default).</p></li>
+<li><p><strong>n_legs_max</strong> (<em>n_legs_min</em><em>,</em>) – If both are set and differ, leg count joins the chromosome as
+an integer gene sampled from <code class="docutils literal notranslate"><span class="pre">[n_legs_min,</span> <span class="pre">n_legs_max]</span></code>.
+When equal (or either is None), the fixed <code class="docutils literal notranslate"><span class="pre">n_legs</span></code> is used.</p></li>
+<li><p><strong>motor_rates</strong> (<em>float</em><em> | </em><em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em>) – Motor angular velocities.</p></li>
+<li><p><strong>dimension_lower</strong> (<em>float</em>) – Lower bound for link lengths.</p></li>
+<li><p><strong>dimension_upper</strong> (<em>float</em>) – Upper bound for link lengths.</p></li>
+<li><p><strong>topology_mutation_rate</strong> (<em>float</em>) – Probability of mutating the topology gene.</p></li>
+<li><p><strong>evolve_offsets</strong> (<em>bool</em>) – If True, append per-leg phase-offset genes (radians, bounded
+<code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">tau)</span></code>) to the chromosome so the optimizer co-evolves
+gait pattern alongside topology + dimensions. The offset
+region is sized for <code class="docutils literal notranslate"><span class="pre">max(leg_bounds)</span> <span class="pre">-</span> <span class="pre">1</span></code> so the chromosome
+length stays fixed under a variable <code class="docutils literal notranslate"><span class="pre">n_legs</span></code>; surplus
+offset genes are ignored when a candidate uses fewer legs
+(mirroring the existing dimension-padding scheme). Requires
+<code class="docutils literal notranslate"><span class="pre">max(leg_bounds)</span> <span class="pre">&gt;=</span> <span class="pre">2</span></code>. Default <code class="docutils literal notranslate"><span class="pre">False</span></code> keeps the
+classical evenly-spaced rotating-stack gait of
+<code class="docutils literal notranslate"><span class="pre">Walker.add_legs(n)</span></code>.</p></li>
+<li><p><strong>evolve_motor_rates</strong> (<em>bool</em>) – If True, append per-DRIVER motor-rate genes (rad/s, bounded
+<code class="docutils literal notranslate"><span class="pre">[motor_rate_lower,</span> <span class="pre">motor_rate_upper]</span></code>) to the chromosome so
+the optimizer co-evolves crank angular velocity alongside
+structure and geometry. The motor region is sized for the
+maximum DRIVER count across all candidate topologies; topologies
+with fewer drivers consume the leading slots and the rest are
+ignored (mirroring the dimension-padding scheme). Default
+<code class="docutils literal notranslate"><span class="pre">False</span></code> keeps the fixed <code class="docutils literal notranslate"><span class="pre">motor_rates</span></code> value. The evolved
+rates override the <code class="docutils literal notranslate"><span class="pre">motor_rates</span></code> attribute on each fitness
+objective (which defaults to <code class="docutils literal notranslate"><span class="pre">-4.0</span></code> and would otherwise
+always win against <code class="docutils literal notranslate"><span class="pre">Dimensions.driver_angles</span></code>); fitness
+objects without a settable <code class="docutils literal notranslate"><span class="pre">motor_rates</span></code> attribute are not
+affected.</p></li>
+<li><p><strong>motor_rate_upper</strong> (<em>motor_rate_lower</em><em>,</em>) – Bounds (rad/s) for the motor-rate genes when
+<code class="docutils literal notranslate"><span class="pre">evolve_motor_rates=True</span></code>. Default <code class="docutils literal notranslate"><span class="pre">[-8.0,</span> <span class="pre">+8.0]</span></code> covers
+the practical walking-speed range; the sign sets crank
+direction. Using <code class="docutils literal notranslate"><span class="pre">0</span></code> as a bound endpoint allows the optimizer
+to converge on a stationary driver — useful for prototyping
+wind- or slope-driven passive walkers.</p></li>
+<li><p><strong>allow_passive</strong> (<em>bool</em>) – If True, drivers whose evolved rate is within <code class="docutils literal notranslate"><span class="pre">1e-6</span> <span class="pre">rad/s</span></code> of
+zero are snapped to exactly <code class="docutils literal notranslate"><span class="pre">0.0</span></code>, which the physics layer
+treats as passive: no <code class="docutils literal notranslate"><span class="pre">SimpleMotor</span></code> constraint is created and
+the crank stays a free-pivoting rigid body driven only by
+gravity, wind, inertia, and ground contact. Requires
+<code class="docutils literal notranslate"><span class="pre">evolve_motor_rates=True</span></code> and bounds spanning zero
+(<code class="docutils literal notranslate"><span class="pre">motor_rate_lower</span> <span class="pre">&lt;=</span> <span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">motor_rate_upper</span></code>); the optimizer
+otherwise has no way to reach the passive region. Default
+<code class="docutils literal notranslate"><span class="pre">False</span></code> keeps every driver powered. Pair with a non-zero
+<code class="docutils literal notranslate"><span class="pre">wind_force</span></code> (or a sloped <code class="docutils literal notranslate"><span class="pre">world_config</span></code> terrain) when
+looking for purely passive walkers.</p></li>
+<li><p><strong>wind_force</strong> (<em>tuple</em><em>[</em><em>float</em><em>, </em><em>float</em><em>]</em>) – Constant external force (Newtons, <code class="docutils literal notranslate"><span class="pre">(fx,</span> <span class="pre">fy)</span></code>) applied to
+each candidate’s chassis every physics step during evaluation.
+Convenience knob: when <code class="docutils literal notranslate"><span class="pre">world_config</span></code> is left at <code class="docutils literal notranslate"><span class="pre">None</span></code>
+in <a class="reference internal" href="#leggedsnake.topology_optimization.topology_walking_optimization" title="leggedsnake.topology_optimization.topology_walking_optimization"><code class="xref py py-func docutils literal notranslate"><span class="pre">topology_walking_optimization()</span></code></a>, a default
+<a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">WorldConfig</span></code></a> is built with
+this wind. Set both an explicit <code class="docutils literal notranslate"><span class="pre">world_config</span></code> <em>and</em> a
+non-zero <code class="docutils literal notranslate"><span class="pre">wind_force</span></code> only if they agree;
+<a class="reference internal" href="#leggedsnake.topology_optimization.topology_walking_optimization" title="leggedsnake.topology_optimization.topology_walking_optimization"><code class="xref py py-func docutils literal notranslate"><span class="pre">topology_walking_optimization()</span></code></a> raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>
+otherwise. Default <code class="docutils literal notranslate"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></code> keeps the existing
+windless behaviour.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_links</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_generations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pop_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'nsga2'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'nsga3'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'nsga2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension_upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_mutation_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolve_offsets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evolve_motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rate_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-8.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rate_upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_passive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wind_force</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.algorithm">
+<span class="sig-name descname"><span class="pre">algorithm</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'nsga2'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'nsga3'</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'nsga2'</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.algorithm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.allow_passive">
+<span class="sig-name descname"><span class="pre">allow_passive</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.allow_passive" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.dimension_lower">
+<span class="sig-name descname"><span class="pre">dimension_lower</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.3</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.dimension_lower" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.dimension_upper">
+<span class="sig-name descname"><span class="pre">dimension_upper</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5.0</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.dimension_upper" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.evolve_motor_rates">
+<span class="sig-name descname"><span class="pre">evolve_motor_rates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.evolve_motor_rates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.evolve_offsets">
+<span class="sig-name descname"><span class="pre">evolve_offsets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.evolve_offsets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.leg_bounds">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">leg_bounds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.leg_bounds" title="Link to this definition"></a></dt>
+<dd><p>Effective (low, high) leg-count bounds. Inclusive.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.leg_gene_active">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">leg_gene_active</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.leg_gene_active" title="Link to this definition"></a></dt>
+<dd><p>True when leg count joins the chromosome as a variable gene.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.max_links">
+<span class="sig-name descname"><span class="pre">max_links</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.max_links" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rate_lower">
+<span class="sig-name descname"><span class="pre">motor_rate_lower</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-8.0</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rate_lower" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rate_upper">
+<span class="sig-name descname"><span class="pre">motor_rate_upper</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8.0</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rate_upper" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rates">
+<span class="sig-name descname"><span class="pre">motor_rates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-4.0</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.motor_rates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.n_generations">
+<span class="sig-name descname"><span class="pre">n_generations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_generations" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs">
+<span class="sig-name descname"><span class="pre">n_legs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs_max">
+<span class="sig-name descname"><span class="pre">n_legs_max</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs_max" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs_min">
+<span class="sig-name descname"><span class="pre">n_legs_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_legs_min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.n_offset_genes">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_offset_genes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_offset_genes" title="Link to this definition"></a></dt>
+<dd><p>Number of phase-offset genes appended to the chromosome.</p>
+<p>Zero when <code class="docutils literal notranslate"><span class="pre">evolve_offsets</span></code> is False. Otherwise sized for the
+upper bound on leg count (<code class="docutils literal notranslate"><span class="pre">max(leg_bounds)</span> <span class="pre">-</span> <span class="pre">1</span></code>) so the
+chromosome remains fixed-length under a variable <code class="docutils literal notranslate"><span class="pre">n_legs</span></code>;
+only the first <code class="docutils literal notranslate"><span class="pre">current_n_legs</span> <span class="pre">-</span> <span class="pre">1</span></code> offsets are read per
+evaluation and the rest are ignored.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.n_workers">
+<span class="sig-name descname"><span class="pre">n_workers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.n_workers" title="Link to this definition"></a></dt>
+<dd><p>Number of parallel workers. 1 = sequential. &gt;1 uses process pool.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.pop_size">
+<span class="sig-name descname"><span class="pre">pop_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.pop_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.seed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.topology_mutation_rate">
+<span class="sig-name descname"><span class="pre">topology_mutation_rate</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.topology_mutation_rate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.verbose">
+<span class="sig-name descname"><span class="pre">verbose</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.verbose" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyCoOptConfig.wind_force">
+<span class="sig-name descname"><span class="pre">wind_force</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">0.0)</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyCoOptConfig.wind_force" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.topology_optimization.</span></span><span class="sig-name descname"><span class="pre">TopologySolutionInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topology_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_links</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_offsets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Topology metadata for a single Pareto solution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>topology_name</strong> (<em>str</em>) – Human-readable name from catalog (e.g., “Four-bar linkage”).</p></li>
+<li><p><strong>topology_id</strong> (<em>str</em>) – Catalog ID (e.g., “four-bar”).</p></li>
+<li><p><strong>topology_idx</strong> (<em>int</em>) – Index in the catalog used during optimization.</p></li>
+<li><p><strong>num_links</strong> (<em>int</em>) – Number of links in the topology.</p></li>
+<li><p><strong>n_legs</strong> (<em>int</em>) – Number of legs in the evaluated walker. Equal to
+<code class="docutils literal notranslate"><span class="pre">config.n_legs</span></code> when the leg-count range is fixed, or the
+value chosen by the evolutionary search when
+<code class="docutils literal notranslate"><span class="pre">n_legs_min</span> <span class="pre">!=</span> <span class="pre">n_legs_max</span></code>.</p></li>
+<li><p><strong>phase_offsets</strong> (<em>list</em><em>[</em><em>float</em><em>] </em><em>| </em><em>None</em>) – Evolved per-leg phase offsets (radians) when
+<code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.evolve_offsets</span></code> is set. <code class="docutils literal notranslate"><span class="pre">None</span></code> when
+offsets are not part of the chromosome — the walker was built
+with the classic evenly-spaced rotating-stack gait. Length
+equals <code class="docutils literal notranslate"><span class="pre">n_legs</span> <span class="pre">-</span> <span class="pre">1</span></code>.</p></li>
+<li><p><strong>motor_rates</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>float</em><em>] </em><em>| </em><em>None</em>) – Evolved motor angular velocities (rad/s) keyed by DRIVER node
+ID, when <code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.evolve_motor_rates</span></code> is set.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when the chromosome did not carry motor genes — the
+walker used the fixed <code class="docutils literal notranslate"><span class="pre">TopologyCoOptConfig.motor_rates</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topology_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_links</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_legs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_offsets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">motor_rates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.motor_rates">
+<span class="sig-name descname"><span class="pre">motor_rates</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.motor_rates" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.n_legs">
+<span class="sig-name descname"><span class="pre">n_legs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.n_legs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.num_links">
+<span class="sig-name descname"><span class="pre">num_links</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.num_links" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.phase_offsets">
+<span class="sig-name descname"><span class="pre">phase_offsets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.phase_offsets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.topology_id">
+<span class="sig-name descname"><span class="pre">topology_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.topology_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.topology_idx">
+<span class="sig-name descname"><span class="pre">topology_idx</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.topology_idx" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologySolutionInfo.topology_name">
+<span class="sig-name descname"><span class="pre">topology_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologySolutionInfo.topology_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">leggedsnake.topology_optimization.</span></span><span class="sig-name descname"><span class="pre">TopologyWalkingResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pareto_front:</span> <span class="pre">~pylinkage.optimization.collections.pareto.ParetoFront</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_info:</span> <span class="pre">dict[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~leggedsnake.topology_optimization.TopologySolutionInfo]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gait_analyses:</span> <span class="pre">dict[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~leggedsnake.gait_analysis.GaitAnalysisResult]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stability_series:</span> <span class="pre">dict[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~leggedsnake.stability.StabilityTimeSeries]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config:</span> <span class="pre">~leggedsnake.nsga_optimizer.NsgaWalkingConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co_opt_config:</span> <span class="pre">~leggedsnake.topology_optimization.TopologyCoOptConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Result of topology co-optimization.</p>
+<p>Extends <code class="docutils literal notranslate"><span class="pre">NsgaWalkingResult</span></code> with per-solution topology metadata.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pareto_front</strong> (<em>ParetoFront</em>) – Non-dominated solutions.</p></li>
+<li><p><strong>topology_info</strong> (<em>dict</em><em>[</em><em>int</em><em>, </em><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo" title="leggedsnake.topology_optimization.TopologySolutionInfo"><em>TopologySolutionInfo</em></a><em>]</em>) – Topology metadata for each Pareto solution (index -&gt; info).</p></li>
+<li><p><strong>gait_analyses</strong> (<em>dict</em><em>[</em><em>int</em><em>, </em><a class="reference internal" href="gait_analysis.html#leggedsnake.gait_analysis.GaitAnalysisResult" title="leggedsnake.gait_analysis.GaitAnalysisResult"><em>GaitAnalysisResult</em></a><em>] </em><em>| </em><em>None</em>) – Gait analysis per solution.</p></li>
+<li><p><strong>stability_series</strong> (<em>dict</em><em>[</em><em>int</em><em>, </em><a class="reference internal" href="stability.html#leggedsnake.stability.StabilityTimeSeries" title="leggedsnake.stability.StabilityTimeSeries"><em>StabilityTimeSeries</em></a><em>] </em><em>| </em><em>None</em>) – Stability per solution.</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingConfig" title="leggedsnake.nsga_optimizer.NsgaWalkingConfig"><em>NsgaWalkingConfig</em></a>) – The NSGA configuration used.</p></li>
+<li><p><strong>co_opt_config</strong> (<a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig" title="leggedsnake.topology_optimization.TopologyCoOptConfig"><em>TopologyCoOptConfig</em></a>) – The topology co-opt configuration used.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pareto_front:</span> <span class="pre">~pylinkage.optimization.collections.pareto.ParetoFront</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topology_info:</span> <span class="pre">dict[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~leggedsnake.topology_optimization.TopologySolutionInfo]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gait_analyses:</span> <span class="pre">dict[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~leggedsnake.gait_analysis.GaitAnalysisResult]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stability_series:</span> <span class="pre">dict[int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~leggedsnake.stability.StabilityTimeSeries]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config:</span> <span class="pre">~leggedsnake.nsga_optimizer.NsgaWalkingConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co_opt_config:</span> <span class="pre">~leggedsnake.topology_optimization.TopologyCoOptConfig</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.best_compromise">
+<span class="sig-name descname"><span class="pre">best_compromise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ParetoSolution</span></span></span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.best_compromise" title="Link to this definition"></a></dt>
+<dd><p>Return the best compromise solution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.best_for_objective">
+<span class="sig-name descname"><span class="pre">best_for_objective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objective_index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ParetoSolution</span></span></span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.best_for_objective" title="Link to this definition"></a></dt>
+<dd><p>Return best Pareto solution for a single objective.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.co_opt_config">
+<span class="sig-name descname"><span class="pre">co_opt_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig" title="leggedsnake.topology_optimization.TopologyCoOptConfig"><span class="pre">TopologyCoOptConfig</span></a></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.co_opt_config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.config">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingConfig" title="leggedsnake.nsga_optimizer.NsgaWalkingConfig"><span class="pre">NsgaWalkingConfig</span></a></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.gait_analyses">
+<span class="sig-name descname"><span class="pre">gait_analyses</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="gait_analysis.html#leggedsnake.gait_analysis.GaitAnalysisResult" title="leggedsnake.gait_analysis.GaitAnalysisResult"><span class="pre">GaitAnalysisResult</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.gait_analyses" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.pareto_front">
+<span class="sig-name descname"><span class="pre">pareto_front</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ParetoFront</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.pareto_front" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.solutions_by_topology">
+<span class="sig-name descname"><span class="pre">solutions_by_topology</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.solutions_by_topology" title="Link to this definition"></a></dt>
+<dd><p>Group solution indices by topology ID.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.stability_series">
+<span class="sig-name descname"><span class="pre">stability_series</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="stability.html#leggedsnake.stability.StabilityTimeSeries" title="leggedsnake.stability.StabilityTimeSeries"><span class="pre">StabilityTimeSeries</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.stability_series" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.TopologyWalkingResult.topology_info">
+<span class="sig-name descname"><span class="pre">topology_info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#leggedsnake.topology_optimization.TopologySolutionInfo" title="leggedsnake.topology_optimization.TopologySolutionInfo"><span class="pre">TopologySolutionInfo</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#leggedsnake.topology_optimization.TopologyWalkingResult.topology_info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="leggedsnake.topology_optimization.topology_walking_optimization">
+<span class="sig-prename descclassname"><span class="pre">leggedsnake.topology_optimization.</span></span><span class="sig-name descname"><span class="pre">topology_walking_optimization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">objectives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="fitness.html#leggedsnake.fitness.DynamicFitness" title="leggedsnake.fitness.DynamicFitness"><span class="pre">DynamicFitness</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig" title="leggedsnake.topology_optimization.TopologyCoOptConfig"><span class="pre">TopologyCoOptConfig</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">world_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_gait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_stability</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#leggedsnake.topology_optimization.TopologyWalkingResult" title="leggedsnake.topology_optimization.TopologyWalkingResult"><span class="pre">TopologyWalkingResult</span></a></span></span><a class="headerlink" href="#leggedsnake.topology_optimization.topology_walking_optimization" title="Link to this definition"></a></dt>
+<dd><p>Topology co-optimization for walking mechanisms.</p>
+<p>Jointly optimizes the mechanism topology (from pylinkage’s catalog)
+and link dimensions using NSGA-II/III with physics-based fitness
+evaluation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function reimplements the NSGA-II + mixed-chromosome plumbing
+that now ships in <code class="docutils literal notranslate"><span class="pre">pylinkage.optimization.co_optimize</span></code>. The
+pylinkage-backed path — <code class="xref py py-func docutils literal notranslate"><span class="pre">leggedsnake.optimize_walking_mechanism()</span></code>
+— delegates the optimizer loop to pylinkage and wraps walking
+fitness through <a class="reference internal" href="fitness.html#leggedsnake.fitness.co_optimize_objective" title="leggedsnake.fitness.co_optimize_objective"><code class="xref py py-func docutils literal notranslate"><span class="pre">leggedsnake.fitness.co_optimize_objective()</span></code></a>.
+Prefer it for new code. This standalone implementation is kept
+for backwards compatibility and will be deprecated once the
+pylinkage-backed path reaches feature parity (multi-process
+evaluation, gait / stability post-analysis).</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objectives</strong> (<em>sequence</em><em> of </em><a class="reference internal" href="fitness.html#leggedsnake.fitness.DynamicFitness" title="leggedsnake.fitness.DynamicFitness"><em>DynamicFitness</em></a>) – Fitness evaluators (e.g., <code class="docutils literal notranslate"><span class="pre">DistanceFitness</span></code>, <code class="docutils literal notranslate"><span class="pre">StabilityFitness</span></code>).</p></li>
+<li><p><strong>objective_names</strong> (<em>sequence</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Human-readable names for each objective.</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="#leggedsnake.topology_optimization.TopologyCoOptConfig" title="leggedsnake.topology_optimization.TopologyCoOptConfig"><em>TopologyCoOptConfig</em></a><em>, </em><em>optional</em>) – Optimization configuration. Uses defaults if None.</p></li>
+<li><p><strong>world_config</strong> (<a class="reference internal" href="physics_engine.html#leggedsnake.physics_engine.WorldConfig" title="leggedsnake.physics_engine.WorldConfig"><em>WorldConfig</em></a><em>, </em><em>optional</em>) – Simulation config passed to fitness evaluators.</p></li>
+<li><p><strong>catalog</strong> (<em>TopologyCatalog</em><em>, </em><em>optional</em>) – Topology catalog. Uses built-in catalog if None.</p></li>
+<li><p><strong>include_gait</strong> (<em>bool</em>) – If True, run gait analysis on Pareto-front solutions.</p></li>
+<li><p><strong>include_stability</strong> (<em>bool</em>) – If True, collect stability time series for Pareto-front solutions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pareto front with optional gait/stability analysis.
+Each <code class="docutils literal notranslate"><span class="pre">ParetoSolution.metadata</span></code> contains <code class="docutils literal notranslate"><span class="pre">topology_name</span></code>
+and <code class="docutils literal notranslate"><span class="pre">topology_id</span></code> identifying the mechanism type.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="nsga_optimizer.html#leggedsnake.nsga_optimizer.NsgaWalkingResult" title="leggedsnake.nsga_optimizer.NsgaWalkingResult">NsgaWalkingResult</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="nsga_optimizer.html" class="btn btn-neutral float-left" title="nsga_optimizer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="co_design.html" class="btn btn-neutral float-right" title="co_design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

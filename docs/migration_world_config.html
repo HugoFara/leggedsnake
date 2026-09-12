@@ -1,0 +1,331 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Migrating from params to WorldConfig &mdash; LeggedSnake 0.6.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2bd037f0"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="walker" href="api/walker.html" />
+    <link rel="prev" title="Concepts" href="concepts.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            LeggedSnake
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Introduction</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="readmelink.html">Readme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changeloglink.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#why-the-change">Why the change</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-reference-mapping">Quick-reference mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#side-by-side-a-typical-setup">Side-by-side: a typical setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terrain-presets">Terrain presets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#new-worldconfig-fields-with-no-legacy-equivalent">New <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> fields with no legacy equivalent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#legacy-only-knobs-no-worldconfig-mapping">Legacy-only knobs (no <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> mapping)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Mechanism</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/walker.html">walker</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/utility.html">utility</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Physics</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/physics_engine.html">physics_engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/dynamic_linkage.html">dynamic_linkage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/hypergraph_physics.html">hypergraph_physics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/world_visualizer.html">world_visualizer</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Evaluation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/fitness.html">fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/stability.html">stability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/gait_analysis.html">gait_analysis</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Optimization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/walking_objectives.html">walking_objectives</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/genetic_optimizer.html">genetic_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/nsga_optimizer.html">nsga_optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/topology_optimization.html">topology_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/co_design.html">co_design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/gait_optimization.html">gait_optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/leg_count.html">leg_count</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/show_evolution.html">show_evolution</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">I/O &amp; Plotting</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/serialization.html">serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/urdf_export.html">urdf_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/plotting.html">plotting</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Quick Links</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake">Source Code</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/leggedsnake/">Download on PyPi</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/HugoFara/leggedsnake/discussions">Discuss</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">See Also</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://hugofara.github.io/pylinkage/">Pylinkage (Sister Project/Backend)</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">LeggedSnake</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/migration_world_config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="migrating-from-params-to-worldconfig">
+<h1>Migrating from <code class="docutils literal notranslate"><span class="pre">params</span></code> to <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code><a class="headerlink" href="#migrating-from-params-to-worldconfig" title="Link to this heading"></a></h1>
+<p>LeggedSnake 0.5.0 retires the global <code class="docutils literal notranslate"><span class="pre">params</span></code> dict in favour of a
+structured <code class="xref py py-class docutils literal notranslate"><span class="pre">WorldConfig</span></code> dataclass.  The dict is
+still importable for backward compatibility, but <strong>no library code
+reads it any more</strong> — only what you pass into <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> (or the
+default <code class="docutils literal notranslate"><span class="pre">DEFAULT_CONFIG</span></code>) actually drives a simulation.  Mutating
+<code class="docutils literal notranslate"><span class="pre">params</span></code> after the move is silent dead code; this guide shows the
+one-to-one replacement.</p>
+<section id="why-the-change">
+<h2>Why the change<a class="headerlink" href="#why-the-change" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Discoverability.</strong> Dataclass fields show up in autocompletion,
+type-checkers, and <code class="docutils literal notranslate"><span class="pre">help(WorldConfig)</span></code>; nested dict keys do not.</p></li>
+<li><p><strong>Immutability by default.</strong> <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> is a frozen-by-convention
+dataclass — pass a fresh one per simulation instead of mutating
+shared global state.</p></li>
+<li><p><strong>Validation.</strong> Field types are explicit; mistyped keys fail at
+construction rather than silently being ignored.</p></li>
+<li><p><strong>Composition.</strong> Terrain knobs live on
+<code class="xref py py-class docutils literal notranslate"><span class="pre">TerrainConfig</span></code>, so you can reuse a tuned
+terrain across many runs by passing the same <code class="docutils literal notranslate"><span class="pre">terrain=</span></code> instance.</p></li>
+</ul>
+</section>
+<section id="quick-reference-mapping">
+<h2>Quick-reference mapping<a class="headerlink" href="#quick-reference-mapping" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 45.0%" />
+<col style="width: 45.0%" />
+<col style="width: 10.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Legacy <code class="docutils literal notranslate"><span class="pre">params</span></code> key</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> field</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;physics&quot;][&quot;gravity&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.gravity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tuple[float,</span> <span class="pre">float]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;simul&quot;][&quot;physics_period&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.physics_period</span></code></p></td>
+<td><p>seconds</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;linkage&quot;][&quot;torque&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.torque</span></code></p></td>
+<td><p><strong>Default lowered</strong> <code class="docutils literal notranslate"><span class="pre">1e3</span></code> → <code class="docutils literal notranslate"><span class="pre">1e2</span></code> N·m in 0.5.0</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;linkage&quot;][&quot;load&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.load_mass</span></code></p></td>
+<td><p>kg; now applied automatically in
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">World.add_linkage()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;ground&quot;][&quot;friction&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.ground_friction</span></code></p></td>
+<td><p>global ground friction</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;ground&quot;][&quot;slope&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.terrain.slope</span></code></p></td>
+<td><p>radians</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;ground&quot;][&quot;max_step&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.terrain.max_step</span></code></p></td>
+<td><p>meters</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;ground&quot;][&quot;step_freq&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.terrain.step_freq</span></code></p></td>
+<td><p>probability</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;ground&quot;][&quot;noise&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.terrain.noise</span></code></p></td>
+<td><p>0–1</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">params[&quot;ground&quot;][&quot;section_len&quot;]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">WorldConfig.terrain.section_len</span></code></p></td>
+<td><p>meters</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="side-by-side-a-typical-setup">
+<h2>Side-by-side: a typical setup<a class="headerlink" href="#side-by-side-a-typical-setup" title="Link to this heading"></a></h2>
+<p>Before — mutating the global dict:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">leggedsnake</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ls</span>
+
+<span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;physics&quot;</span><span class="p">][</span><span class="s2">&quot;gravity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;simul&quot;</span><span class="p">][</span><span class="s2">&quot;physics_period&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;linkage&quot;</span><span class="p">][</span><span class="s2">&quot;torque&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;linkage&quot;</span><span class="p">][</span><span class="s2">&quot;load&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">8.0</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ground&quot;</span><span class="p">][</span><span class="s2">&quot;friction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.7</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ground&quot;</span><span class="p">][</span><span class="s2">&quot;slope&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">ls</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ground&quot;</span><span class="p">][</span><span class="s2">&quot;noise&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<span class="n">world</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">World</span><span class="p">()</span>
+<span class="n">world</span><span class="o">.</span><span class="n">add_linkage</span><span class="p">(</span><span class="n">walker</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After — structured config:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">leggedsnake</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ls</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">WorldConfig</span><span class="p">(</span>
+    <span class="n">gravity</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.0</span><span class="p">),</span>
+    <span class="n">physics_period</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">torque</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">load_mass</span><span class="o">=</span><span class="mf">8.0</span><span class="p">,</span>
+    <span class="n">ground_friction</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="n">terrain</span><span class="o">=</span><span class="n">ls</span><span class="o">.</span><span class="n">TerrainConfig</span><span class="p">(</span><span class="n">slope</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">noise</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">world</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">World</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">world</span><span class="o">.</span><span class="n">add_linkage</span><span class="p">(</span><span class="n">walker</span><span class="p">)</span>  <span class="c1"># load_mass is applied automatically</span>
+</pre></div>
+</div>
+</section>
+<section id="terrain-presets">
+<h2>Terrain presets<a class="headerlink" href="#terrain-presets" title="Link to this heading"></a></h2>
+<p>Common terrain setups ship as <code class="xref py py-class docutils literal notranslate"><span class="pre">TerrainPreset</span></code>
+values, so you don’t have to hand-tune the dozen <code class="docutils literal notranslate"><span class="pre">TerrainConfig</span></code>
+fields:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">leggedsnake</span><span class="w"> </span><span class="kn">import</span> <span class="n">TerrainConfig</span><span class="p">,</span> <span class="n">TerrainPreset</span><span class="p">,</span> <span class="n">WorldConfig</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">WorldConfig</span><span class="p">(</span><span class="n">terrain</span><span class="o">=</span><span class="n">TerrainConfig</span><span class="o">.</span><span class="n">from_preset</span><span class="p">(</span><span class="n">TerrainPreset</span><span class="o">.</span><span class="n">ROUGH</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Available presets: <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>, <code class="docutils literal notranslate"><span class="pre">HILLY</span></code>, <code class="docutils literal notranslate"><span class="pre">ROUGH</span></code>, <code class="docutils literal notranslate"><span class="pre">STAIRS</span></code>,
+<code class="docutils literal notranslate"><span class="pre">MIXED</span></code>, <code class="docutils literal notranslate"><span class="pre">SLOPE_UP</span></code>, <code class="docutils literal notranslate"><span class="pre">SLOPE_DOWN</span></code>, <code class="docutils literal notranslate"><span class="pre">SINUSOIDAL</span></code>.</p>
+</section>
+<section id="new-worldconfig-fields-with-no-legacy-equivalent">
+<h2>New <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> fields with no legacy equivalent<a class="headerlink" href="#new-worldconfig-fields-with-no-legacy-equivalent" title="Link to this heading"></a></h2>
+<p>These were introduced alongside <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> and are <em>only</em>
+reachable through the new API:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">payload_offset:</span> <span class="pre">tuple[float,</span> <span class="pre">float]</span></code> — offset the chassis centre
+of gravity (body-local meters) to simulate uneven payload.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wind_force:</span> <span class="pre">tuple[float,</span> <span class="pre">float]</span></code> — constant external force (N)
+applied to the chassis every physics step.  <code class="docutils literal notranslate"><span class="pre">(+x,</span> <span class="pre">0)</span></code> models a
+steady headwind.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">drag_coefficient:</span> <span class="pre">float</span></code> — linear drag (<code class="docutils literal notranslate"><span class="pre">F</span> <span class="pre">=</span> <span class="pre">-c·v</span></code>) applied to
+the chassis.  <code class="docutils literal notranslate"><span class="pre">0</span></code> disables drag.</p></li>
+</ul>
+<p>On the terrain side: <code class="docutils literal notranslate"><span class="pre">seed</span></code>, <code class="docutils literal notranslate"><span class="pre">friction_range</span></code>, <code class="docutils literal notranslate"><span class="pre">gap_freq</span></code> /
+<code class="docutils literal notranslate"><span class="pre">gap_width</span></code>, <code class="docutils literal notranslate"><span class="pre">obstacle_freq</span></code> / <code class="docutils literal notranslate"><span class="pre">obstacle_height</span></code> /
+<code class="docutils literal notranslate"><span class="pre">obstacle_width</span></code>, <code class="docutils literal notranslate"><span class="pre">slope_profile</span></code>, <code class="docutils literal notranslate"><span class="pre">wave_period</span></code>,
+<code class="docutils literal notranslate"><span class="pre">wave_sweep_rate</span></code>.  See <code class="xref py py-class docutils literal notranslate"><span class="pre">TerrainConfig</span></code>.</p>
+</section>
+<section id="legacy-only-knobs-no-worldconfig-mapping">
+<h2>Legacy-only knobs (no <code class="docutils literal notranslate"><span class="pre">WorldConfig</span></code> mapping)<a class="headerlink" href="#legacy-only-knobs-no-worldconfig-mapping" title="Link to this heading"></a></h2>
+<p>A handful of <code class="docutils literal notranslate"><span class="pre">params</span></code> keys had no live consumer at the time of the
+0.5.0 refactor and were intentionally not migrated:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">params[&quot;linkage&quot;][&quot;crank_len&quot;]</span></code> — was already documented as
+“unused” in the legacy code.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">params[&quot;linkage&quot;][&quot;masses&quot;]</span></code> — bar masses are now derived from
+edge geometry by <code class="docutils literal notranslate"><span class="pre">hypergraph_physics</span></code>, not a global linear
+density.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">params[&quot;physics&quot;][&quot;max_force&quot;]</span></code> — pymunk’s per-constraint force
+limit; was never threaded into the physics step.</p></li>
+</ul>
+<p>If you actually need any of these, please open an issue on the
+<a class="reference external" href="https://github.com/HugoFara/leggedsnake/issues">tracker</a> describing
+the use case.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="concepts.html" class="btn btn-neutral float-left" title="Concepts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/walker.html" class="btn btn-neutral float-right" title="walker" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Hugo Farajallah.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
