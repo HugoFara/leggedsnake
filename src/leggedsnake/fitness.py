@@ -839,7 +839,7 @@ def chain_walking_optimizers(
 
     Example
     -------
-    A global → local pipeline for a walker:
+    A global → local pipeline for a walker::
 
         from leggedsnake import (
             DistanceFitness, chain_walking_optimizers,

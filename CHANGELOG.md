@@ -37,6 +37,12 @@ Requires **pylinkage >= 1.2.0**.
   for an optional value. No behavioural change.
 - `uv.lock` records pylinkage 1.2.0 (and its `typing_extensions` marker
   for Python 3.10).
+- **The Sphinx build is warning-free** (was 124). Dataclass `Attributes`
+  sections render as `:ivar:` fields (`napoleon_use_ivar`) so autodoc no
+  longer documents every annotated attribute twice; nested bold/code/link
+  markup in `README.md` and this file, which reStructuredText cannot
+  express, is unnested; the `chain_walking_optimizers` example is a
+  literal block. `CONTRIBUTING.md` names the real docs source directory.
 
 ## [0.6.0] - 2026-08-12
 
@@ -187,7 +193,7 @@ opens the synthesis hand-off as public API.
   ``dynamic_linkage``, ``genetic_optimizer``, ``physics_engine``,
   ``world_visualizer``. The old names remain importable as thin
   shims that forward every attribute lookup via module-level
-  ``__getattr__`` and emit a :class:`DeprecationWarning` at import
+  ``__getattr__`` and emit a ``DeprecationWarning`` at import
   time. Update callers to the new names; the shims will be removed
   in a future release.
 
@@ -298,7 +304,7 @@ opens the synthesis hand-off as public API.
     ``initial_offsets`` warm-start and parallel workers.
   - ``GaitOptimizationResult`` reports best offsets, best score, and
     evaluation count.
-- **External force-field extensions to ``WorldConfig``**:
+- **External force-field extensions** to ``WorldConfig``:
   - ``payload_offset: tuple[float, float]`` — offsets the chassis centre
     of gravity in body-local coordinates, simulating an uneven or
     off-centre payload without moving the reference position.
@@ -340,7 +346,7 @@ opens the synthesis hand-off as public API.
     speed response across terrain frequencies in one run.
   - ``TerrainPreset.SLOPE_UP`` / ``SLOPE_DOWN`` / ``SINUSOIDAL`` —
     preassembled terrain-benchmark configs.
-- **Classical walking-linkage factories on ``Walker``**: one-call
+- **Classical walking-linkage factories** on ``Walker``: one-call
   constructors for six canonical mechanisms, each with unit-scaled
   geometries and published bar lengths.
   - ``Walker.from_jansen()`` — Theo Jansen's 8-bar, Holy-Number lengths.
@@ -577,7 +583,7 @@ opens the synthesis hand-off as public API.
     with DOF ≠ 1 before building the mechanism.
   - ``compute_dof``, ``compute_mobility``, ``MobilityInfo``
     re-exported from the package root.
-- **``chain_walking_optimizers(fitness, linkage, stages, ...)``**:
+- ``chain_walking_optimizers(fitness, linkage, stages, ...)``:
   walking-specific wrapper around
   ``pylinkage.optimization.chain_optimizers``. Adapts a
   ``DynamicFitness`` via ``as_eval_func`` and forwards stages

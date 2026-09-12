@@ -133,13 +133,13 @@ ls.video(walker)
 
 ## Documentation
 
-- **[Concepts guide](https://hugofara.github.io/leggedsnake/concepts.html)**
+- [Concepts guide](https://hugofara.github.io/leggedsnake/concepts.html)
   — orientation to the three core ideas: topology + dimensions = walker,
   the `DynamicFitness` protocol, and the optimizer landscape from
   fast-kinematic to dynamic-multi-objective.
-- **[`params` → `WorldConfig` migration guide](https://hugofara.github.io/leggedsnake/migration_world_config.html)**
+- [`params` → `WorldConfig` migration guide](https://hugofara.github.io/leggedsnake/migration_world_config.html)
   — for code written against the legacy global `params` dict.
-- **[Full API reference](https://hugofara.github.io/leggedsnake/)** — modules
+- [Full API reference](https://hugofara.github.io/leggedsnake/) — modules
   grouped by capability (Mechanism, Physics, Evaluation, Optimization,
   I/O & Plotting).
 
@@ -186,7 +186,7 @@ matplotlib `PillowWriter` (headless).
   ![Kinematic half Strider](https://github.com/HugoFara/leggedsnake/raw/main/examples/images/Kinematic%20half-Strider.gif)
 - **Checkpoint long runs.** `GeneticOptimization(..., startnstop="run.json")`
   resumes automatically on the next launch.
-- **Wrap optimization scripts in `if __name__ == "__main__":`** — the GA and
+- **Wrap optimization scripts** in `if __name__ == "__main__":` — the GA and
   NSGA optimizers spawn worker processes.
 
 ## Contributing

@@ -27,7 +27,7 @@ Fell free to use the tools described here, but they are not necessary in any way
 
 * To publish a new version, use ``bump2version``. For instance ``bump2version minor``.
 * Update CHANGELOG.md with release date and edit subsection titles.
-* Regenerate the documentation with ``sphinx-build -b html source docs``
+* Regenerate the documentation with ``uv run sphinx-build -E -a -b html docs_src docs``
   (uses Sphinx). Clean everything with ``make clean``.
 * Commit and add a tag (e. g. v0.4.0).
 * Publish a new [GitHub release](https://github.com/HugoFara/leggedsnake/releases).
