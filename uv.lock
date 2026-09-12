@@ -2626,12 +2626,13 @@ wheels = [
 
 [[package]]
 name = "pylinkage"
-version = "1.1.1"
+version = "1.2.0"
 source = { editable = "../pylinkage" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "tqdm" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 
 [package.metadata]
@@ -2668,6 +2669,7 @@ requires-dist = [
     { name = "sympy", marker = "extra == 'full'", specifier = ">=1.12" },
     { name = "sympy", marker = "extra == 'symbolic'", specifier = ">=1.12" },
     { name = "tqdm", specifier = ">=4.40.0" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.0.0" },
 ]
 provides-extras = ["numba", "scipy", "symbolic", "pso", "viz", "plotly", "svg", "full", "dev", "docs", "cad", "analysis", "moo"]
 

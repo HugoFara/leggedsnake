@@ -207,9 +207,9 @@ def _find_rigid_groups(
         # Find all edges between nodes in this hyperedge
         for i in range(len(nodes)):
             for j in range(i + 1, len(nodes)):
-                edge_id = edge_lookup.get((nodes[i], nodes[j]))
-                if edge_id is not None:
-                    group_edges.add(edge_id)
+                found = edge_lookup.get((nodes[i], nodes[j]))
+                if found is not None:
+                    group_edges.add(found)
         if len(group_edges) >= 2:
             groups.append(group_edges)
 
