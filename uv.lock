@@ -2626,7 +2626,7 @@ wheels = [
 
 [[package]]
 name = "pylinkage"
-version = "1.1.0"
+version = "1.1.1"
 source = { editable = "../pylinkage" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -2642,7 +2642,6 @@ requires-dist = [
     { name = "drawsvg", marker = "extra == 'full'", specifier = ">=2.4.0" },
     { name = "drawsvg", marker = "extra == 'svg'", specifier = ">=2.4.0" },
     { name = "ezdxf", marker = "extra == 'cad'", specifier = ">=1.0.0" },
-    { name = "fastapi", marker = "extra == 'api'", specifier = ">=0.109.0" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.0.0" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.0.0" },
     { name = "ipywidgets", marker = "extra == 'full'", specifier = ">=8.0.0" },
@@ -2657,7 +2656,7 @@ requires-dist = [
     { name = "pandas", marker = "extra == 'analysis'", specifier = ">=2.0.0" },
     { name = "plotly", marker = "extra == 'full'", specifier = ">=6.5.0" },
     { name = "plotly", marker = "extra == 'plotly'", specifier = ">=6.5.0" },
-    { name = "pydantic-settings", marker = "extra == 'api'", specifier = ">=2.1.0" },
+    { name = "pymoo", marker = "extra == 'full'", specifier = ">=0.6.0" },
     { name = "pymoo", marker = "extra == 'moo'", specifier = ">=0.6.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
@@ -2669,9 +2668,8 @@ requires-dist = [
     { name = "sympy", marker = "extra == 'full'", specifier = ">=1.12" },
     { name = "sympy", marker = "extra == 'symbolic'", specifier = ">=1.12" },
     { name = "tqdm", specifier = ">=4.40.0" },
-    { name = "uvicorn", extras = ["standard"], marker = "extra == 'api'", specifier = ">=0.27.0" },
 ]
-provides-extras = ["numba", "scipy", "symbolic", "pso", "viz", "plotly", "svg", "full", "dev", "docs", "api", "cad", "analysis", "moo"]
+provides-extras = ["numba", "scipy", "symbolic", "pso", "viz", "plotly", "svg", "full", "dev", "docs", "cad", "analysis", "moo"]
 
 [package.metadata.requires-dev]
 dev = [

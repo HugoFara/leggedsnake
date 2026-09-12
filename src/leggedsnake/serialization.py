@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 import numpy as np
 
 from pylinkage.dimensions import Dimensions
-from pylinkage.hypergraph.serialization import graph_from_dict, graph_to_dict
+from pylinkage.hypergraph import graph_from_dict, graph_to_dict
 from pylinkage.optimization.collections import ParetoFront, ParetoSolution
 
 from .nsga_optimizer import NsgaWalkingConfig, NsgaWalkingResult

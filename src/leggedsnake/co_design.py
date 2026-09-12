@@ -37,8 +37,8 @@ from .physics_engine import TerrainConfig, WorldConfig
 from .walker import Walker
 
 if TYPE_CHECKING:
-    from pylinkage.optimization.co_optimization_types import CoOptimizationConfig
-    from pylinkage.topology.catalog import TopologyCatalog
+    from pylinkage.optimization import CoOptimizationConfig
+    from pylinkage.topology import TopologyCatalog
 
 
 @dataclass
@@ -144,8 +144,7 @@ def optimize_walking_mechanism(
         If *spec.objectives* is empty.
     """
     from pylinkage.optimization import co_optimize
-    from pylinkage.optimization.co_optimization_types import CoOptimizationConfig
-    from pylinkage.optimization.warm_start import warm_start_co_optimization
+    from pylinkage.optimization import CoOptimizationConfig, warm_start_co_optimization
 
     if not spec.objectives:
         raise ValueError("At least one objective is required.")

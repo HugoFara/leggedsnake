@@ -347,7 +347,7 @@ class _TopologyContext:
         max_links: int = 8,
         catalog: Any | None = None,
     ) -> None:
-        from pylinkage.topology.catalog import TopologyCatalog
+        from pylinkage.topology import TopologyCatalog
 
         if catalog is None:
             catalog = TopologyCatalog.load_builtin()

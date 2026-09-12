@@ -636,7 +636,7 @@ def plot_walker_plotly(
     -------
     plotly.graph_objects.Figure
     """
-    from pylinkage.visualizer.plotly_viz import plot_linkage_plotly
+    from pylinkage.visualizer import plot_linkage_plotly
 
     loci = list(walker.step(
         iterations=iterations, skip_unbuildable=skip_unbuildable,
@@ -679,7 +679,7 @@ def save_walker_svg(
         Forwarded to ``save_linkage_svg`` (``show_loci``, ``width``,
         ``height``, etc.).
     """
-    from pylinkage.visualizer.drawsvg_viz import save_linkage_svg
+    from pylinkage.visualizer import save_linkage_svg
 
     loci = list(walker.step(
         iterations=iterations, skip_unbuildable=skip_unbuildable,
