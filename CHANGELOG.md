@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`nsga_walking_optimization` and `topology_walking_optimization` no
+  longer print `RuntimeWarning: invalid value encountered in subtract`.** A
+  walker that fails scores `+inf` on purpose, and pymoo's crowding distance
+  then subtracts one infinity from another. Both now run pymoo under
+  `numpy.errstate(invalid="ignore")` (the single-worker multi-objective path
+  of the former goes through `pylinkage.optimization`, which has the matching
+  fix). Such a warning names the file that
+  raised it, which is how the private path of the machine that executed
+  `examples/05_topology_co_optimization.ipynb` ended up committed with its
+  outputs; the notebook is re-executed (against pylinkage's matching fix, as
+  it calls `pylinkage.optimization.co_optimize`), and a test now refuses a
+  notebook whose outputs name a home directory.
+
 ## [0.6.1] - 2026-09-12
 
 Requires **pylinkage >= 1.2.1**.

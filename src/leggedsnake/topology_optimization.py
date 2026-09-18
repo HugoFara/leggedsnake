@@ -1083,14 +1083,16 @@ def topology_walking_optimization(
     else:
         algo = NSGA2(pop_size=cfg.pop_size)
 
-    # Run optimization
-    res = pymoo_minimize(
-        problem.problem,
-        algo,
-        ("n_gen", cfg.n_generations),
-        seed=cfg.seed,
-        verbose=cfg.verbose,
-    )
+    # Run optimization. A candidate that fails scores +inf by design, and
+    # pymoo's crowding distance then computes inf - inf: expected, not a bug.
+    with np.errstate(invalid="ignore"):
+        res = pymoo_minimize(
+            problem.problem,
+            algo,
+            ("n_gen", cfg.n_generations),
+            seed=cfg.seed,
+            verbose=cfg.verbose,
+        )
 
     # Package results
     nsga_cfg = NsgaWalkingConfig(
