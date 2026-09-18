@@ -435,14 +435,17 @@ def _run_via_parallel_problem(
     else:
         algo = NSGA2(pop_size=cfg.pop_size)
 
+    # A walker that fails scores +inf by design, and pymoo's crowding
+    # distance then computes inf - inf: expected, not a bug.
     try:
-        res = pymoo_minimize(
-            problem.problem,
-            algo,
-            ("n_gen", cfg.n_generations),
-            seed=cfg.seed,
-            verbose=cfg.verbose,
-        )
+        with np.errstate(invalid="ignore"):
+            res = pymoo_minimize(
+                problem.problem,
+                algo,
+                ("n_gen", cfg.n_generations),
+                seed=cfg.seed,
+                verbose=cfg.verbose,
+            )
     finally:
         problem.close()
 
