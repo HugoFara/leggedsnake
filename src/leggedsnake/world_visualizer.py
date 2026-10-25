@@ -116,7 +116,7 @@ class VisualWorld(pe.World):
         self.batch = pyglet.graphics.Batch()
 
         if not headless:
-            self.window = pyglet.window.Window(  # type: ignore[abstract]
+            self.window = pyglet.window.Window(
                 width=WINDOW_WIDTH,
                 height=WINDOW_HEIGHT,
                 caption="LeggedSnake Simulation",
@@ -132,20 +132,23 @@ class VisualWorld(pe.World):
         if self.window is None:
             return
 
-        @self.window.event
         def on_draw() -> None:
             self._on_draw()
 
-        @self.window.event
         def on_key_press(symbol: int, modifiers: int) -> None:
             if symbol == key.ESCAPE or symbol == key.Q:
                 self._running = False
                 if self.window:
                     self.window.close()
 
-        @self.window.event
         def on_resize(width: int, height: int) -> None:
             self._update_scale()
+
+        # set_handler is what the @window.event decorator does, minus the
+        # untyped decorator that mypy --strict rejects.
+        self.window.set_handler("on_draw", on_draw)
+        self.window.set_handler("on_key_press", on_key_press)
+        self.window.set_handler("on_resize", on_resize)
 
     def _update_scale(self) -> None:
         x_range = self._view_bounds[0][1] - self._view_bounds[0][0]
