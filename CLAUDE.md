@@ -6,12 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 LeggedSnake simulates and optimizes planar walking linkages. It layers a pymunk physics engine and multi-objective optimization on top of [pylinkage](../pylinkage/)'s kinematic/hypergraph model. The canonical mechanism is the Strider; classical Jansen/Klann/Chebyshev builders are also first-class.
 
-This package depends on pylinkage as an editable path dep (`[tool.uv.sources]` in `pyproject.toml`) — changes to pylinkage are picked up without reinstalling.
+This package depends on pylinkage from PyPI, as `uv.lock` records it. To work against a local pylinkage checkout, use the parent `the-great-walker` environment, whose root `pyproject.toml` installs both as editable path dependencies.
 
 ## Commands
 
 ```bash
-uv sync                                       # install deps (pulls editable pylinkage)
+uv sync                                       # install deps (pylinkage from PyPI)
 uv run pytest                                 # all tests
 uv run pytest tests/test_utility.py::TestStride::test_minimal_stride   # single test
 uv run pytest -k "strider"                    # tests matching pattern

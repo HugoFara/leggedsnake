@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Python 3.15 support**, tested in CI.
+
+### Changed
+
+- **Python 3.11 or later is required.** Python 3.10 reached end of life in
+  October 2026, and pylinkage 1.3.0 already requires 3.11. pip keeps a 3.10
+  environment on the previous leggedsnake release.
+- `uv.lock` is refreshed: pylinkage 1.3.0, pymunk 7.3.1, pyglet 2.1.19,
+  pymoo 0.6.2, numpy 2.5, scipy 1.18, and the development tools (ruff 0.17,
+  mypy 2.4, sphinx 9, nbconvert 7). Ruff's rule selection is now written in
+  `pyproject.toml` as the defaults it had until 0.14 (`E4`, `E7`, `E9`, `F`),
+  since later releases enable more rules by default.
+- `uv.lock` records pylinkage from PyPI. It used to record the sibling
+  checkout `../pylinkage` as an editable path dependency, which only
+  resolves inside `the-great-walker`; that monorepo's root environment keeps
+  the editable setup.
+
 ### Fixed
 
 - **`nsga_walking_optimization` and `topology_walking_optimization` no
