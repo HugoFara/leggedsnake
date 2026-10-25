@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mypy 2.4, sphinx 9, nbconvert 7). Ruff's rule selection is now written in
   `pyproject.toml` as the defaults it had until 0.14 (`E4`, `E7`, `E9`, `F`),
   since later releases enable more rules by default.
+- `uv.lock` records pylinkage from PyPI. It used to record the sibling
+  checkout `../pylinkage` as an editable path dependency, which only
+  resolves inside `the-great-walker`; that monorepo's root environment keeps
+  the editable setup.
 
 ### Fixed
 

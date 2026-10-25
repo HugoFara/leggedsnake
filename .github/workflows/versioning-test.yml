@@ -13,8 +13,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      UV_NO_SOURCES: true
     strategy:
       fail-fast: false
       matrix:
